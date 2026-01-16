@@ -1,0 +1,10 @@
+{
+  "extends": "@kintone-plugin/tsconfig/base.json",
+  "compilerOptions": {
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "module": "esnext",
+    "target": "esnext",
+    "jsx": "react-jsx"
+  },
+  "include": ["src/**/*"]
+}

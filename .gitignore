@@ -1,0 +1,28 @@
+# Dependencies
+node_modules
+
+# Build outputs
+**/dist
+**/artifacts
+**/*.zip
+
+# Environment variables
+.env
+.envrc
+
+# Private Key
+*.ppk
+
+# Logs
+**/*.log
+
+# Turbo
+.turbo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode
+.idea

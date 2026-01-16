@@ -1,0 +1,13 @@
+{
+  "name": "@kintone-plugin/eslint-config",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {},
+  "dependencies": {
+    "rimraf": "^6.1.2",
+    "@cybozu/eslint-config": "^25.0.0",
+    "eslint": "^9.39.2",
+    "globals": "^16.5.0"
+  }
+}

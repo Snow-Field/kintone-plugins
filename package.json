@@ -1,0 +1,26 @@
+{
+  "name": "kintone-plugins",
+  "version": "1.0.0",
+  "description": "kintone Plugins Monorepo",
+  "private": true,
+  "license": "ISC",
+  "type": "module",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "fix": "turbo run fix",
+    "clean": "turbo run clean",
+    "gen": "node scripts/create-plugin.js"
+  },
+  "devDependencies": {
+    "@clack/prompts": "^0.11.0",
+    "fs-extra": "^11.3.3",
+    "rimraf": "^6.1.2",
+    "turbo": "^2.3.3"
+  },
+  "packageManager": "pnpm@9.15.2",
+  "engines": {
+    "node": ">=18"
+  }
+}

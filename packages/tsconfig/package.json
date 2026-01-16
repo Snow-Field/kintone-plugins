@@ -1,0 +1,10 @@
+{
+  "name": "@kintone-plugin/tsconfig",
+  "version": "1.0.0",
+  "main": "base.json",
+  "license": "ISC",
+  "scripts": {},
+  "devDependencies": {
+    "rimraf": "^6.1.2"
+  }
+}
