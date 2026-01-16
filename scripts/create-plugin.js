@@ -47,7 +47,10 @@ async function main() {
 
     s.stop(`Plugin ${name} created successfully!`);
 
-    prompts.note(`Next steps:\n  1. cd apps/${name}\n  2. pnpm init (setup .env & key)\n  3. pnpm dev`, 'Success!');
+    prompts.note(
+      `Next steps:\n  1. cd apps/${name}\n  2. pnpm init (setup .env & key)\n  3. pnpm dev`,
+      'Success!'
+    );
 
     prompts.outro('Happy hacking! 🎨');
   } catch (error) {

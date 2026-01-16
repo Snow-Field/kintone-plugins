@@ -1,17 +1,17 @@
-import type { FC } from "react";
+import type { FC } from 'react';
 import {
   Controller,
   useFormContext,
   type FieldValues,
   type ControllerRenderProps,
-} from "react-hook-form";
-import { FormControlLabel, Switch } from "@mui/material";
-import type { SwitchProps } from "@mui/material";
+} from 'react-hook-form';
+import { FormControlLabel, Switch } from '@mui/material';
+import type { SwitchProps } from '@mui/material';
 
 type Props = {
   name: string;
   label?: string;
-} & Omit<SwitchProps, "checked">;
+} & Omit<SwitchProps, 'checked'>;
 
 export const FormSwitch: FC<Props> = ({ name, label, ...switchProps }) => {
   const { control } = useFormContext<FieldValues>();
@@ -29,7 +29,7 @@ export const FormSwitch: FC<Props> = ({ name, label, ...switchProps }) => {
           control={
             <Switch
               {...switchProps}
-              size="small"
+              size='small'
               checked={!!value}
               onChange={(e) => onChange(e.target.checked)}
             />

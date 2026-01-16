@@ -1,5 +1,5 @@
-import type { z } from "zod";
-import { logger } from "./logger";
+import type { z } from 'zod';
+import { logger } from './logger';
 
 /**
  * 保存: 設定情報をJSON文字列に変換してkintoneに保存
@@ -29,8 +29,7 @@ export const restorePluginConfig = <T extends Record<string, any>>({
   migrate?: (parsed: any) => T;
 }): T => {
   try {
-    const rawConfig: Record<string, string> =
-      kintone.plugin.app.getConfig(pluginId);
+    const rawConfig: Record<string, string> = kintone.plugin.app.getConfig(pluginId);
 
     // データが空なら初期値をパースして返す
     if (!Object.keys(rawConfig).length) return defaultConfig;
@@ -46,10 +45,7 @@ export const restorePluginConfig = <T extends Record<string, any>>({
     // スキーマ検証
     return schema.parse(migrated);
   } catch (error) {
-    logger.error(
-      "Plugin config restoration failed. Using default values.",
-      error,
-    );
+    logger.error('Plugin config restoration failed. Using default values.', error);
     return defaultConfig;
   }
 };

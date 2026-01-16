@@ -48,58 +48,38 @@ export type FieldMap = {
 };
 
 // --- 各型を自動生成 ---
-export type RecordNumber = FieldWith<
-  "RECORD_NUMBER",
-  FieldMap["RECORD_NUMBER"]
->;
-export type Id = FieldWith<"__ID__", FieldMap["__ID__"]>;
-export type Revision = FieldWith<"__REVISION__", FieldMap["__REVISION__"]>;
-export type Creator = FieldWith<"CREATOR", FieldMap["CREATOR"]>;
-export type CreatedTime = FieldWith<"CREATED_TIME", FieldMap["CREATED_TIME"]>;
-export type Modifier = FieldWith<"MODIFIER", FieldMap["MODIFIER"]>;
-export type UpdatedTime = FieldWith<"UPDATED_TIME", FieldMap["UPDATED_TIME"]>;
-export type SingleLineText = FieldWith<
-  "SINGLE_LINE_TEXT",
-  FieldMap["SINGLE_LINE_TEXT"]
->;
-export type MultiLineText = FieldWith<
-  "MULTI_LINE_TEXT",
-  FieldMap["MULTI_LINE_TEXT"]
->;
-export type RichText = FieldWith<"RICH_TEXT", FieldMap["RICH_TEXT"]>;
-export type Number = FieldWith<"NUMBER", FieldMap["NUMBER"]>;
-export type Calc = FieldWith<"CALC", FieldMap["CALC"]>;
-export type CheckBox = FieldWith<"CHECK_BOX", FieldMap["CHECK_BOX"]>;
-export type RadioButton = FieldWith<"RADIO_BUTTON", FieldMap["RADIO_BUTTON"]>;
-export type MultiSelect = FieldWith<"MULTI_SELECT", FieldMap["MULTI_SELECT"]>;
-export type DropDown = FieldWith<"DROP_DOWN", FieldMap["DROP_DOWN"]>;
-export type UserSelect = FieldWith<"USER_SELECT", FieldMap["USER_SELECT"]>;
-export type OrganizationSelect = FieldWith<
-  "ORGANIZATION_SELECT",
-  FieldMap["ORGANIZATION_SELECT"]
->;
-export type GroupSelect = FieldWith<"GROUP_SELECT", FieldMap["GROUP_SELECT"]>;
-export type Date = FieldWith<"DATE", FieldMap["DATE"]>;
-export type Time = FieldWith<"TIME", FieldMap["TIME"]>;
-export type DateTime = FieldWith<"DATETIME", FieldMap["DATETIME"]>;
-export type Link = FieldWith<"LINK", FieldMap["LINK"]>;
-export type File = FieldWith<"FILE", FieldMap["FILE"]>;
-export type Category = FieldWith<"CATEGORY", FieldMap["CATEGORY"]>;
-export type Status = FieldWith<"STATUS", FieldMap["STATUS"]>;
-export type StatusAssignee = FieldWith<
-  "STATUS_ASSIGNEE",
-  FieldMap["STATUS_ASSIGNEE"]
->;
+export type RecordNumber = FieldWith<'RECORD_NUMBER', FieldMap['RECORD_NUMBER']>;
+export type Id = FieldWith<'__ID__', FieldMap['__ID__']>;
+export type Revision = FieldWith<'__REVISION__', FieldMap['__REVISION__']>;
+export type Creator = FieldWith<'CREATOR', FieldMap['CREATOR']>;
+export type CreatedTime = FieldWith<'CREATED_TIME', FieldMap['CREATED_TIME']>;
+export type Modifier = FieldWith<'MODIFIER', FieldMap['MODIFIER']>;
+export type UpdatedTime = FieldWith<'UPDATED_TIME', FieldMap['UPDATED_TIME']>;
+export type SingleLineText = FieldWith<'SINGLE_LINE_TEXT', FieldMap['SINGLE_LINE_TEXT']>;
+export type MultiLineText = FieldWith<'MULTI_LINE_TEXT', FieldMap['MULTI_LINE_TEXT']>;
+export type RichText = FieldWith<'RICH_TEXT', FieldMap['RICH_TEXT']>;
+export type Number = FieldWith<'NUMBER', FieldMap['NUMBER']>;
+export type Calc = FieldWith<'CALC', FieldMap['CALC']>;
+export type CheckBox = FieldWith<'CHECK_BOX', FieldMap['CHECK_BOX']>;
+export type RadioButton = FieldWith<'RADIO_BUTTON', FieldMap['RADIO_BUTTON']>;
+export type MultiSelect = FieldWith<'MULTI_SELECT', FieldMap['MULTI_SELECT']>;
+export type DropDown = FieldWith<'DROP_DOWN', FieldMap['DROP_DOWN']>;
+export type UserSelect = FieldWith<'USER_SELECT', FieldMap['USER_SELECT']>;
+export type OrganizationSelect = FieldWith<'ORGANIZATION_SELECT', FieldMap['ORGANIZATION_SELECT']>;
+export type GroupSelect = FieldWith<'GROUP_SELECT', FieldMap['GROUP_SELECT']>;
+export type Date = FieldWith<'DATE', FieldMap['DATE']>;
+export type Time = FieldWith<'TIME', FieldMap['TIME']>;
+export type DateTime = FieldWith<'DATETIME', FieldMap['DATETIME']>;
+export type Link = FieldWith<'LINK', FieldMap['LINK']>;
+export type File = FieldWith<'FILE', FieldMap['FILE']>;
+export type Category = FieldWith<'CATEGORY', FieldMap['CATEGORY']>;
+export type Status = FieldWith<'STATUS', FieldMap['STATUS']>;
+export type StatusAssignee = FieldWith<'STATUS_ASSIGNEE', FieldMap['STATUS_ASSIGNEE']>;
 
 // --- サブテーブルの定義 ---
 type InSubtableKeys = Exclude<
   keyof FieldMap,
-  | "__ID__"
-  | "__REVISION__"
-  | "RECORD_NUMBER"
-  | "CATEGORY"
-  | "STATUS"
-  | "STATUS_ASSIGNEE"
+  '__ID__' | '__REVISION__' | 'RECORD_NUMBER' | 'CATEGORY' | 'STATUS' | 'STATUS_ASSIGNEE'
 >;
 
 export type InSubtable = {
@@ -112,7 +92,7 @@ export type SubtableRow<T extends Record<string, InSubtable>> = {
 };
 
 export type Subtable<T extends Record<string, InSubtable>> = FieldWith<
-  "SUBTABLE",
+  'SUBTABLE',
   Array<SubtableRow<T>>
 >;
 
@@ -122,8 +102,4 @@ export type OneOf =
   | Subtable<Record<string, InSubtable>>;
 
 // --- 全フィールドタイプの Union ---
-export type FieldType =
-  | keyof FieldMap
-  | "SUBTABLE"
-  | "REFERENCE_TABLE"
-  | "GROUP";
+export type FieldType = keyof FieldMap | 'SUBTABLE' | 'REFERENCE_TABLE' | 'GROUP';

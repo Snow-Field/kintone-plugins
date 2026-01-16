@@ -1,14 +1,9 @@
-import { useMemo, useEffect } from "react";
-import {
-  useForm,
-  type FieldValues,
-  type DefaultValues,
-  type UseFormReturn,
-} from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import type { z } from "zod";
-import { useAppFields } from "./use-app-fields";
-import { useUnsavedChanges } from "./use-unsaved-changes";
+import { useMemo, useEffect } from 'react';
+import { useForm, type FieldValues, type DefaultValues, type UseFormReturn } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import type { z } from 'zod';
+import { useAppFields } from './use-app-fields';
+import { useUnsavedChanges } from './use-unsaved-changes';
 
 type UsePluginFormProps<T extends FieldValues> = {
   /** プラグインの初期設定値 */
@@ -31,15 +26,12 @@ export const usePluginForm = <T extends FieldValues>({
   const fieldCodes = useMemo(() => fields.map((f) => f.code), [fields]);
 
   // 動的なスキーマの生成
-  const schema = useMemo(
-    () => createSchema(fieldCodes),
-    [createSchema, fieldCodes],
-  );
+  const schema = useMemo(() => createSchema(fieldCodes), [createSchema, fieldCodes]);
 
   const methods = useForm<T>({
     resolver: zodResolver(schema) as any,
     defaultValues,
-    mode: "all", // 全ての変更を監視し、検証を行う
+    mode: 'all', // 全ての変更を監視し、検証を行う
   });
 
   // 初期化時またはフィールドリスト更新時にバリデーションを実行

@@ -1,20 +1,15 @@
 import { type FC, Suspense } from 'react';
 import { Provider as JotaiProvider } from 'jotai';
-import { ThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
 import { SnackbarProvider } from 'notistack';
-import { GeometryLoader } from '@kintone-plugin/ui';
+import { GeometryLoader, PluginThemeProvider } from '@kintone-plugin/ui';
 import { store } from '@/config/states/store';
-import { theme } from '@/config/theme';
 import { PluginErrorBoundary } from './components/PluginErrorBoundary';
 import { PluginContent } from './components/PluginContent';
 
 const App: FC = () => {
   return (
     <JotaiProvider store={store}>
-      <ThemeProvider theme={theme}>
-        {/* MUIのリセットCSSを適用 */}
-        <CssBaseline />
+      <PluginThemeProvider>
         {/* 1. 通知機能を有効化（エラー画面からも通知を使えるように外側に配置） */}
         <SnackbarProvider maxSnack={1}>
           {/* 2. 全体のエラーをキャッチ */}
@@ -26,7 +21,7 @@ const App: FC = () => {
             </Suspense>
           </PluginErrorBoundary>
         </SnackbarProvider>
-      </ThemeProvider>
+      </PluginThemeProvider>
     </JotaiProvider>
   );
 };

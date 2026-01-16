@@ -1,5 +1,5 @@
-import { useCallback } from "react";
-import { useSnackbar } from "notistack";
+import { useCallback } from 'react';
+import { useSnackbar } from 'notistack';
 
 type UseResetConfigProps<T> = {
   /** デフォルトの設定情報 */
@@ -16,7 +16,7 @@ type UseResetConfigProps<T> = {
 export const useResetConfig = <T>({
   defaultConfig,
   onSync,
-  message = "設定をリセットしました",
+  message = '設定をリセットしました',
 }: UseResetConfigProps<T>) => {
   const { enqueueSnackbar } = useSnackbar();
 
@@ -25,6 +25,6 @@ export const useResetConfig = <T>({
     // keepDefaultValues: true を指定することで、保存済み設定との差分を検知し isDirty を維持可能にする
     onSync(defaultConfig, { keepDefaultValues: true });
 
-    enqueueSnackbar(message, { variant: "success" });
+    enqueueSnackbar(message, { variant: 'success' });
   }, [onSync, defaultConfig, message, enqueueSnackbar]);
 };

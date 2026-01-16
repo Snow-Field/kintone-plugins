@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -6,14 +6,11 @@ import {
   useSensor,
   useSensors,
   type DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { Button } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import { SortableRowContainer } from "./SortableRowContainer";
+} from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { Button } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import { SortableRowContainer } from './SortableRowContainer';
 
 type Props<T extends { id: string }> = {
   items: T[];
@@ -30,7 +27,7 @@ export function DynamicSortableList<T extends { id: string }>({
   onAdd,
   onRemove,
   renderItem,
-  addButtonLabel = "追加",
+  addButtonLabel = '追加',
 }: Props<T>) {
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -45,15 +42,8 @@ export function DynamicSortableList<T extends { id: string }>({
   };
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragEnd={handleDragEnd}
-    >
-      <SortableContext
-        items={items.map((i) => i.id)}
-        strategy={verticalListSortingStrategy}
-      >
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
         {items.map((item, index) => (
           <SortableRowContainer
             key={item.id}
@@ -68,15 +58,15 @@ export function DynamicSortableList<T extends { id: string }>({
         ))}
       </SortableContext>
       <Button
-        variant="outlined"
+        variant='outlined'
         startIcon={<AddIcon />}
         onClick={() => onAdd()}
         sx={{
           mt: 1,
           py: 1,
-          borderStyle: "dashed",
-          width: "100%",
-          justifyContent: "center",
+          borderStyle: 'dashed',
+          width: '100%',
+          justifyContent: 'center',
         }}
       >
         {addButtonLabel}

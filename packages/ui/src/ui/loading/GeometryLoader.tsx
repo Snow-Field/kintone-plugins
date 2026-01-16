@@ -1,11 +1,5 @@
-import { type FC } from "react";
-import {
-  type SxProps,
-  type Theme,
-  Box,
-  keyframes,
-  Typography,
-} from "@mui/material";
+import { type FC } from 'react';
+import { type SxProps, type Theme, Box, keyframes, Typography } from '@mui/material';
 
 type Props = {
   label?: string;
@@ -36,30 +30,27 @@ export const GeometricMorph: FC = () => (
     sx={{
       width: 80,
       height: 80,
-      background: "linear-gradient(135deg, #feca57, #ff6b6b)",
-      position: "relative",
+      background: 'linear-gradient(135deg, #feca57, #ff6b6b)',
+      position: 'relative',
       animation: `${morph} 3s ease-in-out infinite`,
     }}
   />
 );
 
-export const GeometryLoader: FC<Props> = ({ label = "読み込み中...", sx }) => (
+export const GeometryLoader: FC<Props> = ({ label = '読み込み中...', sx }) => (
   <Box
     sx={{
-      minHeight: "calc(100vh - 200px)",
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "center",
-      alignItems: "center",
+      minHeight: 'calc(100vh - 200px)',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
       gap: 4,
       ...sx,
     }}
   >
     <GeometricMorph />
-    <Typography
-      variant="body2"
-      sx={{ color: "text.secondary", fontWeight: "medium" }}
-    >
+    <Typography variant='body2' sx={{ color: 'text.secondary', fontWeight: 'medium' }}>
       {label}
     </Typography>
   </Box>

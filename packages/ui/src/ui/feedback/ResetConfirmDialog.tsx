@@ -1,4 +1,4 @@
-import { type FC } from "react";
+import { type FC } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -6,7 +6,7 @@ import {
   DialogContentText,
   DialogActions,
   Button,
-} from "@mui/material";
+} from '@mui/material';
 
 type Props = {
   open: boolean;
@@ -24,10 +24,10 @@ export const ResetConfirmDialog: FC<Props> = ({ open, onConfirm, onClose }) => {
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button variant="contained" color="error" onClick={onConfirm}>
+        <Button variant='contained' color='error' onClick={onConfirm}>
           リセット
         </Button>
-        <Button variant="contained" color="inherit" onClick={onClose}>
+        <Button variant='contained' color='inherit' onClick={onClose}>
           キャンセル
         </Button>
       </DialogActions>

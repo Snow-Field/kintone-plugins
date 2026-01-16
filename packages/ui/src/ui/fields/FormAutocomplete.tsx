@@ -1,13 +1,13 @@
-import type { FC } from "react";
+import type { FC } from 'react';
 import {
   Controller,
   useFormContext,
   type FieldValues,
   type ControllerRenderProps,
   type ControllerFieldState,
-} from "react-hook-form";
-import { Autocomplete, Box, TextField, Typography } from "@mui/material";
-import type { SxProps, Theme } from "@mui/material";
+} from 'react-hook-form';
+import { Autocomplete, Box, TextField, Typography } from '@mui/material';
+import type { SxProps, Theme } from '@mui/material';
 
 type Props = {
   name: string;
@@ -28,9 +28,7 @@ export const FormAutocomplete: FC<Props> = ({
 }) => {
   const { control } = useFormContext<FieldValues>();
   // optionsをフィルタリング
-  const filteredOptions = shouldShowOption
-    ? options.filter(shouldShowOption)
-    : options;
+  const filteredOptions = shouldShowOption ? options.filter(shouldShowOption) : options;
 
   return (
     <Controller
@@ -48,10 +46,10 @@ export const FormAutocomplete: FC<Props> = ({
           value={filteredOptions.find((opt) => opt.code === value) ?? null}
           getOptionLabel={(opt) => opt.label}
           isOptionEqualToValue={(opt, v) => opt.code === v.code}
-          onChange={(_, field) => onChange(field?.code ?? "")}
+          onChange={(_, field) => onChange(field?.code ?? '')}
           fullWidth
           sx={{
-            width: { xs: "100%", sm: 400 },
+            width: { xs: '100%', sm: 400 },
             ...sx,
           }}
           renderOption={(props, option) => {
@@ -59,22 +57,18 @@ export const FormAutocomplete: FC<Props> = ({
             return (
               <Box
                 key={key}
-                component="li"
+                component='li'
                 {...rest}
                 sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "flex-start !important",
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start !important',
                 }}
               >
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ fontSize: "10px" }}
-                >
+                <Typography variant='caption' color='text.secondary' sx={{ fontSize: '10px' }}>
                   コード: {option.code}
                 </Typography>
-                <Typography variant="body2">{option.label}</Typography>
+                <Typography variant='body2'>{option.label}</Typography>
               </Box>
             );
           }}
@@ -83,8 +77,8 @@ export const FormAutocomplete: FC<Props> = ({
               {...params}
               label={label}
               placeholder={placeholder}
-              variant="outlined"
-              color="primary"
+              variant='outlined'
+              color='primary'
               error={!!error}
               helperText={error?.message}
             />

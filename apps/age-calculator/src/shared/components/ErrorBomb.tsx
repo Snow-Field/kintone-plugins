@@ -26,17 +26,17 @@ export const ErrorBomb: FC = () => {
       }}
     >
       <Box>
-        <Typography variant="subtitle2" sx={{ color: '#d32f2f', fontWeight: 'bold' }}>
+        <Typography variant='subtitle2' sx={{ color: '#d32f2f', fontWeight: 'bold' }}>
           デバッグツール: ErrorBoundary テスト
         </Typography>
-        <Typography variant="caption" color="text.secondary">
+        <Typography variant='caption' color='text.secondary'>
           下のボタンを押すとレンダリングエラーを発生させます。
         </Typography>
       </Box>
       <Button
-        variant="contained"
-        color="error"
-        size="small"
+        variant='contained'
+        color='error'
+        size='small'
         onClick={() => setShouldThrow(true)}
         sx={{ ml: 2 }}
       >

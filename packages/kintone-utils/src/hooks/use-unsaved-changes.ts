@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect } from 'react';
 
 /**
  * 未保存の変更がある場合に、ブラウザのタブを閉じたりリロードしたりするのを防ぐフック
@@ -13,10 +13,10 @@ export const useUnsavedChanges = (isDirty: boolean) => {
       }
     };
 
-    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [isDirty]);
 };

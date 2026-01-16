@@ -28,8 +28,8 @@ const FieldMappingRow: FC<{ index: number }> = ({ index }) => {
     >
       <FormAutocomplete
         name={`conditions.${index}.srcFieldCode`}
-        label="生年月日フィールド"
-        placeholder="フィールドを選択してください"
+        label='生年月日フィールド'
+        placeholder='フィールドを選択してください'
         options={dateFields}
         shouldShowOption={(field) => !isDuplicate(field.code, 'srcFieldCode')}
         sx={{ flex: 1, minWidth: 0 }}
@@ -37,8 +37,8 @@ const FieldMappingRow: FC<{ index: number }> = ({ index }) => {
       <ArrowForwardIosIcon sx={{ color: '#757575' }} />
       <FormAutocomplete
         name={`conditions.${index}.destFieldCode`}
-        label="年齢フィールド"
-        placeholder="フィールドを選択してください"
+        label='年齢フィールド'
+        placeholder='フィールドを選択してください'
         options={ageFields}
         shouldShowOption={(field) => !isDuplicate(field.code, 'destFieldCode')}
         sx={{ flex: 1, minWidth: 0 }}
@@ -66,7 +66,7 @@ export const FieldMappingSection: FC = () => {
             const row = getNewCondition();
             index !== undefined ? insert(index, row) : append(row);
           }}
-          addButtonLabel="新しい設定を追加"
+          addButtonLabel='新しい設定を追加'
           renderItem={(_, index) => <FieldMappingRow index={index} />}
         />
       </Box>
