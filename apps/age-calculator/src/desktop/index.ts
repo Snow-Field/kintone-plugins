@@ -27,7 +27,7 @@ kintone.events.on(
       destField.disabled = true;
     });
     return event;
-  },
+  }
 );
 
 /**
@@ -72,5 +72,5 @@ kintone.events.on(
     logger.groupEnd();
 
     return event;
-  },
+  }
 );

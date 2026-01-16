@@ -6,10 +6,10 @@ import { logger } from './logger';
  */
 export const storePluginConfig = <T extends Record<string, any>>(
   config: T,
-  callback?: () => void,
+  callback?: () => void
 ): void => {
   const rawConfig = Object.fromEntries(
-    Object.entries(config).map(([key, value]) => [key, JSON.stringify(value)]),
+    Object.entries(config).map(([key, value]) => [key, JSON.stringify(value)])
   );
   kintone.plugin.app.setConfig(rawConfig, callback);
 };
@@ -36,7 +36,7 @@ export const restorePluginConfig = <T extends Record<string, any>>({
 
     // パース処理
     const parsed = Object.fromEntries(
-      Object.entries(rawConfig).map(([k, v]) => [k, JSON.parse(v)]),
+      Object.entries(rawConfig).map(([k, v]) => [k, JSON.parse(v)])
     );
 
     // マイグレーション

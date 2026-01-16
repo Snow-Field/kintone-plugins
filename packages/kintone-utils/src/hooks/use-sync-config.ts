@@ -3,12 +3,10 @@ import { useSetAtom, type WritableAtom } from 'jotai';
 import { useFormContext, type KeepStateOptions, type FieldValues } from 'react-hook-form';
 
 /**
- * プラグインの状態 (Jotai & React Hook Form) を同期的に更新するためのベースフック
+ * プラグインの状態 (Jotai & React Hook Form) を同期的に更新するためのフック
  * @param configAtom 設定を管理するJotai Atom
  */
-export const useSyncPluginConfig = <T extends FieldValues>(
-  configAtom: WritableAtom<T, [T], void>,
-) => {
+export const useSyncConfig = <T extends FieldValues>(configAtom: WritableAtom<T, [T], void>) => {
   const setConfig = useSetAtom(configAtom);
   const { reset } = useFormContext<T>();
 
@@ -24,7 +22,7 @@ export const useSyncPluginConfig = <T extends FieldValues>(
       // RHFの内部状態をリセット
       reset(data, options);
     },
-    [setConfig, reset],
+    [setConfig, reset]
   );
 
   return { syncConfig };

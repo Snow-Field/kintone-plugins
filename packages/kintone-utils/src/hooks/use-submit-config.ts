@@ -4,7 +4,7 @@ import { PluginLogger } from '../lib/logger';
 
 const logger = new PluginLogger('Config');
 
-type UsePluginSubmitProps<T> = {
+type UseSubmitConfigProps<T> = {
   /** ローディング状態を制御する関数 */
   setLoading: (loading: boolean) => void;
   /** kintoneへの保存処理を行う関数 */
@@ -22,14 +22,14 @@ type UsePluginSubmitProps<T> = {
 /**
  * kintoneプラグイン設定の保存処理を管理するフック
  */
-export const usePluginSubmit = <T>({
+export const useSubmitConfig = <T>({
   setLoading,
   onSave,
   onSync,
   successAction,
   onSuccess,
   onError,
-}: UsePluginSubmitProps<T>) => {
+}: UseSubmitConfigProps<T>) => {
   const { enqueueSnackbar } = useSnackbar();
 
   const onSubmit = useCallback(
@@ -64,7 +64,7 @@ export const usePluginSubmit = <T>({
         setLoading(false);
       }
     },
-    [setLoading, onSave, onSync, successAction, onSuccess, onError, enqueueSnackbar],
+    [setLoading, onSave, onSync, successAction, onSuccess, onError, enqueueSnackbar]
   );
 
   return { onSubmit };

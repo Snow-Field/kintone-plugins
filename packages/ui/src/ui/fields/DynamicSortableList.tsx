@@ -36,7 +36,7 @@ export function DynamicSortableList<T extends { id: string }>({
     if (over && active.id !== over.id) {
       onMove(
         items.findIndex((i) => i.id === active.id),
-        items.findIndex((i) => i.id === over.id),
+        items.findIndex((i) => i.id === over.id)
       );
     }
   };

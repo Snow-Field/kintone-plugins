@@ -16,10 +16,10 @@ export const useDuplicateCheck = <T extends FieldValues>(index: number, arrayKey
     (value: string, key: string) => {
       if (!Array.isArray(items)) return false;
       return items.some(
-        (item: Record<string, any>, i: number) => i !== index && item[key] === value,
+        (item: Record<string, any>, i: number) => i !== index && item[key] === value
       );
     },
-    [items, index],
+    [items, index]
   );
 
   return { isDuplicate };

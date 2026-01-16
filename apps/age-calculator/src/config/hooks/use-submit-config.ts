@@ -1,20 +1,20 @@
 import { useSetAtom } from 'jotai';
-import { usePluginSubmit as useGenericPluginSubmit } from '@kintone-plugin/kintone-utils';
+import { useSubmitConfig as useGenericSubmitConfig } from '@kintone-plugin/kintone-utils';
 import { storeConfig, type PluginConfig } from '@/shared/config';
 import { loadingAtom } from '@/config/states/plugin';
-import { useSyncPluginConfig } from './use-sync-plugin-config';
+import { useSyncConfig } from './use-sync-config';
 
-type UsePluginSubmitProps = {
+type UseSubmitConfigProps = {
   onSuccess?: () => void;
   onError?: () => void;
   successAction?: React.ReactNode;
 };
 
-export const usePluginSubmit = (props: UsePluginSubmitProps) => {
+export const useSubmitConfig = (props: UseSubmitConfigProps) => {
   const setLoading = useSetAtom(loadingAtom);
-  const { syncConfig } = useSyncPluginConfig();
+  const { syncConfig } = useSyncConfig();
 
-  return useGenericPluginSubmit<PluginConfig>({
+  return useGenericSubmitConfig<PluginConfig>({
     ...props,
     setLoading,
     onSave: storeConfig,
