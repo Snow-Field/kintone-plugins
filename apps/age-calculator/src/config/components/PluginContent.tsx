@@ -4,10 +4,11 @@ import { FormProvider, useFormContext } from 'react-hook-form';
 import { Box, Button } from '@mui/material';
 import { activeTabIndexAtom, loadingAtom } from '@/config/states/plugin';
 import { usePluginForm } from '@/config/hooks/use-plugin-form';
-import { usePluginSubmit } from '@/config/hooks/use-plugin-submit';
+import { useSubmitConfig } from '@/config/hooks/use-submit-config';
 import { useResetConfig } from '@/config/hooks/use-reset-config';
-import { type PluginConfig } from '@/shared/config';
+import { useExportConfig, useImportConfig } from '@kintone-plugin/kintone-utils';
 import { Header, Form } from '@kintone-plugin/ui';
+import { type PluginConfig, PluginConfigSchema } from '@/shared/config';
 import { FormTabs } from '@/config/components/features/FormTabs';
 
 /**
@@ -17,7 +18,16 @@ const PluginContentForm: FC = () => {
   const { handleSubmit, formState } = useFormContext<PluginConfig>();
   const [activeTab, setActiveTab] = useAtom(activeTabIndexAtom);
   const loading = useAtomValue(loadingAtom);
-  const resetConfig = useResetConfig();
+
+  const reset = useResetConfig();
+  const exportConfig = useExportConfig<PluginConfig>();
+  const importConfig = useImportConfig<PluginConfig>(PluginConfigSchema);
+
+  const menuActions = {
+    reset,
+    export: exportConfig,
+    import: importConfig,
+  };
 
   const { isDirty, isSubmitting } = formState;
 
@@ -30,7 +40,7 @@ const PluginContentForm: FC = () => {
   };
 
   /** 送信処理の初期化 */
-  const { onSubmit } = usePluginSubmit({
+  const { onSubmit } = useSubmitConfig({
     successAction: (
       <Button
         type='button'
@@ -60,7 +70,7 @@ const PluginContentForm: FC = () => {
         onCancel={handleNavigateBack}
         isSaveLoading={loading}
         isSaveDisabled={loading || !isDirty || isSubmitting}
-        onReset={resetConfig}
+        menuActions={menuActions}
       />
       <Form tabs={FormTabs} activeTab={activeTab} />
     </Box>

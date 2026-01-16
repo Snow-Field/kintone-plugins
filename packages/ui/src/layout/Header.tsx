@@ -1,10 +1,12 @@
 import { type FC } from 'react';
-import { Box, Tabs, Tab, Stack } from '@mui/material';
+import { Box, Tabs, Tab, Stack, Divider } from '@mui/material';
 import { type TabItem } from '../types';
 import { SaveButton } from '../ui/button/SaveButton';
 import { CancelButton } from '../ui/button/CancelButton';
 import { MenuButton } from '../ui/button/MenuButton';
 import { ResetMenuItem } from '../ui/menu/ResetMenuItem';
+import { ExportMenuItem } from '../ui/menu/ExportMenuItem';
+import { ImportMenuItem } from '../ui/menu/ImportMenuItem';
 
 type Props = {
   tabs: TabItem[];
@@ -13,7 +15,11 @@ type Props = {
   onCancel: () => void;
   isSaveLoading?: boolean;
   isSaveDisabled?: boolean;
-  onReset: () => void;
+  menuActions: {
+    reset: () => void;
+    export: () => void;
+    import: (data: unknown) => void;
+  };
 };
 
 export const Header: FC<Props> = ({
@@ -23,8 +29,11 @@ export const Header: FC<Props> = ({
   onCancel,
   isSaveLoading,
   isSaveDisabled,
-  onReset,
+  menuActions,
 }) => {
+  /** メニューアクションの展開 */
+  const { reset: onReset, export: onExport, import: onImport } = menuActions;
+
   /** タブ */
   const handleTabChange = (_: React.SyntheticEvent, index: number) => {
     onTabChange(index);
@@ -79,6 +88,9 @@ export const Header: FC<Props> = ({
         <SaveButton loading={isSaveLoading} disabled={isSaveDisabled} />
         <CancelButton onClick={onCancel} loading={isSaveLoading} />
         <MenuButton disabled={isSaveLoading}>
+          <ImportMenuItem onImport={onImport} />
+          <ExportMenuItem onExport={onExport} />
+          <Divider />
           <ResetMenuItem onReset={onReset} />
         </MenuButton>
       </Stack>
