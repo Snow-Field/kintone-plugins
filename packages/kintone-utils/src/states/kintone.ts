@@ -1,6 +1,6 @@
-import { atom } from 'jotai';
-import { KintoneRestAPIClient } from '@kintone/rest-api-client';
-import { getAppId, GUEST_SPACE_ID } from '../lib/kintone';
+import { atom } from "jotai";
+import { KintoneRestAPIClient } from "@kintone/rest-api-client";
+import { getAppId, GUEST_SPACE_ID } from "../lib/kintone";
 
 type ClientParams = {
   baseUrl: string;
@@ -22,5 +22,7 @@ export const appFieldsAtom = atom(async () => {
   const { properties } = await client.app.getFormFields({ app: appId });
 
   // フィールド情報をソート
-  return Object.values(properties).sort((a, b) => a.label.localeCompare(b.label, 'ja'));
+  return Object.values(properties).sort((a, b) =>
+    a.label.localeCompare(b.label, "ja"),
+  );
 });

@@ -1,6 +1,12 @@
-import { type FC, type MouseEvent, type ReactNode, memo, useState } from 'react';
-import { IconButton, Menu } from '@mui/material';
-import { MoreVert } from '@mui/icons-material';
+import {
+  type FC,
+  type MouseEvent,
+  type ReactNode,
+  memo,
+  useState,
+} from "react";
+import { IconButton, Menu } from "@mui/material";
+import { MoreVert } from "@mui/icons-material";
 
 type Props = {
   children?: ReactNode;
@@ -8,7 +14,7 @@ type Props = {
   disabled?: boolean;
 };
 
-const DEFAULT_BUTTON_ID = 'generic-menu-button';
+const DEFAULT_BUTTON_ID = "generic-menu-button";
 
 export const MenuButton: FC<Props> = memo(function MenuButton({
   children,
@@ -32,8 +38,8 @@ export const MenuButton: FC<Props> = memo(function MenuButton({
         id={buttonId}
         size="small"
         onClick={handleOpen}
-        aria-controls={open ? 'menu-list' : undefined}
-        aria-expanded={open ? 'true' : undefined}
+        aria-controls={open ? "menu-list" : undefined}
+        aria-expanded={open ? "true" : undefined}
         aria-haspopup="true"
         disabled={disabled}
       >
@@ -47,7 +53,7 @@ export const MenuButton: FC<Props> = memo(function MenuButton({
         onClick={handleClose}
         keepMounted
         slotProps={{
-          list: { 'aria-labelledby': buttonId },
+          list: { "aria-labelledby": buttonId },
         }}
       >
         {children}

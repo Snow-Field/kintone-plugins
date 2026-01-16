@@ -1,8 +1,8 @@
-import { useCallback } from 'react';
-import { useSnackbar } from 'notistack';
-import { PluginLogger } from '../lib/logger';
+import { useCallback } from "react";
+import { useSnackbar } from "notistack";
+import { PluginLogger } from "../lib/logger";
 
-const logger = new PluginLogger('Config');
+const logger = new PluginLogger("Config");
 
 type UsePluginSubmitProps<T> = {
   /** ローディング状態を制御する関数 */
@@ -37,34 +37,42 @@ export const usePluginSubmit = <T>({
       try {
         setLoading(true);
 
-        logger.group('kintone Plugin Config Save');
-        logger.log('Saving Data:', data);
+        logger.group("kintone Plugin Config Save");
+        logger.log("Saving Data:", data);
 
         // kintoneへ保存
         onSave(data, () => {
-          logger.log('kintone.plugin.app.setConfig: Success');
+          logger.log("kintone.plugin.app.setConfig: Success");
         });
 
         // アプリの状態を同期
         onSync(data);
 
-        enqueueSnackbar('設定を保存しました。', {
-          variant: 'success',
+        enqueueSnackbar("設定を保存しました。", {
+          variant: "success",
           action: successAction,
         });
 
-        logger.info('Save Process Completed Successfully');
+        logger.info("Save Process Completed Successfully");
         onSuccess?.();
       } catch (e) {
-        logger.error('Save Process Failed:', e);
-        enqueueSnackbar('保存に失敗しました。', { variant: 'error' });
+        logger.error("Save Process Failed:", e);
+        enqueueSnackbar("保存に失敗しました。", { variant: "error" });
         onError?.();
       } finally {
         logger.groupEnd();
         setLoading(false);
       }
     },
-    [setLoading, onSave, onSync, successAction, onSuccess, onError, enqueueSnackbar]
+    [
+      setLoading,
+      onSave,
+      onSync,
+      successAction,
+      onSuccess,
+      onError,
+      enqueueSnackbar,
+    ],
   );
 
   return { onSubmit };

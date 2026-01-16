@@ -1,9 +1,19 @@
-import type { ReactNode } from 'react';
-import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { Button } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import { SortableRowContainer } from './SortableRowContainer';
+import type { ReactNode } from "react";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { Button } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import { SortableRowContainer } from "./SortableRowContainer";
 
 type Props<T extends { id: string }> = {
   items: T[];
@@ -20,7 +30,7 @@ export function DynamicSortableList<T extends { id: string }>({
   onAdd,
   onRemove,
   renderItem,
-  addButtonLabel = '追加',
+  addButtonLabel = "追加",
 }: Props<T>) {
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -29,14 +39,21 @@ export function DynamicSortableList<T extends { id: string }>({
     if (over && active.id !== over.id) {
       onMove(
         items.findIndex((i) => i.id === active.id),
-        items.findIndex((i) => i.id === over.id)
+        items.findIndex((i) => i.id === over.id),
       );
     }
   };
 
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-      <SortableContext items={items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext
+        items={items.map((i) => i.id)}
+        strategy={verticalListSortingStrategy}
+      >
         {items.map((item, index) => (
           <SortableRowContainer
             key={item.id}
@@ -57,9 +74,9 @@ export function DynamicSortableList<T extends { id: string }>({
         sx={{
           mt: 1,
           py: 1,
-          borderStyle: 'dashed',
-          width: '100%',
-          justifyContent: 'center',
+          borderStyle: "dashed",
+          width: "100%",
+          justifyContent: "center",
         }}
       >
         {addButtonLabel}

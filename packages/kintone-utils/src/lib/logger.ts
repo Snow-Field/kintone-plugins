@@ -1,6 +1,6 @@
-import { isDev } from './environment';
+import { isDev } from "./environment";
 
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+type LogLevel = "debug" | "info" | "warn" | "error";
 
 /**
  * kintoneプラグイン用のロギングクラス
@@ -11,12 +11,12 @@ class PluginLogger {
   /**
    * @param prefix ログの接頭辞（例: 'Desktop', 'Config'）
    */
-  constructor(prefix: string = 'Plugin') {
+  constructor(prefix: string = "Plugin") {
     this.prefix = `[${prefix}]`;
   }
 
   private shouldLog(level: LogLevel): boolean {
-    if (level === 'error') return true;
+    if (level === "error") return true;
     return isDev;
   }
 
@@ -24,7 +24,7 @@ class PluginLogger {
    * 通常のログ出力
    */
   log(...args: unknown[]) {
-    if (this.shouldLog('debug')) {
+    if (this.shouldLog("debug")) {
       console.log(this.prefix, ...args);
     }
   }
@@ -33,7 +33,7 @@ class PluginLogger {
    * 情報を強調して出力
    */
   info(...args: unknown[]) {
-    if (this.shouldLog('info')) {
+    if (this.shouldLog("info")) {
       console.info(this.prefix, ...args);
     }
   }
@@ -42,7 +42,7 @@ class PluginLogger {
    * 警告を出力
    */
   warn(...args: unknown[]) {
-    if (this.shouldLog('warn')) {
+    if (this.shouldLog("warn")) {
       console.warn(this.prefix, ...args);
     }
   }

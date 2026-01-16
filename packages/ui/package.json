@@ -6,8 +6,9 @@
   "type": "module",
   "scripts": {
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
+    "fix": "eslint --fix \"src/**/*.{ts,tsx}\"",
     "type-check": "tsc --noEmit",
-    "clean": "rimraf dist .turbo"
+    "clean": "rimraf .turbo dist"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -33,7 +34,6 @@
     "@emotion/styled": "^11.14.1",
     "@types/react": "^19.2.7",
     "react": "^19.2.3",
-    "rimraf": "^6.1.2",
     "typescript": "^5.9.3"
   }
 }

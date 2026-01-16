@@ -1,6 +1,6 @@
-import { useAtomValue } from 'jotai';
-import { appFieldsAtom } from '../states/kintone';
-import type { FieldType } from '../types/kintone';
+import { useAtomValue } from "jotai";
+import { appFieldsAtom } from "../states/kintone";
+import type { FieldType } from "../types/kintone";
 
 /**
  * kintoneのフィールド一覧を取得するフック
@@ -8,6 +8,8 @@ import type { FieldType } from '../types/kintone';
  */
 export const useAppFields = (filterTypes?: FieldType[]) => {
   const allFields = useAtomValue(appFieldsAtom);
-  const fields = filterTypes ? allFields.filter((f) => filterTypes.includes(f.type)) : allFields;
+  const fields = filterTypes
+    ? allFields.filter((f) => filterTypes.includes(f.type))
+    : allFields;
   return { fields };
 };

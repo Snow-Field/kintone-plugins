@@ -4,7 +4,7 @@ import presetsReactTypescriptPrettier from '@cybozu/eslint-config/flat/presets/r
 export default [
   ...presetsReactTypescriptPrettier,
   {
-    ignores: ['node_modules', 'lib', 'dist', '*.config.ts', '*.config.js'],
+    ignores: ['node_modules', 'dist', '*.config.ts', '*.config.js'],
   },
   {
     languageOptions: {

@@ -1,10 +1,10 @@
-import type { FC, ReactNode } from 'react';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { Box, IconButton, Tooltip } from '@mui/material';
-import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
-import AddIcon from '@mui/icons-material/Add';
-import DeleteIcon from '@mui/icons-material/Delete';
+import type { FC, ReactNode } from "react";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { Box, IconButton, Tooltip } from "@mui/material";
+import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
+import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 type Props = {
   id: string;
@@ -23,7 +23,14 @@ export const SortableRowContainer: FC<Props> = ({
   isDeleteDisabled,
   children,
 }) => {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
     id,
   });
 
@@ -39,35 +46,40 @@ export const SortableRowContainer: FC<Props> = ({
       ref={setNodeRef}
       style={style}
       sx={{
-        display: 'flex',
-        alignItems: 'center',
+        display: "flex",
+        alignItems: "center",
         gap: 1,
         p: 1,
         mb: 1,
-        bgcolor: 'background.paper',
+        bgcolor: "background.paper",
         borderRadius: 1,
-        border: '1px solid',
-        borderColor: isDragging ? 'primary.main' : 'transparent',
-        boxShadow: isDragging ? 3 : 'none',
-        '&:hover': { borderColor: 'divider', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' },
+        border: "1px solid",
+        borderColor: isDragging ? "primary.main" : "transparent",
+        boxShadow: isDragging ? 3 : "none",
+        "&:hover": {
+          borderColor: "divider",
+          boxShadow: "0 2px 4px rgba(0,0,0,0.05)",
+        },
       }}
     >
       <Box
         {...attributes}
         {...listeners}
         sx={{
-          cursor: 'grab',
-          color: 'text.disabled',
+          cursor: "grab",
+          color: "text.disabled",
           px: 0.5,
-          mt: '9px',
+          mt: "9px",
         }}
       >
         <DragIndicatorIcon fontSize="small" />
       </Box>
 
-      <Box sx={{ flex: 1, display: 'flex', alignItems: 'center', minWidth: 0 }}>{children}</Box>
+      <Box sx={{ flex: 1, display: "flex", alignItems: "center", minWidth: 0 }}>
+        {children}
+      </Box>
 
-      <Box sx={{ display: 'flex', mt: '4px' }}>
+      <Box sx={{ display: "flex", mt: "4px" }}>
         <Tooltip title="下に新しい行を追加">
           <IconButton size="small" onClick={() => onAdd(index + 1)}>
             <AddIcon fontSize="small" />

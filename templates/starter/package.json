@@ -13,13 +13,13 @@
     "package": "kintone-plugin-packer dist --ppk private.ppk --out artifacts/plugin.zip",
     "upload": "node scripts/upload.js",
     "deploy": "run-s build upload",
-    "clean": "rimraf dist artifacts .turbo",
     "lint": "run-p lint:*",
     "lint:eslint": "eslint \"src/**/*.{js,ts,jsx,tsx}\"",
     "lint:prettier": "prettier --check \"src/**/*.{js,ts,jsx,tsx}\" --cache",
     "fix": "run-p fix:*",
     "fix:eslint": "eslint --fix \"src/**/*.{js,ts,jsx,tsx}\"",
-    "fix:prettier": "prettier --write \"src/**/*.{js,ts,jsx,tsx}\""
+    "fix:prettier": "prettier --write \"src/**/*.{js,ts,jsx,tsx}\"",
+    "clean": "rimraf dist artifacts .turbo"
   },
   "dependencies": {
     "@kintone-plugin/ui": "workspace:*",
@@ -54,7 +54,6 @@
     "fs-extra": "^11.3.3",
     "npm-run-all": "^4.1.5",
     "prettier": "^3.7.4",
-    "rimraf": "^6.1.2",
     "typescript": "^5.9.3"
   }
 }

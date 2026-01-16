@@ -1,4 +1,4 @@
-import { type FC } from 'react';
+import { type FC } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -6,7 +6,7 @@ import {
   DialogContentText,
   DialogActions,
   Button,
-} from '@mui/material';
+} from "@mui/material";
 
 type Props = {
   open: boolean;

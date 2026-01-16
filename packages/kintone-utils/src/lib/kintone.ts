@@ -10,6 +10,6 @@ export const GUEST_SPACE_ID = (() => {
 // kintoneアプリID
 export const getAppId = () => {
   const appId = kintone.app.getId() ?? kintone.mobile.app.getId();
-  if (!appId) throw new Error('アプリIDの取得に失敗しました');
+  if (!appId) throw new Error("アプリIDの取得に失敗しました");
   return appId;
 };

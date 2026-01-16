@@ -5,8 +5,9 @@
   "types": "src/index.ts",
   "scripts": {
     "lint": "eslint .",
+    "fix": "eslint --fix .",
     "type-check": "tsc --noEmit",
-    "clean": "rimraf dist .turbo"
+    "clean": "rimraf .turbo dist"
   },
   "dependencies": {
     "@kintone/rest-api-client": "^6.1.0",
@@ -24,7 +25,6 @@
     "@kintone-plugin/tsconfig": "workspace:*",
     "typescript": "^5.9.3",
     "@types/react": "^19.2.7",
-    "rimraf": "^6.1.2",
     "@kintone/dts-gen": "^9.0.0"
   }
 }
