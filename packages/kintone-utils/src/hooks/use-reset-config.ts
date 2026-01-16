@@ -16,7 +16,7 @@ type UseResetConfigProps<T> = {
 export const useResetConfig = <T>({
   defaultConfig,
   onSync,
-  message = '設定をリセットしました',
+  message = '設定情報をリセットしました',
 }: UseResetConfigProps<T>) => {
   const { enqueueSnackbar } = useSnackbar();
 

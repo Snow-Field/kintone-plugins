@@ -6,9 +6,10 @@ import { activeTabIndexAtom, loadingAtom } from '@/config/states/plugin';
 import { usePluginForm } from '@/config/hooks/use-plugin-form';
 import { useSubmitConfig } from '@/config/hooks/use-submit-config';
 import { useResetConfig } from '@/config/hooks/use-reset-config';
-import { useExportConfig, useImportConfig } from '@kintone-plugin/kintone-utils';
+import { useImportConfig } from '@/config/hooks/use-import-config';
+import { useExportConfig } from '@kintone-plugin/kintone-utils';
 import { Header, Form } from '@kintone-plugin/ui';
-import { type PluginConfig, PluginConfigSchema } from '@/shared/config';
+import { type PluginConfig } from '@/shared/config';
 import { FormTabs } from '@/config/components/features/FormTabs';
 
 /**
@@ -21,7 +22,7 @@ const PluginContentForm: FC = () => {
 
   const reset = useResetConfig();
   const exportConfig = useExportConfig<PluginConfig>();
-  const importConfig = useImportConfig<PluginConfig>(PluginConfigSchema);
+  const importConfig = useImportConfig();
 
   const menuActions = {
     reset,

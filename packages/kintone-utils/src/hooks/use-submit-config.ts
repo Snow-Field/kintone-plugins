@@ -48,7 +48,7 @@ export const useSubmitConfig = <T>({
         // アプリの状態を同期
         onSync(data);
 
-        enqueueSnackbar('設定を保存しました。', {
+        enqueueSnackbar('設定情報を保存しました。', {
           variant: 'success',
           action: successAction,
         });

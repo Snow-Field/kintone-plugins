@@ -1,8 +1,17 @@
 import { useCallback } from 'react';
 import { useFormContext } from 'react-hook-form';
+import { useSnackbar } from 'notistack';
 
-export const useExportConfig = <T extends Record<string, unknown>>() => {
+type UseExportConfigProps<T> = {
+  /** 完了時のメッセージ（任意） */
+  message?: string;
+};
+
+export const useExportConfig = <T extends Record<string, unknown>>({
+  message = '設定情報をエクスポートしました',
+}: UseExportConfigProps<T>) => {
   const { getValues } = useFormContext<T>();
+  const { enqueueSnackbar } = useSnackbar();
 
   const exportConfig = useCallback(() => {
     const config = getValues();
@@ -17,7 +26,9 @@ export const useExportConfig = <T extends Record<string, unknown>>() => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }, [getValues]);
+
+    enqueueSnackbar(message, { variant: 'success' });
+  }, [getValues, message, enqueueSnackbar]);
 
   return exportConfig;
 };
