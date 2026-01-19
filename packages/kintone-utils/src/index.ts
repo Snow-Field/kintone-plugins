@@ -12,4 +12,4 @@ export * from './lib/plugin-config';
 export * from './lib/environment';
 export * from './lib/logger';
 export * from './states/kintone';
-export * from './types/kintone';
+export * from './types';
