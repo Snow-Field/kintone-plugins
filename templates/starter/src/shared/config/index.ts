@@ -1,4 +1,9 @@
-import { LATEST_PLUGIN_VERSION, PluginConfigSchema, type PluginConfig, type AnyPluginConfig } from './schema';
+import {
+  LATEST_PLUGIN_VERSION,
+  PluginConfigSchema,
+  type PluginConfig,
+  type AnyPluginConfig,
+} from './schema';
 import { PLUGIN_ID, storePluginConfig, restorePluginConfig } from '@kintone-plugin/kintone-utils';
 
 export * from './schema';
@@ -21,8 +26,18 @@ export const storeConfig = (config: PluginConfig, callback?: () => void): void =
 /**
  * 変換: 古い設定情報を新しい設定情報に変換
  */
-const migrateConfig = (anyConfig: AnyPluginConfig): PluginConfig => {
-  return anyConfig as PluginConfig;
+const migrateConfig = (parsedConfig: Record<string, any>): PluginConfig => {
+  const config = { ...parsedConfig };
+
+  // 初期状態（undefined）の処理
+  if (config.version === undefined) {
+    if (!config.conditions) {
+      return createConfig(); // デフォルト値を返却
+    }
+    config.version = 1;
+  }
+
+  return config as PluginConfig;
 };
 
 /**

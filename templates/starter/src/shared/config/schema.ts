@@ -18,6 +18,12 @@ export type AnyPluginConfig = { version?: number } & Record<string, any>;
  * @param fieldCodes アプリに存在するフィールドコードのリスト
  */
 export const createConfigSchema = (fieldCodes: string[]) => {
-  // フィールドコードが必要なバリデーションがあればここに記述
-  return PluginConfigSchema;
+  const fieldCodeSet = new Set(fieldCodes);
+  return PluginConfigSchema.superRefine(({ _ }, ctx) => {
+    ctx.addIssue({
+      code: 'custom',
+      message: '指定されたフィールドがアプリ内に見つかりません',
+      path: ['conditions'],
+    });
+  });
 };

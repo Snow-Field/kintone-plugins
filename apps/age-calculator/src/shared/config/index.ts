@@ -42,8 +42,8 @@ export const storeConfig = (config: PluginConfig, callback?: () => void): void =
  * 変換: 古い設定情報を新しい設定情報に変換
  * 段階的なマイグレーションを行うことで、将来的なバージョンアップにも対応可能な設計にします。
  */
-const migrateConfig = (rawConfig: Record<string, any>): PluginConfig => {
-  let config = { ...rawConfig };
+const migrateConfig = (parsedConfig: Record<string, any>): PluginConfig => {
+  let config = { ...parsedConfig };
 
   // 初期状態（undefined）の処理
   if (config.version === undefined) {
