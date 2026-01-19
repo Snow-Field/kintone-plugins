@@ -4,13 +4,7 @@ import { Stack, Box } from '@mui/material';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { type PluginConfig, getNewCondition } from '@/shared/config';
 import { useAppFields, useDuplicateCheck } from '@kintone-plugin/kintone-utils';
-import {
-  FormSection,
-  FormTitle,
-  FormDescription,
-  DynamicSortableList,
-  FormAutocomplete,
-} from '@kintone-plugin/ui';
+import { FormSection, Text, DynamicSortableList, FormAutocomplete } from '@kintone-plugin/ui';
 
 const FieldMappingRow: FC<{ index: number }> = ({ index }) => {
   const { isDuplicate } = useDuplicateCheck(index, 'conditions');
@@ -53,10 +47,10 @@ export const FieldMappingSection: FC = () => {
 
   return (
     <FormSection>
-      <FormTitle>フィールドの設定</FormTitle>
-      <FormDescription last>
+      <Text variant='sectionTitle'>フィールドの設定</Text>
+      <Text variant='description' last>
         生年月日フィールドと年齢を表示するフィールドを選択してください。
-      </FormDescription>
+      </Text>
       <Box sx={{ maxWidth: 840 }}>
         <DynamicSortableList
           items={fields}

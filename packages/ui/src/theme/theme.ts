@@ -3,30 +3,38 @@ import { createTheme } from '@mui/material/styles';
 export const theme = createTheme({
   palette: {
     primary: {
-      main: '#3498db', // kintone公式に近いブルー
-      light: '#e3f2fd', // 明るいブルー（ホバーや背景用）
-      dark: '#2980b9', // 深みのあるブルー
+      main: '#2563EB',
+      light: '#DBEAFE',
+      dark: '#1E40AF',
     },
     secondary: {
-      main: '#f39c12', // アクセント（kintoneの補助色に近いオレンジ）
-      light: '#fdf2e9',
-    },
-    success: {
-      main: '#10b981', // モダンな成功色（保存完了等）
+      main: '#64748B',
     },
     background: {
-      default: '#f4f4f4',
-      paper: '#ffffff',
+      default: '#F8FAFC',
+      paper: '#FFFFFF',
     },
     text: {
-      primary: '#333333',
-      secondary: '#757575',
+      primary: '#222222',
+      secondary: '#313131',
+      disabled: '#b8b8b8',
     },
+    divider: '#ccc',
   },
   shape: {
     borderRadius: 8,
   },
   typography: {
     fontSize: 14,
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          fontWeight: 600,
+        },
+      },
+    },
   },
 });
