@@ -6,6 +6,7 @@ export * from './components/fields/DynamicSortableList';
 export * from './components/fields/FormAutocomplete';
 export * from './components/fields/FormSwitch';
 export * from './components/fields/SortableRowContainer';
+export * from './components/fields/FormTextField';
 export * from './components/form/Text';
 export * from './components/layout/Form';
 export * from './components/layout/FormSection';

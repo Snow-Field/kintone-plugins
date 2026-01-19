@@ -5,15 +5,15 @@ import {
   type FieldValues,
   type ControllerRenderProps,
 } from 'react-hook-form';
-import { FormControlLabel, Switch } from '@mui/material';
-import type { SwitchProps } from '@mui/material';
+import { TextField } from '@mui/material';
+import { type TextFieldProps } from '@mui/material';
 
 type Props = {
   name: string;
   label?: string;
-} & Omit<SwitchProps, 'checked'>;
+} & TextFieldProps;
 
-export const FormSwitch: FC<Props> = ({ name, label, ...switchProps }) => {
+export const FormTextField: FC<Props> = ({ name, label, disabled, ...textFieldProps }) => {
   const { control } = useFormContext<FieldValues>();
 
   return (
@@ -25,15 +25,13 @@ export const FormSwitch: FC<Props> = ({ name, label, ...switchProps }) => {
       }: {
         field: ControllerRenderProps<FieldValues, string>;
       }) => (
-        <FormControlLabel
-          control={
-            <Switch
-              {...switchProps}
-              checked={!!value}
-              onChange={(e) => onChange(e.target.checked)}
-            />
-          }
+        <TextField
+          {...textFieldProps}
           label={label}
+          value={value}
+          variant='outlined'
+          onChange={(e) => onChange(e.target.value)}
+          disabled={disabled}
         />
       )}
     />

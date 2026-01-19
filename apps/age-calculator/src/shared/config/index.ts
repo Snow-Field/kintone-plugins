@@ -17,6 +17,7 @@ export const getNewCondition = (): PluginCondition => ({
   id: nanoid(),
   srcFieldCode: '',
   destFieldCode: '',
+  unit: '',
 });
 
 /**
@@ -39,16 +40,33 @@ export const storeConfig = (config: PluginConfig, callback?: () => void): void =
 
 /**
  * 変換: 古い設定情報を新しい設定情報に変換
+ * 段階的なマイグレーションを行うことで、将来的なバージョンアップにも対応可能な設計にします。
  */
-const migrateConfig = (anyConfig: AnyPluginConfig): PluginConfig => {
-  const { version, ...other } = anyConfig;
-  switch (version) {
-    case undefined:
-      return migrateConfig({ version: 1, ...other } as AnyPluginConfig);
-    case 1:
-    default:
-      return anyConfig as PluginConfig;
+const migrateConfig = (rawConfig: Record<string, any>): PluginConfig => {
+  let config = { ...rawConfig };
+
+  // 初期状態（undefined）の処理
+  if (config.version === undefined) {
+    if (!config.conditions) {
+      return createConfig(); // デフォルト値を返却
+    }
+    config.version = 1;
   }
+
+  // 段階的なマイグレーション処理
+  // Version 1 -> Version 2
+  if (config.version === 1) {
+    config = {
+      ...config,
+      version: 2,
+      conditions: (config.conditions || []).map((condition: any) => ({
+        ...condition,
+        unit: condition.unit ?? '', // 新しく追加された unit を補完
+      })),
+    };
+  }
+
+  return config as PluginConfig;
 };
 
 /**

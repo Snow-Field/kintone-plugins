@@ -39,7 +39,7 @@ kintone.events.on(['mobile.app.record.create.submit', 'mobile.app.record.edit.su
   logger.group('レコード保存');
   logger.log('設定情報:', { pluginConfig, isUpdateOnSave });
 
-  pluginConfig.conditions.forEach(({ srcFieldCode, destFieldCode }, index) => {
+  pluginConfig.conditions.forEach(({ srcFieldCode, destFieldCode, unit }, index) => {
     const srcField = record[srcFieldCode];
     const destField = record[destFieldCode];
     const isInvalid = !srcField || !destField;
@@ -57,7 +57,12 @@ kintone.events.on(['mobile.app.record.create.submit', 'mobile.app.record.edit.su
     const age = calculateAge(srcField.value);
     logger.log(`条件[${index}] 計算結果:`, { 入力: srcField.value, 年齢: age });
 
-    destField.value = age;
+    // 単位(unit)が設定されており、出力先が文字列一行フィールドの場合は単位を付与する
+    if (unit && destField.type === 'SINGLE_LINE_TEXT') {
+      destField.value = `${age}${unit}`;
+    } else {
+      destField.value = age;
+    }
   });
 
   logger.groupEnd();
