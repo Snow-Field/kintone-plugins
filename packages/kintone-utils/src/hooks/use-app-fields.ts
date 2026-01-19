@@ -1,6 +1,6 @@
 import { useAtomValue } from 'jotai';
 import { appFieldsAtom } from '../states/kintone';
-import type { FieldType } from '../types/kintone';
+import type { FieldType } from '../types';
 
 /**
  * kintoneのフィールド一覧を取得するフック
