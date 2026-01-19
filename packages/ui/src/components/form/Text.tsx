@@ -4,7 +4,7 @@ import { css } from '@emotion/react';
 /**
  * 型定義
  */
-type TextVariant = 'pageTitle' | 'sectionTitle' | 'body' | 'description' | 'help';
+type TextVariant = 'sectionTitle' | 'description';
 
 type TextTone = 'default' | 'muted';
 
@@ -33,31 +33,15 @@ const lineClamp = (lines: number) => css`
  */
 const getVariantStyle = (theme: Theme, variant: TextVariant) => {
   const styles: Record<TextVariant, ReturnType<typeof css>> = {
-    pageTitle: css`
-      font-size: 32px;
-      font-weight: 700;
-      line-height: 1.3;
-      letter-spacing: 0.01em;
-      margin-bottom: 16px;
-      border-bottom: 1px solid ${theme.palette.divider};
-    `,
     sectionTitle: css`
       font-size: 18px;
       font-weight: 600;
       line-height: 1.4;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
       border-bottom: 1px solid ${theme.palette.divider};
-    `,
-    body: css`
-      font-size: 14px;
-      line-height: 1.6;
     `,
     description: css`
       font-size: 13px;
-      line-height: 1.5;
-    `,
-    help: css`
-      font-size: 12px;
       line-height: 1.5;
     `,
   };
@@ -80,13 +64,16 @@ const getToneStyle = (theme: Theme, tone: TextTone = 'default') => {
 };
 
 /**
+ * transient props を使用して、独自propsがDOMに渡るのを防ぐ
+ */
+const shouldForwardProp = (propName: string) =>
+  !['variant', 'tone', 'maxLines', 'last'].includes(propName);
+
+/**
  * テキストコンポーネント
  */
-export const Text = styled('p', {
-  // transient props を使用して、独自propsがDOMに渡るのを防ぐ
-  shouldForwardProp: (prop) => !['variant', 'tone', 'maxLines', 'last'].includes(prop as string),
-})<TextProps>(
-  ({ theme, variant = 'body', tone = 'default', maxLines, last }) => css`
+export const Text = styled('p', { shouldForwardProp })<TextProps>(
+  ({ theme, variant = 'description', tone = 'default', maxLines, last }) => css`
     margin: 0;
 
     /* Variant の適用 */
@@ -101,7 +88,7 @@ export const Text = styled('p', {
     /* 最後の要素としてのマージン調整 */
     ${last &&
     css`
-      margin-bottom: 16px;
+      margin-bottom: 24px;
     `}
 
     /* 共通アニメーション */

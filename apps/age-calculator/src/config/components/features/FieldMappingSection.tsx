@@ -28,7 +28,7 @@ const FieldMappingRow: FC<{ index: number }> = ({ index }) => {
         shouldShowOption={(field) => !isDuplicate(field.code, 'srcFieldCode')}
         sx={{ flex: 1, minWidth: 0 }}
       />
-      <ArrowForwardIosIcon sx={{ color: '#757575' }} />
+      <ArrowForwardIosIcon sx={{ color: '#c1c1c1' }} />
       <FormAutocomplete
         name={`conditions.${index}.destFieldCode`}
         label='年齢フィールド'
