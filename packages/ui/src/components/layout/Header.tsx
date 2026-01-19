@@ -1,12 +1,12 @@
 import { type FC } from 'react';
 import { Box, Tabs, Tab, Stack, Divider } from '@mui/material';
-import { type TabItem } from '../types';
-import { SaveButton } from '../ui/button/SaveButton';
-import { CancelButton } from '../ui/button/CancelButton';
-import { MenuButton } from '../ui/button/MenuButton';
-import { ResetMenuItem } from '../ui/menu/ResetMenuItem';
-import { ExportMenuItem } from '../ui/menu/ExportMenuItem';
-import { ImportMenuItem } from '../ui/menu/ImportMenuItem';
+import { type TabItem } from '../../types';
+import { SaveButton } from '../button/SaveButton';
+import { CancelButton } from '../button/CancelButton';
+import { MenuButton } from '../button/MenuButton';
+import { ResetMenuItem } from '../menu/ResetMenuItem';
+import { ExportMenuItem } from '../menu/ExportMenuItem';
+import { ImportMenuItem } from '../menu/ImportMenuItem';
 
 type Props = {
   tabs: TabItem[];

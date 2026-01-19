@@ -1,6 +1,6 @@
 import { type FC } from 'react';
 import { Box } from '@mui/material';
-import { type TabItem } from '../types';
+import { type TabItem } from '../../types';
 
 type Props = {
   tabs: TabItem[];
