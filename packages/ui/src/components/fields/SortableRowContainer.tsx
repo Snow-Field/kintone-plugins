@@ -49,10 +49,6 @@ export const SortableRowContainer: FC<Props> = ({
         border: '1px solid',
         borderColor: isDragging ? 'primary.main' : 'transparent',
         boxShadow: isDragging ? 3 : 'none',
-        '&:hover': {
-          borderColor: 'divider',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-        },
       }}
     >
       <Box
