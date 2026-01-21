@@ -6,9 +6,9 @@ export const AdvancedSettings: FC = () => {
     <FormSection>
       <Text variant='sectionTitle'>レコード保存時の設定</Text>
       <Text variant='description' last>
-        レコード保存時に年齢計算を実行するか選択してください。
+        レコード保存時に最新の年齢へ自動更新するか選択してください。
       </Text>
-      <FormSwitch name='advanced.isUpdateOnSave' label='レコード保存時に年齢を更新する' />
+      <FormSwitch name='advanced.isUpdateOnSave' label='レコード保存時に最新の年齢へ更新する' />
     </FormSection>
   );
 };
