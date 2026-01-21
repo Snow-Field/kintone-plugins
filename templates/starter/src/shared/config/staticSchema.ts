@@ -1,14 +1,33 @@
 import { z } from 'zod';
 
-/** 最新バージョン */
+/** プラグインバージョン */
 export const LATEST_PLUGIN_VERSION = 1;
 
-/** 基本スキーマ */
-export const PluginConfigSchema = z.object({
+// =============================================================================
+// Version 1 Schema Definitions
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// プラグイン設定スキーマ（V1）
+// -----------------------------------------------------------------------------
+
+export const PluginConfigSchemaV1 = z.object({
   version: z.literal(LATEST_PLUGIN_VERSION),
   message: z.string(),
 });
 
-/** 型定義 */
-export type AnyPluginConfig = { version?: number } & Record<string, any>;
+// =============================================================================
+// Latest Version Schema
+// =============================================================================
+
+export const PluginConfigSchema = PluginConfigSchemaV1;
+
+// =============================================================================
+// 型定義
+// =============================================================================
+
+/** 任意のバージョンの設定を許容するための型定義 */
+export type AnyPluginConfig = { version?: number } & Record<string, unknown>;
+
+/** 最新バージョンのプラグイン設定型 */
 export type PluginConfig = z.infer<typeof PluginConfigSchema>;
