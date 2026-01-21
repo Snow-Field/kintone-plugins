@@ -1,6 +1,6 @@
 import { type FC, memo } from 'react';
 import { Button, CircularProgress } from '@mui/material';
-import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 type Props = {
   onClick: () => void;
@@ -13,7 +13,7 @@ export const CancelButton: FC<Props> = memo(function CancelButton({ onClick, loa
       variant='contained'
       color='inherit'
       disabled={loading}
-      startIcon={loading ? <CircularProgress color='inherit' size={20} /> : <ExitToAppIcon />}
+      startIcon={loading ? <CircularProgress color='inherit' size={20} /> : <CancelIcon />}
       onClick={onClick}
     >
       キャンセル
