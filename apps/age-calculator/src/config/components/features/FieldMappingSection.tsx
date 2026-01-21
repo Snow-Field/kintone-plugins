@@ -12,6 +12,12 @@ import {
   FormTextField,
 } from '@kintone-plugin/ui';
 
+const fieldTypeLabelMap: Record<string, string> = {
+  SINGLE_LINE_TEXT: '文字列',
+  NUMBER: '数値',
+  DATE: '日付',
+};
+
 const FieldMappingRow: FC<{ index: number }> = ({ index }) => {
   const { control, setValue } = useFormContext<PluginConfig>();
   const { isDuplicate } = useDuplicateCheck(index, 'conditions');
@@ -37,6 +43,8 @@ const FieldMappingRow: FC<{ index: number }> = ({ index }) => {
     }
   }, [isDisabledUnit, setValue, index]);
 
+  const getGroupLabel = (option: { type: string }) => fieldTypeLabelMap[option.type] || 'その他';
+
   return (
     <Stack
       direction={{ xs: 'column', sm: 'row' }}
@@ -50,6 +58,7 @@ const FieldMappingRow: FC<{ index: number }> = ({ index }) => {
         placeholder='フィールドを選択してください'
         options={dateFields}
         shouldShowOption={(field) => !isDuplicate(field.code, 'srcFieldCode')}
+        groupBy={getGroupLabel}
         sx={{ flex: 1, minWidth: 0 }}
       />
       <ArrowForwardIosIcon sx={{ color: '#c1c1c1' }} />
@@ -59,6 +68,7 @@ const FieldMappingRow: FC<{ index: number }> = ({ index }) => {
         placeholder='フィールドを選択してください'
         options={ageFields}
         shouldShowOption={(field) => !isDuplicate(field.code, 'destFieldCode')}
+        groupBy={getGroupLabel}
         sx={{ flex: 1, minWidth: 0 }}
       />
       <FormTextField
