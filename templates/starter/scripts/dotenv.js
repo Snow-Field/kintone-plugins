@@ -1,62 +1,83 @@
 import * as prompts from '@clack/prompts';
-import fs from 'fs-extra';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 
-function isCancel(input) {
+/**
+ * ユーザーによるキャンセルを処理する
+ */
+const handleCancel = (input) => {
   if (prompts.isCancel(input)) {
     prompts.cancel('Operation cancelled.');
     process.exit(0);
   }
-}
+};
 
-async function main() {
+const main = async () => {
   try {
-    // intro
-    prompts.intro('📝 Create your Kintone .env file');
+    prompts.intro('📝 kintone接続用の.envファイルを作成します');
 
-    // base-url
-    const baseUrl = await prompts.text({
-      message: 'Please enter Base URL',
-      placeholder: 'https://example.cybozu.com',
-      defaultValue: 'https://example.cybozu.com',
-    });
+    const envPath = path.resolve(process.cwd(), '.env');
 
-    isCancel(baseUrl);
+    // 既存ファイルの確認
+    try {
+      await fs.access(envPath);
+      const overwrite = await prompts.confirm({
+        message: '.envファイルが既に存在します。上書きしますか？',
+        initialValue: false,
+      });
+      handleCancel(overwrite);
+      if (!overwrite) {
+        prompts.outro('Operation cancelled.');
+        return;
+      }
+    } catch {
+      // ファイルが存在しない場合は続行
+    }
 
-    // username
-    const username = await prompts.text({
-      message: 'Please enter username',
-      placeholder: 'username',
-      defaultValue: 'username',
-    });
-
-    isCancel(username);
-
-    // password
-    const password = await prompts.password({
-      message: 'Please enter password',
-      validate(value) {
-        if (value.length === 0) return 'password is required!';
+    const group = await prompts.group(
+      {
+        baseUrl: () =>
+          prompts.text({
+            message: 'kintoneのURLを入力してください',
+            placeholder: 'https://example.cybozu.com',
+            validate: (value) => {
+              if (!value) return 'URLは必須です。';
+              if (!value.startsWith('http')) return '有効なURLを入力してください。';
+              return undefined;
+            },
+          }),
+        username: () =>
+          prompts.text({
+            message: 'ユーザー名を入力してください',
+            validate: (value) => (value ? undefined : 'ユーザー名は必須です。'),
+          }),
+        password: () =>
+          prompts.password({
+            message: 'パスワードを入力してください',
+            validate: (value) => (value ? undefined : 'パスワードは必須です。'),
+          }),
       },
-    });
+      {
+        onCancel: () => {
+          prompts.cancel('Operation cancelled.');
+          process.exit(0);
+        },
+      }
+    );
 
-    isCancel(password);
+    const envContent = [
+      `KINTONE_BASE_URL=${group.baseUrl}`,
+      `KINTONE_USERNAME=${group.username}`,
+      `KINTONE_PASSWORD=${group.password}`,
+    ].join('\n');
 
-    const envVariables = {
-      KINTONE_BASE_URL: baseUrl,
-      KINTONE_USERNAME: username,
-      KINTONE_PASSWORD: password,
-    };
+    await fs.writeFile(envPath, envContent, 'utf8');
 
-    const envContent = Object.entries(envVariables)
-      .map(([key, value]) => `${key}=${value}`)
-      .join('\n');
-
-    // envファイル作成
-    await fs.writeFile('.env', envContent);
-    prompts.outro('✨ .env file generated!');
+    prompts.outro('✨ .envファイルが作成されました!');
   } catch (error) {
-    console.error('Unexpected error:', error.message);
+    console.error(`❌ Error occurred: ${error.message}`);
+    process.exit(1);
   }
-}
+};
 
 main();

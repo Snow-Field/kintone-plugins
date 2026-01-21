@@ -1,69 +1,66 @@
-import fs from 'fs-extra';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { spawn } from 'child_process';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { spawn } from 'node:child_process';
 import 'dotenv/config';
 
-async function main() {
-  const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  const rootDir = path.resolve(__dirname, '..');
-  const pluginPath = path.join(rootDir, 'artifacts', 'plugin.zip');
-  const artifactsPath = path.join(rootDir, 'artifacts');
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const ROOT_DIR = path.resolve(__dirname, '..');
+const PLUGIN_PATH = path.join(ROOT_DIR, 'artifacts', 'plugin.zip');
+const ARTIFACTS_DIR = path.join(ROOT_DIR, 'artifacts');
 
+/**
+ * 外部コマンドを実行する Promise ラッパー
+ */
+const runCommand = (command, args) => {
+  return new Promise((resolve, reject) => {
+    const process = spawn(command, args, { shell: true, stdio: 'inherit' });
+    process.on('close', (code) => {
+      if (code !== 0) {
+        reject(new Error(`${command} が終了コード ${code} で失敗しました。`));
+      } else {
+        resolve();
+      }
+    });
+    process.on('error', reject);
+  });
+};
+
+const main = async () => {
   const args = process.argv.slice(2);
   const isWatch = args.includes('--watch');
 
   const requiredEnvVars = ['KINTONE_BASE_URL', 'KINTONE_USERNAME', 'KINTONE_PASSWORD'];
 
   try {
-    // 検証
+    // 環境変数の検証
     const missingEnvVars = requiredEnvVars.filter((name) => !process.env[name]);
     if (missingEnvVars.length > 0) {
       throw new Error(`環境変数が不足しています: ${missingEnvVars.join(', ')}`);
     }
 
     if (isWatch) {
-      console.log(`👀 Watching for changes in dist directory...`);
-      const uploaderArgs = ['--watch', artifactsPath];
-
-      const uploaderProcess = spawn('kintone-plugin-uploader', uploaderArgs, { shell: true });
-      uploaderProcess.stdout.on('data', (data) => process.stdout.write(data.toString()));
-      uploaderProcess.stderr.on('data', (data) => process.stderr.write(data.toString()));
-
-      return new Promise((_, reject) => {
-        uploaderProcess.on('error', reject);
-        uploaderProcess.on('close', (code) => {
-          if (code !== 0) reject(new Error(`Uploader exited with code ${code}`));
-        });
-      });
+      console.log('👀 ファイルの変更を監視して自動アップロードを開始します...');
+      await runCommand('kintone-plugin-uploader', ['--watch', ARTIFACTS_DIR]);
+      return;
     }
 
-    if (!fs.existsSync(pluginPath)) {
+    // プラグインファイルの存在確認
+    try {
+      await fs.access(PLUGIN_PATH);
+    } catch {
       throw new Error(
-        `プラグインファイルが見つかりません: ${pluginPath}\n先に 'npm run build' を実行してください。`
+        `プラグインファイルが見つかりません: ${PLUGIN_PATH}\n先に 'pnpm run build' を実行してください。`
       );
     }
 
-    console.log(`🚀 Uploading plugin...`);
-
-    // kintone-plugin-uploader の実行
-    await new Promise((resolve, reject) => {
-      const uploaderProcess = spawn('kintone-plugin-uploader', [pluginPath], { shell: true });
-      uploaderProcess.stdout.on('data', (data) => process.stdout.write(data.toString()));
-      uploaderProcess.stderr.on('data', (data) => process.stderr.write(data.toString()));
-      uploaderProcess.on('close', (code) => {
-        if (code !== 0) {
-          reject(new Error(`Uploader exited with code ${code}`));
-        } else {
-          resolve();
-        }
-      });
-    });
+    console.log('🚀 プラグインをアップロード中...');
+    await runCommand('kintone-plugin-uploader', [PLUGIN_PATH]);
+    console.log('✨ アップロードが完了しました!');
   } catch (error) {
-    console.error(`Error: ${error.message}`);
+    console.error(`❌ Unexpected error: ${error.message}`);
     process.exit(1);
   }
-  return Promise.resolve();
-}
+};
 
 main();

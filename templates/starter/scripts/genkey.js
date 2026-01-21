@@ -1,48 +1,45 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import RSA from 'node-rsa';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import NodeRSA from 'node-rsa';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const PRIVATE_KEY_PATH = path.join(__dirname, '../private.ppk');
-const PRIVATE_KEY_DIR = path.dirname(PRIVATE_KEY_PATH);
+const PRIVATE_KEY_PATH = path.resolve(__dirname, '../private.ppk');
 
-async function ensureDirectoryExists(dir) {
+/**
+ * 秘密鍵の初期化処理
+ */
+const initializePrivateKey = async () => {
   try {
-    await fs.promises.access(dir);
-  } catch {
-    // ディレクトリが存在しない場合は作成する（再帰的に作成）
-    await fs.promises.mkdir(dir, { recursive: true });
-  }
-}
-
-async function initializePrivateKey() {
-  try {
-    const privateKey = await fs.promises.readFile(PRIVATE_KEY_PATH, 'utf8');
-    new RSA(privateKey);
-    console.log('🔑 private.ppk already exists and is valid. Abort.');
+    // 既存の鍵を確認
+    await fs.access(PRIVATE_KEY_PATH);
+    const privateKey = await fs.readFile(PRIVATE_KEY_PATH, 'utf8');
+    new NodeRSA(privateKey);
+    console.log('🔑 private.ppk は既に存在します。');
   } catch (error) {
+    // ファイルが存在しない場合のみ生成を続行
     if (error.code !== 'ENOENT') {
       throw error;
     }
 
-    // ファイルが存在しない場合、新しい鍵を生成して保存する
-    const key = new RSA({ b: 1024 });
+    console.log('🔐 新しい秘密鍵を生成中...');
+    const key = new NodeRSA({ b: 1024 });
     const privateKey = key.exportKey('pkcs1-private');
 
-    // 書き込み前にディレクトリが存在するか確認
-    await ensureDirectoryExists(PRIVATE_KEY_DIR);
-    await fs.promises.writeFile(PRIVATE_KEY_PATH, privateKey, 'utf8');
+    // ディレクトリの存在を確認して保存
+    await fs.mkdir(path.dirname(PRIVATE_KEY_PATH), { recursive: true });
+    await fs.writeFile(PRIVATE_KEY_PATH, privateKey, 'utf8');
+    console.log('✨ private.ppk が生成されました!');
   }
-}
+};
 
-async function main() {
+const main = async () => {
   try {
     await initializePrivateKey();
-    console.log('🔐 private.ppk generated');
   } catch (error) {
-    console.error(`Failed to initialize private key: ${error.message}`);
+    console.error(`❌ Unexpected error: ${error.message}`);
+    process.exit(1);
   }
-}
+};
 
 main();
