@@ -1,6 +1,6 @@
 import { atom } from 'jotai';
 import { KintoneRestAPIClient } from '@kintone/rest-api-client';
-import { getAppId, GUEST_SPACE_ID } from '../lib/kintone';
+import { getApp, GUEST_SPACE_ID } from '../lib/kintone';
 
 type ClientParams = {
   baseUrl: string;
@@ -16,7 +16,10 @@ export const appFieldsAtom = atom(async () => {
   if (GUEST_SPACE_ID) clientParams.guestSpaceId = GUEST_SPACE_ID;
   const client = new KintoneRestAPIClient(clientParams);
   // アプリIDの取得
-  const appId = getAppId();
+  const appId = getApp().getId();
+  if (!appId) {
+    throw new Error('アプリIDが取得できませんでした。');
+  }
 
   // アプリのフィールド情報を取得
   const { properties } = await client.app.getFormFields({ app: appId });

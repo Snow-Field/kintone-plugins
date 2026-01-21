@@ -7,9 +7,8 @@ export const GUEST_SPACE_ID = (() => {
   return match ? match[1] : undefined;
 })();
 
-// kintoneアプリID
-export const getAppId = () => {
-  const appId = kintone.app.getId() ?? kintone.mobile.app.getId();
-  if (!appId) throw new Error('アプリIDの取得に失敗しました');
-  return appId;
+// kintone オブジェクト
+export const getApp = () => {
+  const app = kintone.app.getId() !== null ? kintone.app : kintone.mobile.app;
+  return app;
 };
