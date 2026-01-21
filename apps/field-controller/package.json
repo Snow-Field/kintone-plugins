@@ -1,7 +1,7 @@
 {
-  "name": "age-calculator",
+  "name": "field-controller",
   "version": "1.0.0",
-  "description": "kintone年齢計算プラグイン",
+  "description": "",
   "author": "Masanobu Sunohara",
   "license": "ISC",
   "type": "module",
