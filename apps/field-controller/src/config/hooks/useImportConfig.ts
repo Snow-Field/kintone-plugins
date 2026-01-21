@@ -1,6 +1,6 @@
 import { useImportConfig as useGenericImportConfig } from '@kintone-plugin/kintone-utils';
 import { type PluginConfig, PluginConfigSchema } from '@/shared/config';
-import { useSyncConfig } from './use-sync-config';
+import { useSyncConfig } from './useSyncConfig';
 
 /** プラグイン設定情報をインポートするカスタムフック */
 export const useImportConfig = () => {

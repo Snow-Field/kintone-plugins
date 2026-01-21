@@ -1,6 +1,6 @@
 import { useResetConfig as useGenericResetConfig } from '@kintone-plugin/kintone-utils';
 import { createConfig, type PluginConfig } from '@/shared/config';
-import { useSyncConfig } from './use-sync-config';
+import { useSyncConfig } from './useSyncConfig';
 
 /** プラグイン設定情報をリセットするカスタムフック */
 export const useResetConfig = () => {

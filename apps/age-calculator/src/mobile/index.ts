@@ -1,5 +1,5 @@
 import { restoreConfig } from '@/shared/config';
-import { calculateAge } from '@/shared/lib/calculate-age';
+import { calculateAge } from '@/shared/lib/calculateAge';
 import { PluginLogger } from '@kintone-plugin/kintone-utils';
 
 const logger = new PluginLogger('Mobile');

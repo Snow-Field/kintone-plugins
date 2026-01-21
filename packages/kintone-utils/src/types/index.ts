@@ -1,2 +1,2 @@
-export * from './kintone/event';
-export * from './kintone/field';
+export * from './kintone/eventTypes';
+export * from './kintone/fieldTypes';

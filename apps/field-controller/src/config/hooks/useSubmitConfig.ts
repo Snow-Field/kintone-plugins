@@ -2,7 +2,7 @@ import { useSetAtom } from 'jotai';
 import { useSubmitConfig as useGenericSubmitConfig } from '@kintone-plugin/kintone-utils';
 import { storeConfig, type PluginConfig } from '@/shared/config';
 import { loadingAtom } from '@/config/states/plugin';
-import { useSyncConfig } from './use-sync-config';
+import { useSyncConfig } from './useSyncConfig';
 
 type UseSubmitConfigProps = {
   onSuccess?: () => void;

@@ -2,8 +2,8 @@ import { useMemo, useEffect } from 'react';
 import { useForm, type FieldValues, type DefaultValues, type UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { z } from 'zod';
-import { useAppFields } from './use-app-fields';
-import { useUnsavedChanges } from './use-unsaved-changes';
+import { useAppFields } from './useAppFields';
+import { useUnsavedChanges } from './useUnsavedChanges';
 
 type UsePluginFormProps<T extends FieldValues> = {
   /** プラグインの初期設定値 */
