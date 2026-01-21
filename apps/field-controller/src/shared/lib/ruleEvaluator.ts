@@ -1,0 +1,49 @@
+import type { RuleBlock } from '../config/staticSchema';
+
+export type Event = {
+  type: string;
+  record: Record<string, any>;
+};
+
+function evaluateCondition(
+  condition: RuleBlock['conditions'][number],
+  record: Record<string, any>
+): boolean {
+  const value = record[condition.field]?.value;
+
+  switch (condition.operator) {
+    case 'equals':
+      return value === condition.value;
+    case 'not_equals':
+      return value !== condition.value;
+    case 'greater_than':
+      return value > condition.value;
+    case 'less_than':
+      return value < condition.value;
+    case 'in':
+      return Array.isArray(condition.value) ? condition.value.includes(value) : false;
+    default:
+      return false;
+  }
+}
+
+function evaluateBlock(block: RuleBlock, event: Event): boolean {
+  if (block.triggers.length === 0) return false;
+
+  if (!block.triggers.includes(event.type as any)) {
+    return false;
+  }
+
+  // conditions が空 → 無条件
+  if (block.conditions.length === 0) {
+    return true;
+  }
+
+  const results = block.conditions.map((condition) => evaluateCondition(condition, event.record));
+
+  return block.logic === 'AND' ? results.every(Boolean) : results.some(Boolean);
+}
+
+export function evaluateRuleBlocks(blocks: RuleBlock[], event: Event): boolean {
+  return blocks.some((block) => evaluateBlock(block, event));
+}
