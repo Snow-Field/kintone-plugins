@@ -10,8 +10,8 @@ export const PluginConfigSchema = z.object({
 });
 
 /** 型定義 */
-export type PluginConfig = z.infer<typeof PluginConfigSchema>;
 export type AnyPluginConfig = { version?: number } & Record<string, any>;
+export type PluginConfig = z.infer<typeof PluginConfigSchema>;
 
 /**
  * 動的な検証を含むスキーマを生成する
