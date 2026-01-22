@@ -27,7 +27,7 @@ function evaluateCondition(
   }
 }
 
-function evaluateBlock(block: RuleBlock, event: Event): boolean {
+export function evaluateBlock(block: RuleBlock, event: Event): boolean {
   if (block.triggers.length === 0) return false;
 
   if (!block.triggers.includes(event.type as any)) {
@@ -42,8 +42,4 @@ function evaluateBlock(block: RuleBlock, event: Event): boolean {
   const results = block.conditions.map((condition) => evaluateCondition(condition, event.record));
 
   return block.logic === 'AND' ? results.every(Boolean) : results.some(Boolean);
-}
-
-export function evaluateRuleBlocks(blocks: RuleBlock[], event: Event): boolean {
-  return blocks.some((block) => evaluateBlock(block, event));
 }

@@ -6,21 +6,19 @@ import {
 } from '@/shared/config/staticSchema';
 
 function validateBlocks(
-  blocks: RuleBlock[],
+  block: RuleBlock,
   fieldCodeSet: Set<string>,
   ctx: z.RefinementCtx,
   basePath: Array<string | number>
 ) {
-  blocks.forEach((block, blockIndex) => {
-    block.conditions.forEach((condition, condIndex) => {
-      if (!fieldCodeSet.has(condition.field)) {
-        ctx.addIssue({
-          code: 'custom',
-          path: [...basePath, blockIndex, 'conditions', condIndex, 'field'],
-          message: '指定されたフィールドがアプリ内に見つかりません',
-        });
-      }
-    });
+  block.conditions.forEach((condition, condIndex) => {
+    if (!fieldCodeSet.has(condition.field)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: [...basePath, 'conditions', condIndex, 'field'],
+        message: '指定されたフィールドがアプリ内に見つかりません',
+      });
+    }
   });
 }
 
@@ -39,7 +37,7 @@ export function createConfigSchema(fieldCodes: string[]): ZodType<PluginConfig> 
         }
       });
 
-      validateBlocks(rule.blocks, fieldCodeSet, ctx, ['visibilityRules', ruleIndex, 'blocks']);
+      validateBlocks(rule.block, fieldCodeSet, ctx, ['visibilityRules', ruleIndex, 'blocks']);
     });
 
     config.disableRules.forEach((rule, ruleIndex) => {
@@ -53,7 +51,7 @@ export function createConfigSchema(fieldCodes: string[]): ZodType<PluginConfig> 
         }
       });
 
-      validateBlocks(rule.blocks, fieldCodeSet, ctx, ['disableRules', ruleIndex, 'blocks']);
+      validateBlocks(rule.block, fieldCodeSet, ctx, ['disableRules', ruleIndex, 'block']);
     });
   });
 }

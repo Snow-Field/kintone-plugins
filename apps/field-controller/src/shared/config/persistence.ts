@@ -16,7 +16,11 @@ export const createConfig = (): PluginConfig => ({
     {
       id: nanoid(),
       enabled: false,
-      blocks: [],
+      block: {
+        conditions: [],
+        logic: 'AND',
+        triggers: [],
+      },
       targetFields: [],
     },
   ],
@@ -24,7 +28,11 @@ export const createConfig = (): PluginConfig => ({
     {
       id: nanoid(),
       enabled: false,
-      blocks: [],
+      block: {
+        conditions: [],
+        logic: 'AND',
+        triggers: [],
+      },
       targetFields: [],
     },
   ],

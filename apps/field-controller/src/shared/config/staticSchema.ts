@@ -47,7 +47,7 @@ const VisibilityRuleBlockSchemaV1 = RuleBlockBaseSchemaV1.extend({
 const VisibilityRuleSchemaV1 = z.object({
   id: z.string(),
   enabled: z.boolean(),
-  blocks: z.array(VisibilityRuleBlockSchemaV1),
+  block: VisibilityRuleBlockSchemaV1,
   targetFields: z.array(z.string()),
 });
 
@@ -73,7 +73,7 @@ const DisableRuleBlockSchemaV1 = RuleBlockBaseSchemaV1.extend({
 const DisableRuleSchemaV1 = z.object({
   id: z.string(),
   enabled: z.boolean(),
-  blocks: z.array(DisableRuleBlockSchemaV1),
+  block: DisableRuleBlockSchemaV1,
   targetFields: z.array(z.string()),
 });
 
@@ -110,10 +110,10 @@ export type VisibilityRule = PluginConfig['visibilityRules'][number];
 export type DisableRule = PluginConfig['disableRules'][number];
 
 /** 非表示制御条件ブロックの型 */
-export type VisibilityRuleBlock = VisibilityRule['blocks'][number];
+export type VisibilityRuleBlock = VisibilityRule['block'];
 
 /** 非活性制御条件ブロックの型 */
-export type DisableRuleBlock = DisableRule['blocks'][number];
+export type DisableRuleBlock = DisableRule['block'];
 
 /** 条件ブロックの共通型 */
 export type RuleBlock = VisibilityRuleBlock | DisableRuleBlock;
