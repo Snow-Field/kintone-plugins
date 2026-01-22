@@ -18,18 +18,21 @@ import { FormTabs } from '@/config/components/features/FormTabs';
 const PluginContentForm: FC = () => {
   const { handleSubmit, formState } = useFormContext<PluginConfig>();
   const [activeTab, setActiveTab] = useAtom(activeTabIndexAtom);
+
+  /** 状態 */
   const loading = useAtomValue(loadingAtom);
-  const reset = useResetConfig();
+  const { isDirty, isSubmitting } = formState;
+
+  /** メニューアクション */
+  const resetConfig = useResetConfig();
   const exportConfig = useExportConfig<PluginConfig>();
   const importConfig = useImportConfig();
 
   const menuActions = {
-    reset,
+    reset: resetConfig,
     export: exportConfig,
     import: importConfig,
   };
-
-  const { isDirty, isSubmitting } = formState;
 
   /** プラグイン一覧へ戻る処理 */
   const handleNavigateBack = useCallback(() => history.back(), []);

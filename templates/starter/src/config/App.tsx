@@ -15,7 +15,7 @@ const App: FC = () => {
           {/* 2. 全体のエラーをキャッチ */}
           <PluginErrorBoundary>
             {/* 3. コンポーネントやデータの読み込み待機 */}
-            <Suspense fallback={<GeometryLoader label="設定情報を取得しています..." />}>
+            <Suspense fallback={<GeometryLoader label='設定情報を取得しています...' />}>
               {/* 4. メインコンテンツ */}
               <PluginContent />
             </Suspense>
