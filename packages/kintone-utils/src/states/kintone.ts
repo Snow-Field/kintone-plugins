@@ -15,6 +15,7 @@ export const appFieldsAtom = atom(async () => {
   const clientParams: ClientParams = { baseUrl: location.origin };
   if (GUEST_SPACE_ID) clientParams.guestSpaceId = GUEST_SPACE_ID;
   const client = new KintoneRestAPIClient(clientParams);
+
   // アプリIDの取得
   const appId = getApp().getId();
   if (!appId) {

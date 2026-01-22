@@ -7,8 +7,12 @@ export const GUEST_SPACE_ID = (() => {
   return match ? match[1] : undefined;
 })();
 
-// kintone オブジェクト
-export const getApp = () => {
-  const app = kintone.app.getId() !== null ? kintone.app : kintone.mobile.app;
-  return app;
+/** モバイル判定 */
+export const isMobile = (eventType?: string): boolean => {
+  return eventType ? /^mobile\./.test(eventType) : kintone.app.getId() === null;
+};
+
+/** kintoneオブジェクト取得 */
+export const getApp = (eventType?: string): typeof kintone.mobile.app | typeof kintone.app => {
+  return isMobile(eventType) ? kintone.mobile.app : kintone.app;
 };
