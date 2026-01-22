@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { FieldType } from '@kintone-plugin/kintone-utils';
 
 /** Version 1 */
 export const PluginConfigSchemaV1 = z.object({
@@ -42,21 +43,29 @@ export type PluginCondition = PluginConfig['conditions'][number];
 const TARGET_FIELDS: Array<keyof PluginCondition> = ['srcFieldCode', 'destFieldCode'];
 
 /**
+ * フィールド情報の型定義
+ */
+type FieldInfo = {
+  code: string;
+  type: FieldType;
+};
+
+/**
  * 動的な検証を含むスキーマを生成する
  * @param fieldCodes アプリに存在するフィールドコードのリスト
  */
-export const createConfigSchema = (fieldCodes: string[]) => {
-  const fieldCodeSet = new Set(fieldCodes);
+export const createConfigSchema = (fields: FieldInfo[]) => {
+  const fieldInfoMap = new Map(fields.map((f) => [f.code, f]));
   return PluginConfigSchema.superRefine(({ conditions }, ctx) => {
     conditions.forEach((condition, index) => {
       // 存在チェック（設定されているコードが現在のアプリに存在するか確認）
       TARGET_FIELDS.forEach((key) => {
         const fieldCode = condition[key];
         // 値が設定されており、かつアプリのフィールドコード一覧に含まれていない場合
-        if (fieldCode && !fieldCodeSet.has(fieldCode)) {
+        if (fieldCode && !fieldInfoMap.has(fieldCode)) {
           ctx.addIssue({
             code: 'custom',
-            message: '指定されたフィールドがアプリ内に見つかりません',
+            message: `指定されたフィールドがアプリ内に見つかりません（フィールドコード: ${fieldCode}）`,
             path: ['conditions', index, key],
           });
         }

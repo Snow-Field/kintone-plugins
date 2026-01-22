@@ -1,15 +1,21 @@
 import { useMemo, useEffect } from 'react';
-import { useForm, type FieldValues, type DefaultValues, type UseFormReturn } from 'react-hook-form';
+import { useForm, type FieldValues, type DefaultValues } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { z } from 'zod';
 import { useAppFields } from './useAppFields';
 import { useUnsavedChanges } from './useUnsavedChanges';
+import type { FieldType } from '../types';
+
+type FieldInfo = {
+  code: string;
+  type: FieldType;
+};
 
 type UsePluginFormProps<T extends FieldValues> = {
   /** プラグインの初期設定値 */
   defaultValues: DefaultValues<T>;
-  /** フィールドコードのリストを受け取ってスキーマを生成する関数 */
-  createSchema: (fieldCodes: string[]) => z.ZodType<T, any, any>;
+  /** フィールド情報のリストを受け取ってスキーマを生成する関数 */
+  createSchema: (fields: FieldInfo[]) => z.ZodType<T, any, any>;
 };
 
 /**
@@ -22,11 +28,14 @@ export const usePluginForm = <T extends FieldValues>({
 }: UsePluginFormProps<T>) => {
   const { fields } = useAppFields();
 
-  // フィールドコードのリストを抽出
-  const fieldCodes = useMemo(() => fields.map((f) => f.code), [fields]);
+  // フィールド情報のリストを作成
+  const fieldInfoList = useMemo(
+    () => fields.map((f) => ({ code: f.code, type: f.type })),
+    [fields]
+  );
 
   // 動的なスキーマの生成
-  const schema = useMemo(() => createSchema(fieldCodes), [createSchema, fieldCodes]);
+  const schema = useMemo(() => createSchema(fieldInfoList), [createSchema, fieldInfoList]);
 
   const methods = useForm<T>({
     resolver: zodResolver(schema) as any,
@@ -35,12 +44,9 @@ export const usePluginForm = <T extends FieldValues>({
   });
 
   // 初期化時またはフィールドリスト更新時にバリデーションを実行
-  // これにより、kintone側でフィールドが削除された際のエラーを表示させる
   useEffect(() => {
-    if (fieldCodes.length > 0) {
-      methods.trigger();
-    }
-  }, [methods, fieldCodes]);
+    if (fieldInfoList.length > 0) methods.trigger();
+  }, [methods, fieldInfoList]);
 
   // 未保存時の離脱防止を適用
   useUnsavedChanges(methods.formState.isDirty);
