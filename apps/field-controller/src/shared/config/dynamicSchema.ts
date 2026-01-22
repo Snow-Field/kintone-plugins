@@ -1,4 +1,4 @@
-import { z, type ZodType } from 'zod';
+import type { z, ZodType } from 'zod';
 import {
   PluginConfigSchema,
   type PluginConfig,
@@ -9,7 +9,7 @@ function validateBlocks(
   blocks: RuleBlock[],
   fieldCodeSet: Set<string>,
   ctx: z.RefinementCtx,
-  basePath: (string | number)[]
+  basePath: Array<string | number>
 ) {
   blocks.forEach((block, blockIndex) => {
     block.conditions.forEach((condition, condIndex) => {

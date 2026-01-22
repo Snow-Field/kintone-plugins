@@ -30,9 +30,12 @@ const RuleBlockBaseSchemaV1 = z.object({
 
 /** 非表示制御の対象となるイベントトリガー */
 const VisibilityTriggerSchemaV1 = z.enum([
+  'app.record.detail.show',
   'app.record.create.show',
   'app.record.edit.show',
-  'app.record.detail.show',
+  'mobile.app.record.detail.show',
+  'mobile.app.record.create.show',
+  'mobile.app.record.edit.show',
 ]);
 
 /** 非表示制御のルールブロック */
@@ -54,9 +57,11 @@ const VisibilityRuleSchemaV1 = z.object({
 
 /** 無効化制御の対象となるイベントトリガー */
 const DisableTriggerSchemaV1 = z.enum([
+  'app.record.index.edit.show',
   'app.record.create.show',
   'app.record.edit.show',
-  'app.record.index.edit.show',
+  'mobile.app.record.create.show',
+  'mobile.app.record.edit.show',
 ]);
 
 /** 非活性制御のルールブロック */
