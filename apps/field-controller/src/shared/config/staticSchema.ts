@@ -13,7 +13,7 @@ export const LATEST_PLUGIN_VERSION = 1;
 const ConditionSchemaV1 = z.object({
   field: z.string(),
   operator: z.enum(['equals', 'not_equals', 'greater_than', 'less_than', 'in']),
-  value: z.unknown(),
+  value: z.union([z.string(), z.number(), z.array(z.string()), z.date()]),
 });
 
 /**
@@ -49,7 +49,7 @@ const VisibilityRuleSchemaV1 = z.object({
 });
 
 // -----------------------------------------------------------------------------
-// 無効化制御（Disable）関連
+// 非活性制御（Disable）関連
 // -----------------------------------------------------------------------------
 
 /** 無効化制御の対象となるイベントトリガー */
@@ -59,12 +59,12 @@ const DisableTriggerSchemaV1 = z.enum([
   'app.record.index.edit.show',
 ]);
 
-/** 無効化制御のルールブロック */
+/** 非活性制御のルールブロック */
 const DisableRuleBlockSchemaV1 = RuleBlockBaseSchemaV1.extend({
   triggers: z.array(DisableTriggerSchemaV1),
 });
 
-/** 無効化制御の1ルール単位 */
+/** 非活性制御の1ルール単位 */
 const DisableRuleSchemaV1 = z.object({
   id: z.string(),
   enabled: z.boolean(),
@@ -86,7 +86,6 @@ export const PluginConfigSchemaV1 = z.object({
 // Latest Version Schema
 // =============================================================================
 
-/** プラグイン設定スキーマ */
 export const PluginConfigSchema = PluginConfigSchemaV1;
 
 // =============================================================================
@@ -102,13 +101,13 @@ export type PluginConfig = z.infer<typeof PluginConfigSchema>;
 /** 非表示制御ルールの型 */
 export type VisibilityRule = PluginConfig['visibilityRules'][number];
 
-/** 無効化制御ルールの型 */
+/** 非活性制御ルールの型 */
 export type DisableRule = PluginConfig['disableRules'][number];
 
 /** 非表示制御条件ブロックの型 */
 export type VisibilityRuleBlock = VisibilityRule['blocks'][number];
 
-/** 無効化制御条件ブロックの型 */
+/** 非活性制御条件ブロックの型 */
 export type DisableRuleBlock = DisableRule['blocks'][number];
 
 /** 条件ブロックの共通型 */

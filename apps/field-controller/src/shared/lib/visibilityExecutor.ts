@@ -1,5 +1,5 @@
 import { getApp } from '@kintone-plugin/kintone-utils';
-import { VisibilityRule } from '../config';
+import { type VisibilityRule } from '../config';
 import { evaluateRuleBlocks, type Event } from './ruleEvaluator';
 
 export function executeVisibility(rules: VisibilityRule[], event: Event) {
