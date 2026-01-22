@@ -16,7 +16,7 @@ function validateBlocks(
       ctx.addIssue({
         code: 'custom',
         path: [...basePath, 'conditions', condIndex, 'field'],
-        message: '指定されたフィールドがアプリ内に見つかりません',
+        message: `指定されたフィールドがアプリ内に見つかりません（フィールドコード：${condition.field}）`,
       });
     }
   });
@@ -32,7 +32,7 @@ export function createConfigSchema(fieldCodes: string[]): ZodType<PluginConfig> 
           ctx.addIssue({
             code: 'custom',
             path: ['visibilityRules', ruleIndex, 'targetFields', i],
-            message: '指定されたフィールドがアプリ内に見つかりません',
+            message: `指定されたフィールドがアプリ内に見つかりません（フィールドコード：${field}）`,
           });
         }
       });
@@ -46,7 +46,7 @@ export function createConfigSchema(fieldCodes: string[]): ZodType<PluginConfig> 
           ctx.addIssue({
             code: 'custom',
             path: ['disableRules', ruleIndex, 'targetFields', i],
-            message: '指定されたフィールドがアプリ内に見つかりません',
+            message: `指定されたフィールドがアプリ内に見つかりません（フィールドコード：${field}）`,
           });
         }
       });
