@@ -9,19 +9,23 @@ function evaluateCondition(
   condition: RuleBlock['conditions'][number],
   record: Record<string, any>
 ): boolean {
-  const value = record[condition.field]?.value;
+  const fieldValue = record[condition.field]?.value;
+  const conditionValue = condition.value;
 
   switch (condition.operator) {
     case 'equals':
-      return value === condition.value;
-    case 'not_equals':
-      return value !== condition.value;
-    case 'greater_than':
-      return value > condition.value;
-    case 'less_than':
-      return value < condition.value;
-    case 'in':
-      return Array.isArray(condition.value) ? condition.value.includes(value) : false;
+      return fieldValue === conditionValue;
+    case 'notEquals':
+      return fieldValue !== conditionValue;
+    case 'greaterThan':
+      return fieldValue > conditionValue;
+    case 'lessThan':
+      return fieldValue < conditionValue;
+    case 'includes':
+      // 文字列フィールドの部分一致検索
+      return typeof fieldValue === 'string' && typeof conditionValue === 'string'
+        ? fieldValue.includes(conditionValue)
+        : false;
     default:
       return false;
   }

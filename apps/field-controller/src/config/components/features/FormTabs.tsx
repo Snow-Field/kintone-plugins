@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react';
-import { GeneralSettings } from './GeneralSettings';
+import { InvisibleSettings } from './InvisibleSettings';
+import { DisableSettings } from './DisableSettings';
 
 export type TabItem = {
   label: string;
@@ -8,7 +9,11 @@ export type TabItem = {
 
 export const FormTabs: TabItem[] = [
   {
-    label: '基本設定',
-    content: <GeneralSettings />,
+    label: '非表示設定',
+    content: <InvisibleSettings />,
+  },
+  {
+    label: '編集不可設定',
+    content: <DisableSettings />,
   },
 ];

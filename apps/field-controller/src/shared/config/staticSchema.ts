@@ -12,8 +12,8 @@ export const LATEST_PLUGIN_VERSION = 1;
  */
 const ConditionSchemaV1 = z.object({
   field: z.string(),
-  operator: z.enum(['equals', 'not_equals', 'greater_than', 'less_than', 'in']),
-  value: z.union([z.string(), z.number(), z.array(z.string()), z.date()]),
+  operator: z.enum(['equals', 'notEquals', 'greaterThan', 'lessThan', 'includes']),
+  value: z.string(),
 });
 
 /**
