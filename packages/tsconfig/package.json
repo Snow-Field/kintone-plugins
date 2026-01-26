@@ -2,5 +2,8 @@
   "name": "@kintone-plugin/tsconfig",
   "version": "1.0.0",
   "main": "base.json",
-  "license": "ISC"
+  "scripts": {
+    "lint": "prettier --check .",
+    "fix": "prettier --write ."
+  }
 }

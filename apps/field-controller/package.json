@@ -16,11 +16,11 @@
     "upload": "node scripts/upload.js",
     "deploy": "run-s build upload",
     "lint": "run-p lint:*",
-    "lint:eslint": "eslint \"src/**/*.{js,ts,jsx,tsx}\"",
-    "lint:prettier": "prettier --check \"src/**/*.{js,ts,jsx,tsx}\" --cache",
+    "lint:eslint": "eslint src",
+    "lint:prettier": "prettier --check src",
     "fix": "run-p fix:*",
-    "fix:eslint": "eslint --fix \"src/**/*.{js,ts,jsx,tsx}\"",
-    "fix:prettier": "prettier --write \"src/**/*.{js,ts,jsx,tsx}\"",
+    "fix:eslint": "eslint --fix src",
+    "fix:prettier": "prettier --write src",
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist artifacts .turbo"
   },
@@ -62,7 +62,6 @@
     "fs-extra": "^11.3.3",
     "node-rsa": "^1.1.1",
     "npm-run-all": "^4.1.5",
-    "prettier": "^3.7.4",
     "typescript": "^5.9.3"
   }
 }
