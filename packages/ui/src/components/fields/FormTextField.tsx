@@ -1,10 +1,5 @@
 import type { FC } from 'react';
-import {
-  Controller,
-  useFormContext,
-  type FieldValues,
-  type ControllerRenderProps,
-} from 'react-hook-form';
+import { Controller, useFormContext, type FieldValues } from 'react-hook-form';
 import { TextField } from '@mui/material';
 import { type TextFieldProps } from '@mui/material';
 
@@ -20,11 +15,7 @@ export const FormTextField: FC<Props> = ({ name, label, disabled, ...textFieldPr
     <Controller
       name={name}
       control={control}
-      render={({
-        field: { value, onChange },
-      }: {
-        field: ControllerRenderProps<FieldValues, string>;
-      }) => (
+      render={({ field: { value, onChange } }) => (
         <TextField
           {...textFieldProps}
           label={label}
