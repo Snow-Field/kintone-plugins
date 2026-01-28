@@ -1,125 +1,71 @@
-import {
-  Controller,
-  useFormContext,
-  type FieldValues,
-  type ControllerRenderProps,
-  type ControllerFieldState,
-} from 'react-hook-form';
-import { Autocomplete, Box, TextField, Typography } from '@mui/material';
-import type { SxProps, Theme } from '@mui/material';
+import { Controller, useFormContext, type FieldValues } from 'react-hook-form';
+import { Autocomplete, TextField } from '@mui/material';
+import type { SxProps, Theme, AutocompleteProps } from '@mui/material';
 
-export type AutocompleteOption = { label: string; code: string };
+export type BaseOption = {
+  label: string;
+  code: string;
+};
 
-type Props<T extends AutocompleteOption> = {
+type FormAutocompleteProps<
+  TOption,
+  TFieldValue = unknown,
+  TMultiple extends boolean | undefined = false,
+> = {
   name: string;
   label: string;
   placeholder?: string;
-  options: T[];
-  shouldShowOption?: (option: T) => boolean;
-  groupBy?: (option: T) => string;
   sx?: SxProps<Theme>;
-};
 
-export const FormAutocomplete = <T extends AutocompleteOption>({
+  /** RHF value -> Autocomplete value */
+  toOption: (value: TFieldValue, options: readonly TOption[]) => TOption | null;
+
+  /** Autocomplete value -> RHF value */
+  toValue: (option: TOption | null) => TFieldValue;
+
+  /** TextField を拡張したい時用 */
+  textFieldProps?: Omit<React.ComponentProps<typeof TextField>, 'value' | 'onChange'>;
+} & Omit<AutocompleteProps<TOption, TMultiple, false, false>, 'renderInput' | 'value' | 'onChange'>;
+
+export const FormAutocomplete = <
+  TOption,
+  TFieldValue,
+  TMultiple extends boolean | undefined = false,
+>({
   name,
   label,
   placeholder,
-  options,
-  shouldShowOption,
-  groupBy,
   sx,
-}: Props<T>) => {
+  toOption,
+  toValue,
+  textFieldProps,
+  options,
+  ...autocompleteProps
+}: FormAutocompleteProps<TOption, TFieldValue, TMultiple>) => {
   const { control } = useFormContext<FieldValues>();
-  // optionsをフィルタリング
-  let filteredOptions = shouldShowOption ? options.filter(shouldShowOption) : options;
-
-  // groupByが指定されている場合、グループごとにソート（MUI Autocompleteの仕様上、ソート済みである必要がある）
-  if (groupBy) {
-    filteredOptions = [...filteredOptions].sort((a, b) => {
-      const groupA = groupBy(a);
-      const groupB = groupBy(b);
-      if (groupA !== groupB) {
-        return groupA.localeCompare(groupB, 'ja');
-      }
-      return a.label.localeCompare(b.label, 'ja');
-    });
-  }
 
   return (
     <Controller
       name={name}
       control={control}
-      render={({
-        field: { onChange, value },
-        fieldState: { error },
-      }: {
-        field: ControllerRenderProps<FieldValues, string>;
-        fieldState: ControllerFieldState;
-      }) => (
+      render={({ field, fieldState }) => (
         <Autocomplete
-          options={filteredOptions}
-          value={filteredOptions.find((opt) => opt.code === value) ?? null}
-          getOptionLabel={(opt) => opt.label}
-          isOptionEqualToValue={(opt, v) => opt.code === v.code}
-          onChange={(_, field) => onChange(field?.code ?? '')}
-          groupBy={groupBy}
-          fullWidth
+          {...autocompleteProps}
+          options={options}
+          value={toOption(field.value, options)}
+          onChange={(_, option) => field.onChange(toValue(option))}
           sx={{
             width: { xs: '100%', sm: 400 },
             ...sx,
           }}
-          renderGroup={(params) => {
-            return (
-              <Box key={params.key}>
-                <Box
-                  sx={{
-                    position: 'sticky',
-                    top: '-8px',
-                    p: '4px 10px',
-                    bgcolor: '#E2F1FD',
-                    color: '#1976D2',
-                    fontSize: '0.9rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1.5,
-                    zIndex: 1,
-                  }}
-                >
-                  {params.group}
-                </Box>
-                {params.children}
-              </Box>
-            );
-          }}
-          renderOption={(props, option) => {
-            const { key, ...rest } = props;
-            return (
-              <Box
-                key={key}
-                component='li'
-                {...rest}
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'flex-start !important',
-                }}
-              >
-                <Typography variant='caption' color='text.secondary' sx={{ fontSize: '10px' }}>
-                  コード: {option.code}
-                </Typography>
-                <Typography variant='body2'>{option.label}</Typography>
-              </Box>
-            );
-          }}
           renderInput={(params) => (
             <TextField
               {...params}
+              {...textFieldProps}
               label={label}
               placeholder={placeholder}
-              variant='outlined'
-              color='primary'
-              error={!!error}
-              helperText={error?.message}
+              error={!!fieldState.error}
+              helperText={fieldState.error?.message}
             />
           )}
         />
