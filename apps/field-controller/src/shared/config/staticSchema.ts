@@ -7,18 +7,14 @@ export const LATEST_PLUGIN_VERSION = 1;
 // Version 1 Schema Definitions
 // =============================================================================
 
-/**
- * 共通：フィールド条件設定
- */
+/** 共通：フィールド条件設定 */
 const ConditionSchemaV1 = z.object({
   field: z.string(),
-  operator: z.enum(['equals', 'notEquals', 'greaterThan', 'lessThan', 'includes']),
-  value: z.string(),
+  operator: z.enum(['equals', 'notEquals', 'includes']),
+  value: z.union([z.string(), z.array(z.string())]),
 });
 
-/**
- * 共通：ルールブロックのベース構造
- */
+/** 共通：ルールブロックのベース構造 */
 const RuleBlockBaseSchemaV1 = z.object({
   conditions: z.array(ConditionSchemaV1),
   logic: z.enum(['AND', 'OR']),
