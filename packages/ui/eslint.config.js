@@ -1,7 +1,7 @@
-import sharedConfig from '@kintone-plugin/eslint-config';
+import baseConfig from '@kintone-plugin/eslint-config';
 
 export default [
-  ...sharedConfig,
+  ...baseConfig,
   {
     ignores: ['node_modules', 'dist', '*.config.ts', '*.config.js'],
   },

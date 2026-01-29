@@ -1,18 +1,19 @@
-import kintoneGlobalConfig from '@cybozu/eslint-config/flat/globals/kintone.js';
 import presetsReactTypescriptPrettier from '@cybozu/eslint-config/flat/presets/react-typescript-prettier.js';
+import globals from 'globals';
+import kintoneGlobals from '@cybozu/eslint-config/flat/globals/kintone.js';
 
 export default [
+  {
+    ignores: ['node_modules', 'dist'],
+  },
   ...presetsReactTypescriptPrettier,
   {
-    ignores: ['node_modules', 'dist', '*.config.ts', '*.config.js'],
-  },
-  {
+    files: ['**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     languageOptions: {
-      globals: kintoneGlobalConfig,
-    },
-    rules: {
-      '@typescript-eslint/consistent-type-imports': 'error',
-      '@typescript-eslint/no-empty-function': 'off',
+      globals: {
+        ...globals.browser,
+        ...kintoneGlobals,
+      },
     },
   },
 ];

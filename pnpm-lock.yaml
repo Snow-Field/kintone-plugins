@@ -253,22 +253,9 @@ importers:
       '@cybozu/eslint-config':
         specifier: ^25.0.0
         version: 25.0.0(@typescript-eslint/utils@8.54.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3))(eslint@9.39.2(jiti@2.6.1))(prettier@3.8.1)(typescript@5.9.3)
-      eslint:
-        specifier: ^9.39.2
-        version: 9.39.2(jiti@2.6.1)
       globals:
         specifier: ^16.5.0
         version: 16.5.0
-    devDependencies:
-      '@eslint/js':
-        specifier: ^9.39.2
-        version: 9.39.2
-      eslint-plugin-react:
-        specifier: ^7.37.5
-        version: 7.37.5(eslint@9.39.2(jiti@2.6.1))
-      typescript-eslint:
-        specifier: ^8.54.0
-        version: 8.54.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
 
   packages/kintone-utils:
     dependencies:
@@ -306,6 +293,9 @@ importers:
       '@types/react':
         specifier: ^19.2.7
         version: 19.2.8
+      eslint:
+        specifier: ^9.39.2
+        version: 9.39.2(jiti@2.6.1)
       npm-run-all:
         specifier: ^4.1.5
         version: 4.1.5
@@ -357,6 +347,9 @@ importers:
       '@types/react':
         specifier: ^19.2.7
         version: 19.2.8
+      eslint:
+        specifier: ^9.39.2
+        version: 9.39.2(jiti@2.6.1)
       npm-run-all:
         specifier: ^4.1.5
         version: 4.1.5

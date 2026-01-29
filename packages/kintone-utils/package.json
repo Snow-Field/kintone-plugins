@@ -29,6 +29,7 @@
     "@kintone-plugin/tsconfig": "workspace:*",
     "@kintone/dts-gen": "^9.0.0",
     "@types/react": "^19.2.7",
+    "eslint": "^9.39.2",
     "npm-run-all": "^4.1.5",
     "typescript": "^5.9.3"
   }

@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "@cybozu/eslint-config": "^25.0.0",
-    "eslint": "^9.39.2",
     "globals": "^16.5.0"
   }
 }
