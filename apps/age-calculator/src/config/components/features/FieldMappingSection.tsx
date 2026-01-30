@@ -8,8 +8,9 @@ import {
   FormSection,
   Text,
   DynamicSortableList,
-  FormAutocomplete,
+  FormSingleAutocomplete,
   FormTextField,
+  type AutoCompleteOption,
 } from '@kintone-plugin/ui';
 
 const fieldTypeLabelMap: Record<string, string> = {
@@ -18,13 +19,17 @@ const fieldTypeLabelMap: Record<string, string> = {
   DATE: '日付',
 };
 
-const FieldMappingRow: FC<{ index: number }> = ({ index }) => {
+// グループ化
+const getGroupLabel = (option: AutoCompleteOption) =>
+  fieldTypeLabelMap[option.type as string] || 'その他';
+
+const FieldMappingRow: FC<{
+  index: number;
+  dateFields: AutoCompleteOption[];
+  ageFields: AutoCompleteOption[];
+}> = ({ index, dateFields, ageFields }) => {
   const { control, setValue } = useFormContext<PluginConfig>();
   const { isDuplicate } = useDuplicateCheck(index, 'conditions');
-
-  // 選択肢を取得
-  const { fields: dateFields } = useAppFields(['DATE']);
-  const { fields: ageFields } = useAppFields(['SINGLE_LINE_TEXT', 'NUMBER']);
 
   // 年齢フィールドの選択状態を監視
   const destFieldCode = useWatch({
@@ -36,14 +41,18 @@ const FieldMappingRow: FC<{ index: number }> = ({ index }) => {
   const selectedField = ageFields.find((field) => field.code === destFieldCode);
   const isDisabledUnit = selectedField ? selectedField.type !== 'SINGLE_LINE_TEXT' : true;
 
-  // 非活性時に値をクリア
+  // 非活性時に単位をクリア
   useEffect(() => {
     if (isDisabledUnit) {
-      setValue(`conditions.${index}.unit`, '');
+      setValue(`conditions.${index}.unit`, '', { shouldDirty: true, shouldValidate: false });
     }
   }, [isDisabledUnit, setValue, index]);
 
-  const getGroupLabel = (option: { type: string }) => fieldTypeLabelMap[option.type] || 'その他';
+  // 選択されたフィールドを除外
+  const filteredDateOptions = dateFields.filter(
+    (field) => !isDuplicate(field.code, 'srcFieldCode')
+  );
+  const filteredAgeOptions = ageFields.filter((field) => !isDuplicate(field.code, 'destFieldCode'));
 
   return (
     <Stack
@@ -52,22 +61,20 @@ const FieldMappingRow: FC<{ index: number }> = ({ index }) => {
       spacing={2}
       sx={{ width: '100%' }}
     >
-      <FormAutocomplete
+      <FormSingleAutocomplete
         name={`conditions.${index}.srcFieldCode`}
         label='生年月日フィールド'
         placeholder='フィールドを選択してください'
-        options={dateFields}
-        shouldShowOption={(field) => !isDuplicate(field.code, 'srcFieldCode')}
+        options={filteredDateOptions}
         groupBy={getGroupLabel}
         sx={{ flex: 1, minWidth: 0 }}
       />
       <ArrowForwardIosIcon sx={{ color: '#c1c1c1' }} />
-      <FormAutocomplete
+      <FormSingleAutocomplete
         name={`conditions.${index}.destFieldCode`}
         label='年齢フィールド'
         placeholder='フィールドを選択してください'
-        options={ageFields}
-        shouldShowOption={(field) => !isDuplicate(field.code, 'destFieldCode')}
+        options={filteredAgeOptions}
         groupBy={getGroupLabel}
         sx={{ flex: 1, minWidth: 0 }}
       />
@@ -86,6 +93,10 @@ export const FieldMappingSection: FC = () => {
   const { control } = useFormContext<PluginConfig>();
   const { fields, append, remove, insert, move } = useFieldArray({ control, name: 'conditions' });
 
+  // 選択肢を取得
+  const { fields: dateFields } = useAppFields(['DATE']);
+  const { fields: ageFields } = useAppFields(['SINGLE_LINE_TEXT', 'NUMBER']);
+
   return (
     <FormSection>
       <Text variant='sectionTitle'>フィールドの設定</Text>
@@ -102,7 +113,9 @@ export const FieldMappingSection: FC = () => {
             index !== undefined ? insert(index, row) : append(row);
           }}
           addButtonLabel='新しい設定を追加'
-          renderItem={(_, index) => <FieldMappingRow index={index} />}
+          renderItem={(_, index) => (
+            <FieldMappingRow index={index} dateFields={dateFields} ageFields={ageFields} />
+          )}
         />
       </Box>
     </FormSection>
