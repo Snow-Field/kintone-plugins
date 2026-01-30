@@ -17,10 +17,6 @@ function evaluateCondition(
       return fieldValue === conditionValue;
     case 'notEquals':
       return fieldValue !== conditionValue;
-    case 'greaterThan':
-      return fieldValue > conditionValue;
-    case 'lessThan':
-      return fieldValue < conditionValue;
     case 'includes':
       // 文字列フィールドの部分一致検索
       return typeof fieldValue === 'string' && typeof conditionValue === 'string'
