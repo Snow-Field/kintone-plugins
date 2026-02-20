@@ -10,7 +10,16 @@ export const LATEST_PLUGIN_VERSION = 1;
 /** 共通：フィールド条件設定 */
 const ConditionSchemaV1 = z.object({
   field: z.string(),
-  operator: z.enum(['equals', 'notEquals', 'includes']),
+  operator: z.enum([
+    'equals',
+    'notEquals',
+    'greaterThan',
+    'lessThan',
+    'greaterThanOrEqual',
+    'lessThanOrEqual',
+    'includes',
+    'notIncludes',
+  ]),
   value: z.union([z.string(), z.array(z.string())]),
 });
 
@@ -42,9 +51,14 @@ const VisibilityRuleBlockSchemaV1 = RuleBlockBaseSchemaV1.extend({
 /** 非表示制御の1ルール単位 */
 const VisibilityRuleSchemaV1 = z.object({
   id: z.string(),
-  enabled: z.boolean(),
   block: VisibilityRuleBlockSchemaV1,
   targetFields: z.array(z.string()),
+});
+
+/** 非表示制御設定 */
+const VisibilitySettingV1 = z.object({
+  enabled: z.boolean(),
+  rules: z.array(VisibilityRuleSchemaV1),
 });
 
 // -----------------------------------------------------------------------------
@@ -68,9 +82,14 @@ const DisableRuleBlockSchemaV1 = RuleBlockBaseSchemaV1.extend({
 /** 非活性制御の1ルール単位 */
 const DisableRuleSchemaV1 = z.object({
   id: z.string(),
-  enabled: z.boolean(),
   block: DisableRuleBlockSchemaV1,
   targetFields: z.array(z.string()),
+});
+
+/** 非活性制御設定 */
+const DisableSettingV1 = z.object({
+  enabled: z.boolean(),
+  rules: z.array(DisableRuleSchemaV1),
 });
 
 // -----------------------------------------------------------------------------
@@ -79,8 +98,8 @@ const DisableRuleSchemaV1 = z.object({
 
 export const PluginConfigSchemaV1 = z.object({
   version: z.literal(1),
-  visibilityRules: z.array(VisibilityRuleSchemaV1),
-  disableRules: z.array(DisableRuleSchemaV1),
+  visibilitySetting: VisibilitySettingV1,
+  disableSetting: DisableSettingV1,
 });
 
 // =============================================================================
@@ -99,11 +118,17 @@ export type AnyPluginConfig = { version?: number } & Record<string, unknown>;
 /** 最新バージョンのプラグイン設定型 */
 export type PluginConfig = z.infer<typeof PluginConfigSchema>;
 
+/** 非表示制御設定の型 */
+export type VisibilitySetting = PluginConfig['visibilitySetting'];
+
+/** 非活性制御の型 */
+export type DisableSetting = PluginConfig['disableSetting'];
+
 /** 非表示制御ルールの型 */
-export type VisibilityRule = PluginConfig['visibilityRules'][number];
+export type VisibilityRule = VisibilitySetting['rules'][number];
 
 /** 非活性制御ルールの型 */
-export type DisableRule = PluginConfig['disableRules'][number];
+export type DisableRule = DisableSetting['rules'][number];
 
 /** 非表示制御条件ブロックの型 */
 export type VisibilityRuleBlock = VisibilityRule['block'];
