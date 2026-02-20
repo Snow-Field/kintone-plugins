@@ -3,13 +3,16 @@ import { useFormContext } from 'react-hook-form';
 import { useSnackbar } from 'notistack';
 
 type UseExportConfigProps<T> = {
+  /** プラグイン名 */
+  pluginName: string;
   /** 完了時のメッセージ（任意） */
   message?: string;
 };
 
 export const useExportConfig = <T extends Record<string, unknown>>({
+  pluginName,
   message = '設定情報をエクスポートしました',
-}: UseExportConfigProps<T> = {}) => {
+}: UseExportConfigProps<T>) => {
   const { getValues } = useFormContext<T>();
   const { enqueueSnackbar } = useSnackbar();
 
@@ -21,14 +24,14 @@ export const useExportConfig = <T extends Record<string, unknown>>({
 
     const a = document.createElement('a');
     a.href = url;
-    a.download = `plugin-config-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `${pluginName}_${new Date().toISOString().split('T')[0]}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
     enqueueSnackbar(message, { variant: 'success' });
-  }, [getValues, message, enqueueSnackbar]);
+  }, [pluginName, message, getValues, enqueueSnackbar]);
 
   return exportConfig;
 };

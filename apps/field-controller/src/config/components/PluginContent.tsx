@@ -7,7 +7,7 @@ import { usePluginForm } from '@/config/hooks/usePluginForm';
 import { useSubmitConfig } from '@/config/hooks/useSubmitConfig';
 import { useResetConfig } from '@/config/hooks/useResetConfig';
 import { useImportConfig } from '@/config/hooks/useImportConfig';
-import { useExportConfig } from '@kintone-plugin/kintone-utils';
+import { useExportConfig } from '@/config/hooks/useExportConfig';
 import { type PluginConfig } from '@/shared/config';
 import { Header, Form } from '@kintone-plugin/ui';
 import { FormTabs } from '@/config/components/features/FormTabs';
@@ -25,7 +25,7 @@ const PluginContentForm: FC = () => {
 
   /** メニューアクション */
   const resetConfig = useResetConfig();
-  const exportConfig = useExportConfig<PluginConfig>();
+  const exportConfig = useExportConfig();
   const importConfig = useImportConfig();
 
   const menuActions = {
