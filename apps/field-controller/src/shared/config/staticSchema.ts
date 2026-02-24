@@ -3,6 +3,18 @@ import { z } from 'zod';
 /** プラグインバージョン */
 export const LATEST_PLUGIN_VERSION = 1;
 
+/** 演算子 */
+export enum OPERATOR_TYPES {
+  EQUALS = 'equals',
+  NOT_EQUALS = 'notEquals',
+  GREATER_THAN = 'greaterThan',
+  LESS_THAN = 'lessThan',
+  GREATER_THAN_OR_EQUAL = 'greaterThanOrEqual',
+  LESS_THAN_OR_EQUAL = 'lessThanOrEqual',
+  INCLUDES = 'includes',
+  NOT_INCLUDES = 'notIncludes',
+}
+
 // =============================================================================
 // Version 1 Schema Definitions
 // =============================================================================
@@ -10,16 +22,7 @@ export const LATEST_PLUGIN_VERSION = 1;
 /** 共通：フィールド条件設定 */
 const ConditionSchemaV1 = z.object({
   field: z.string(),
-  operator: z.enum([
-    'equals',
-    'notEquals',
-    'greaterThan',
-    'lessThan',
-    'greaterThanOrEqual',
-    'lessThanOrEqual',
-    'includes',
-    'notIncludes',
-  ]),
+  operator: z.enum(Object.values(OPERATOR_TYPES)),
   value: z.union([z.string(), z.array(z.string())]),
 });
 

@@ -12,30 +12,34 @@ import {
  */
 export const createConfig = (): PluginConfig => ({
   version: LATEST_PLUGIN_VERSION,
-  visibilityRules: [
-    {
-      id: nanoid(),
-      enabled: false,
-      block: {
-        conditions: [],
-        logic: 'AND',
-        triggers: [],
+  visibilitySetting: {
+    enabled: false,
+    rules: [
+      {
+        id: nanoid(),
+        block: {
+          conditions: [],
+          logic: 'AND',
+          triggers: [],
+        },
+        targetFields: [],
       },
-      targetFields: [],
-    },
-  ],
-  disableRules: [
-    {
-      id: nanoid(),
-      enabled: false,
-      block: {
-        conditions: [],
-        logic: 'AND',
-        triggers: [],
+    ],
+  },
+  disableSetting: {
+    enabled: false,
+    rules: [
+      {
+        id: nanoid(),
+        block: {
+          conditions: [],
+          logic: 'AND',
+          triggers: [],
+        },
+        targetFields: [],
       },
-      targetFields: [],
-    },
-  ],
+    ],
+  },
 });
 
 /**

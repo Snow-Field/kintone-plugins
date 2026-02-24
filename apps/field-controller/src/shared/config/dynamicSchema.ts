@@ -4,26 +4,31 @@ import {
   PluginConfigSchema,
   type PluginConfig,
   type RuleBlock,
+  type OPERATOR_TYPES,
 } from '@/shared/config/staticSchema';
 
 /**
  * 演算子とフィールドタイプの互換性マップ
  */
-const OPERATOR_FIELD_TYPE_COMPATIBILITY: Record<'equals' | 'notEquals' | 'includes', FieldType[]> =
-  {
-    equals: [],
-    notEquals: [],
-    includes: [
-      'SINGLE_LINE_TEXT',
-      'MULTI_LINE_TEXT',
-      'RICH_TEXT',
-      'RADIO_BUTTON',
-      'DROP_DOWN',
-      'MULTI_SELECT',
-      'CHECK_BOX',
-      'STATUS',
-    ],
-  };
+const OPERATOR_FIELD_TYPE_COMPATIBILITY: Record<OPERATOR_TYPES, FieldType[]> = {
+  equals: [],
+  notEquals: [],
+  greaterThan: [],
+  lessThan: [],
+  greaterThanOrEqual: [],
+  lessThanOrEqual: [],
+  includes: [
+    'SINGLE_LINE_TEXT',
+    'MULTI_LINE_TEXT',
+    'RICH_TEXT',
+    'RADIO_BUTTON',
+    'DROP_DOWN',
+    'MULTI_SELECT',
+    'CHECK_BOX',
+    'STATUS',
+  ],
+  notIncludes: [],
+};
 
 /**
  * 演算子とフィールドタイプの互換性をチェック
