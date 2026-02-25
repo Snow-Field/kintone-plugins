@@ -40,36 +40,34 @@ kintone アプリのフィールドに対して、**条件ベースの動的制�
 ```
 PluginConfigSchemaV1
 ├── version: literal(1)
-├── visibilitySetting: VisibilitySettingV1
-│   ├── enabled: boolean
-│   └── rules: VisibilityRuleSchemaV1[]
-│       ├── id: string
-│       ├── block: VisibilityRuleBlockSchemaV1
-│       │   ├── conditions: ConditionSchemaV1[]
-│       │   │   ├── field: string          // フィールドコード
-│       │   │   ├── operator: OPERATOR_TYPES // 演算子（enum）
-│       │   │   └── value: string | string[] // 比較値
-│       │   ├── logic: 'AND' | 'OR'
-│       │   └── triggers: VisibilityTriggerSchemaV1[]
-│       └── targetFields: string[]         // 制御対象フィールドコード
+├── visibilityRules: VisibilityRuleSchemaV1[]
+│   ├── id: string
+│   ├── enabled: boolean                  // ルール単位の有効/無効
+│   ├── block: VisibilityRuleBlockSchemaV1
+│   │   ├── conditions: ConditionSchemaV1[]
+│   │   │   ├── field: string              // フィールドコード
+│   │   │   ├── operator: OPERATOR_TYPES   // 演算子（enum）
+│   │   │   └── value: string | string[]   // 比較値
+│   │   ├── logic: 'AND' | 'OR'
+│   │   └── triggers: VisibilityTriggerSchemaV1[]
+│   └── targetFields: string[]             // 制御対象フィールドコード
 │
-└── disableSetting: DisableSettingV1
-    ├── enabled: boolean
-    └── rules: DisableRuleSchemaV1[]
-        ├── id: string
-        ├── block: DisableRuleBlockSchemaV1
-        │   ├── conditions: ConditionSchemaV1[]
-        │   ├── logic: 'AND' | 'OR'
-        │   └── triggers: DisableTriggerSchemaV1[]
-        └── targetFields: string[]
+└── disableRules: DisableRuleSchemaV1[]
+    ├── id: string
+    ├── enabled: boolean                   // ルール単位の有効/無効
+    ├── block: DisableRuleBlockSchemaV1
+    │   ├── conditions: ConditionSchemaV1[]
+    │   ├── logic: 'AND' | 'OR'
+    │   └── triggers: DisableTriggerSchemaV1[]
+    └── targetFields: string[]
 ```
 
 ### 2.2 演算子一覧（`OPERATOR_TYPES`）
 
-| 列挙値 | 用途 | 対応フィールドタイプ（予定） |
+| 列挙値 | 用途 | 対応フィールドタイプ |
 |--------|------|---------------------------|
-| `equals` | 完全一致 | 全フィールド |
-| `notEquals` | 不一致 | 全フィールド |
+| `equals` | 完全一致 | 配列型を除く全フィールド |
+| `notEquals` | 不一致 | 配列型を除く全フィールド |
 | `greaterThan` | より大きい | 数値, 日付 |
 | `lessThan` | より小さい | 数値, 日付 |
 | `greaterThanOrEqual` | 以上 | 数値, 日付 |
@@ -99,12 +97,12 @@ PluginConfigSchemaV1
 
 ```
 ┌─────────────────┐     ┌──────────────────┐
-│  staticSchema    │     │  dynamicSchema   │
-│  （構造検証）      │     │  （意味検証）      │
-│                  │     │                  │
-│  ・型の正当性     │──→  │  ・フィールド存在  │
-│  ・必須項目      │     │  ・演算子互換性    │
-│  ・列挙値範囲    │     │  ・対象フィールド   │
+│  staticSchema   │     │  dynamicSchema   │
+│  （構造検証）     │     │  （意味検証）      │
+│                 │     │                  │
+│  ・型の正当性     │ ──→ │  ・フィールド存在   │
+│  ・必須項目      │      │  ・演算子互換性    │
+│  ・列挙値範囲     │     │  ・対象フィールド   │
 └─────────────────┘     │    存在確認       │
                         └──────────────────┘
                               ↑
@@ -220,9 +218,8 @@ src/
 - `validateBlocks()`: ルールブロック内の条件を検証
 - `isOperatorCompatibleWithFieldType()`: 【未実装】演算子とフィールドタイプの互換性チェック
 
-> **注意**: 現在 `dynamicSchema.ts` は `visibilityRules` / `disableRules` を参照しているが、
-> `staticSchema.ts` の構造は `visibilitySetting.rules` / `disableSetting.rules` であるため、
-> パスの整合性を修正する必要がある。
+> **注意**: `dynamicSchema.ts` のプロパティパスは `config.visibilityRules` / `config.disableRules` で
+> `staticSchema.ts` と整合済み。ただし `FieldInfo` 型の解決と `isOperatorCompatibleWithFieldType()` の実装が未完了。
 
 #### `persistence.ts` ✅（実装済み）
 
@@ -254,46 +251,35 @@ evaluateBlock(block, event)
 - `notIncludes` の実装
 - 配列値（複数選択フィールド）の `includes` / `notIncludes` 対応
 
-#### `disableExecutor.ts`（要修正）
+#### `disableExecutor.ts` ✅（スキーマ整合済み）
 
 **責務**: 条件一致時に `event.record[fieldCode].disabled = true` を設定
 
-> **注意**: 現在 `rule.enabled` を参照しているが、`staticSchema.ts` の `DisableRuleSchemaV1` には
-> `enabled` プロパティが存在しない。`DisableSettingV1.enabled` で設定全体を制御する設計のため、
-> 個別ルールの `enabled` 参照を削除するか、スキーマに追加するかの判断が必要。
+- ルール単位の `enabled` チェックにより、個別ルールの有効/無効を制御
 
-#### `visibilityExecutor.ts`（要修正）
+#### `visibilityExecutor.ts` ✅（スキーマ整合済み）
 
 **責務**: 条件一致時に `kintone.app.record.setFieldShown(fieldCode, false)` を呼び出し
 
-> **注意**: `disableExecutor.ts` と同様、`rule.enabled` の不整合あり。
+- ルール単位の `enabled` チェックにより、個別ルールの有効/無効を制御
 
 ### 4.3 desktop/mobile — エントリポイント
 
-#### `desktop/index.ts`（要修正）
+#### `desktop/index.ts` ✅（スキーマ整合済み）
 
 **責務**: PC 向けイベントハンドラの登録
 
-> **注意**: `pluginConfig.disableRules` / `pluginConfig.visibilityRules` を参照しているが、
-> 正しくは `pluginConfig.disableSetting.rules` / `pluginConfig.visibilitySetting.rules`。
-> さらに `setting.enabled` のチェックを追加する必要がある。
-
-**修正後の想定ロジック**:
-
 ```typescript
 const pluginConfig = restoreConfig();
-
-if (pluginConfig.disableSetting.enabled) {
-  executeDisable(pluginConfig.disableSetting.rules, event);
-}
-if (pluginConfig.visibilitySetting.enabled) {
-  executeVisibility(pluginConfig.visibilitySetting.rules, event);
-}
+executeDisable(pluginConfig.disableRules, event);
+executeVisibility(pluginConfig.visibilityRules, event);
 ```
 
-#### `mobile/index.ts`（要修正）
+- ルール単位の `enabled` による有効/無効判定は Executor 側で実施
 
-**責務**: モバイル向けイベントハンドラの登録（`desktop/index.ts` と同様の修正が必要）
+#### `mobile/index.ts` ✅（スキーマ整合済み）
+
+**責務**: モバイル向けイベントハンドラの登録（`desktop/index.ts` と同構造）
 
 ### 4.4 config/ — 設定画面
 
@@ -310,9 +296,9 @@ App
                         ├── Header (タブ / メニュー / 保存ボタン)
                         └── Form
                             ├── [Tab 0] InvisibleSettings  ← 【未実装】
-                            │   ├── 有効/無効 スイッチ
                             │   └── RuleList (dnd-kit 並び替え)
                             │       └── RuleCard × N
+                            │           ├── EnabledSwitch (ルール単位の有効/無効)
                             │           ├── TriggerSelect
                             │           ├── ConditionList
                             │           │   └── ConditionRow × N
@@ -323,7 +309,6 @@ App
                             │           └── TargetFieldSelect (targetFields)
                             │
                             └── [Tab 1] DisableSettings    ← 【未実装】
-                                ├── 有効/無効 スイッチ
                                 └── RuleList（同上の構造）
 ```
 
@@ -338,7 +323,7 @@ App
 ```typescript
 // 設計イメージ
 type RuleSettingsProps = {
-  settingPath: 'visibilitySetting' | 'disableSetting';
+  rulesPath: 'visibilityRules' | 'disableRules';
   triggerOptions: Array<{ label: string; value: string }>;
 };
 ```
@@ -346,8 +331,8 @@ type RuleSettingsProps = {
 **実装ポイント**:
 - `useFormContext<PluginConfig>()` でフォーム状態にアクセス
 - `useFieldArray()` でルールの追加・削除・並び替えを管理
-- 各設定タブの `enabled` スイッチで設定全体の有効/無効を切り替え
-- ルールが無効の場合、ルール一覧を視覚的に無効化（グレーアウト等）
+- ルール単位の `enabled` スイッチで個別ルールの有効/無効を切り替え
+- `enabled: false` のルールはカード全体を視覚的に無効化（グレーアウト・opacity 低下等）
 
 ### 5.2 `RuleCard.tsx`
 
@@ -355,10 +340,11 @@ type RuleSettingsProps = {
 
 | セクション | UI要素 | データパス |
 |-----------|--------|-----------|
-| トリガー | マルチセレクト | `rules[i].block.triggers` |
-| 条件 | 動的フォームリスト | `rules[i].block.conditions` |
-| ロジック | AND/OR トグル | `rules[i].block.logic` |
-| 対象フィールド | フィールドピッカー | `rules[i].targetFields` |
+| 有効/無効 | スイッチ | `visibilityRules[i].enabled` |
+| トリガー | マルチセレクト | `visibilityRules[i].block.triggers` |
+| 条件 | 動的フォームリスト | `visibilityRules[i].block.conditions` |
+| ロジック | AND/OR トグル | `visibilityRules[i].block.logic` |
+| 対象フィールド | フィールドピッカー | `visibilityRules[i].targetFields` |
 
 ### 5.3 `ConditionRow.tsx`
 
@@ -421,18 +407,17 @@ const OPERATOR_COMPATIBILITY: Record<FieldType, OPERATOR_TYPES[]> = {
 ## 6. スキーマと既存コードの不整合一覧
 
 以下は `staticSchema.ts` のスキーマ構造と、既存の実行コードとの間に検出された不整合点です。
-**本格実装前に解決が必要**です。
 
-| # | 対象ファイル | 不整合内容 | 修正方針 |
-|---|-------------|-----------|---------|
-| 1 | `desktop/index.ts` | `pluginConfig.disableRules` を参照 → スキーマは `pluginConfig.disableSetting.rules` | パスを `disableSetting.rules` に修正、`enabled` チェック追加 |
-| 2 | `desktop/index.ts` | `pluginConfig.visibilityRules` を参照 → スキーマは `pluginConfig.visibilitySetting.rules` | パスを `visibilitySetting.rules` に修正、`enabled` チェック追加 |
-| 3 | `mobile/index.ts` | 上記と同様の不整合 | 上記と同様の修正 |
-| 4 | `disableExecutor.ts` | `rule.enabled` を参照 → スキーマの `DisableRuleSchemaV1` には `enabled` なし | `enabled` チェックを削除（設定全体の `enabled` で制御） |
-| 5 | `visibilityExecutor.ts` | `rule.enabled` を参照 → スキーマの `VisibilityRuleSchemaV1` には `enabled` なし | 同上 |
-| 6 | `dynamicSchema.ts` | `config.visibilityRules` / `config.disableRules` を参照 | `config.visibilitySetting.rules` / `config.disableSetting.rules` に修正 |
-| 7 | `dynamicSchema.ts` | `isOperatorCompatibleWithFieldType()` が未定義で使用されている | 関数を実装するか、import を追加 |
-| 8 | `dynamicSchema.ts` | `FieldInfo` 型が未定義 | `@kintone-plugin/kintone-utils` から適切な型を import するか、定義を追加 |
+| # | 対象ファイル | ステータス | 不整合内容 | 修正方針 |
+|---|-------------|:---------:|-----------|---------|
+| 1 | `desktop/index.ts` | ✅ 整合済み | プロパティパス `visibilityRules` / `disableRules` | スキーマと一致 |
+| 2 | `mobile/index.ts` | ✅ 整合済み | プロパティパス `visibilityRules` / `disableRules` | スキーマと一致 |
+| 3 | `disableExecutor.ts` | ✅ 整合済み | `rule.enabled` がスキーマに存在 | ルール単位 `enabled` 追加により解消 |
+| 4 | `visibilityExecutor.ts` | ✅ 整合済み | `rule.enabled` がスキーマに存在 | ルール単位 `enabled` 追加により解消 |
+| 5 | `dynamicSchema.ts` | ✅ 整合済み | プロパティパス `visibilityRules` / `disableRules` | スキーマと一致 |
+| 6 | `dynamicSchema.ts` | ⚠️ 未解決 | `isOperatorCompatibleWithFieldType()` が未定義で使用されている | 関数を実装するか、import を追加 |
+| 7 | `dynamicSchema.ts` | ⚠️ 未解決 | `FieldInfo` 型が未定義 | `FieldProperty`（`@kintone-plugin/kintone-utils`）を使用するよう修正 |
+| 8 | `persistence.ts` | ⚠️ 要修正 | `createConfig()` が旧構造（`visibilitySetting` / `disableSetting`）を返却 | 新構造（`visibilityRules` / `disableRules`）に合わせて修正 |
 
 ---
 
@@ -487,21 +472,21 @@ kintone イベント発火
   ↓
 restoreConfig(): kintone から設定 JSON を復元 + Zod 検証
   ↓
-disableSetting.enabled チェック
-  ├── true → executeDisable(rules, event)
-  │           └── ルールごとに evaluateBlock()
-  │               ├── トリガーマッチ？
-  │               ├── 条件評価（AND/OR）
-  │               └── マッチ → record[field].disabled = true
-  │
-  └── false → スキップ
+executeDisable(disableRules, event)
+  └── ルールごとにループ
+      ├── rule.enabled === false → スキップ
+      └── rule.enabled === true
+          └── evaluateBlock()
+              ├── トリガーマッチ？
+              ├── 条件評価（AND/OR）
+              └── マッチ → record[field].disabled = true
   ↓
-visibilitySetting.enabled チェック
-  ├── true → executeVisibility(rules, event)
-  │           └── ルールごとに evaluateBlock()
-  │               └── マッチ → setFieldShown(field, false)
-  │
-  └── false → スキップ
+executeVisibility(visibilityRules, event)
+  └── ルールごとにループ
+      ├── rule.enabled === false → スキップ
+      └── rule.enabled === true
+          └── evaluateBlock()
+              └── マッチ → setFieldShown(field, false)
   ↓
 return event
 ```
@@ -512,12 +497,14 @@ return event
 
 ### Phase 1: スキーマ整合性の修正（最優先）
 
-- [ ] `desktop/index.ts` のパス参照を修正 + `enabled` チェック追加
-- [ ] `mobile/index.ts` のパス参照を修正 + `enabled` チェック追加
-- [ ] `disableExecutor.ts` の `rule.enabled` 参照を削除
-- [ ] `visibilityExecutor.ts` の `rule.enabled` 参照を削除
-- [ ] `dynamicSchema.ts` のパス参照を修正
-- [ ] `dynamicSchema.ts` の `FieldInfo` 型と `isOperatorCompatibleWithFieldType()` を実装
+- [x] ~~`desktop/index.ts` のパス参照を修正~~ → スキーマ変更により整合済み
+- [x] ~~`mobile/index.ts` のパス参照を修正~~ → スキーマ変更により整合済み
+- [x] ~~`disableExecutor.ts` の `rule.enabled` 整合~~ → スキーマにルール単位 `enabled` 追加により解消
+- [x] ~~`visibilityExecutor.ts` の `rule.enabled` 整合~~ → スキーマにルール単位 `enabled` 追加により解消
+- [x] ~~`dynamicSchema.ts` のパス参照を修正~~ → スキーマ変更により整合済み
+- [ ] `dynamicSchema.ts` の `FieldInfo` → `FieldProperty` 型の修正
+- [ ] `dynamicSchema.ts` の `isOperatorCompatibleWithFieldType()` を実装
+- [ ] `persistence.ts` の `createConfig()` を新スキーマ構造に合わせて修正
 
 ### Phase 2: ルール評価エンジンの拡充
 
@@ -551,17 +538,25 @@ return event
 
 ## 10. 設計上の判断ポイント
 
-### 10.1 個別ルールの `enabled` を持つかどうか
+### 10.1 ルール単位の `enabled` 制御 ✅（決定済み）
 
-**現状のスキーマ**: 設定全体（`visibilitySetting.enabled` / `disableSetting.enabled`）でのみ有効/無効を管理
+**決定**: Setting ラッパー（`visibilitySetting` / `disableSetting`）を廃止し、
+ルール単位に `enabled: z.boolean()` を持つフラット構造を採用。
 
-**検討事項**:
-- 個別ルールごとに有効/無効を切り替えたいケースがあるか？
-- 設定全体の ON/OFF だけで十分か？
+**メリット**:
+- 個別ルールの一時無効化が可能（デバッグ・段階的な設定展開に有用）
+- Setting ラッパーが不要になり、スキーマとアクセスパスがシンプル化
+- Executor 側の `rule.enabled` チェックとの整合性が確保
 
-**推奨**: 個別ルールにも `enabled` を追加する方向で検討。
-デバッグやテスト時に特定ルールだけを無効化できると利便性が高い。
-追加する場合は `staticSchema.ts` の `VisibilityRuleSchemaV1` と `DisableRuleSchemaV1` に `enabled: z.boolean()` を追加。
+**構造比較**:
+```
+// 旧: Setting ラッパー構造
+pluginConfig.visibilitySetting.enabled  // 設定全体の有効/無効
+pluginConfig.visibilitySetting.rules[i] // 個別ルール
+
+// 新: フラット + ルール単位 enabled
+pluginConfig.visibilityRules[i].enabled // ルール単位の有効/無効
+```
 
 ### 10.2 条件値（`value`）の型設計
 
@@ -577,21 +572,3 @@ return event
 `persistence.ts` にバージョンマイグレーション機構が組み込まれているため、
 将来のスキーマ変更にも `LATEST_PLUGIN_VERSION` のインクリメントと
 `migrateConfig()` へのステップ追加で対応可能。
-
----
-
-## 付録 A: 関連パッケージ
-
-| パッケージ | 用途 |
-|-----------|------|
-| `@kintone-plugin/ui` | 共通 UI コンポーネント（Header, Form, GeometryLoader, PluginThemeProvider） |
-| `@kintone-plugin/kintone-utils` | kintone API ユーティリティ（PLUGIN_ID, storePluginConfig, restorePluginConfig, usePluginForm, PluginLogger 等） |
-| `@kintone-plugin/eslint-config` | ESLint 共通設定 |
-| `@kintone-plugin/tsconfig` | TypeScript 共通設定 |
-
-## 付録 B: ビルド設定
-
-- **エントリポイント**: `desktop`, `mobile`, `config` の 3 バンドル
-- **チャンク分割**: `all-in-one`（全て1ファイルに結合）
-- **ソースマップ**: 開発時のみ `eval-source-map`
-- **出力先**: `dist/` → `kintone-plugin-packer` で `artifacts/plugin.zip` を生成
