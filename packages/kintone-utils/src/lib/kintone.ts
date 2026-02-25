@@ -13,6 +13,8 @@ export const isMobile = (eventType?: string): boolean => {
 };
 
 /** kintoneオブジェクト取得 */
-export const getApp = (eventType?: string): typeof kintone.mobile.app | typeof kintone.app => {
+export const getKintoneApp = (
+  eventType?: string
+): typeof kintone.mobile.app | typeof kintone.app => {
   return isMobile(eventType) ? kintone.mobile.app : kintone.app;
 };
