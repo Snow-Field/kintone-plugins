@@ -8,43 +8,6 @@ import {
 } from '@/shared/config/staticSchema';
 
 /**
- * 演算子とフィールドタイプの互換性マップ
- */
-const OPERATOR_FIELD_TYPE_COMPATIBILITY: Record<OPERATOR_TYPES, FieldType[]> = {
-  equals: [],
-  notEquals: [],
-  greaterThan: [],
-  lessThan: [],
-  greaterThanOrEqual: [],
-  lessThanOrEqual: [],
-  includes: [
-    'SINGLE_LINE_TEXT',
-    'MULTI_LINE_TEXT',
-    'RICH_TEXT',
-    'RADIO_BUTTON',
-    'DROP_DOWN',
-    'MULTI_SELECT',
-    'CHECK_BOX',
-    'STATUS',
-  ],
-  notIncludes: [],
-};
-
-/**
- * 演算子とフィールドタイプの互換性をチェック
- */
-function isOperatorCompatibleWithFieldType(operator: string, fieldType: FieldType): boolean {
-  const compatibleTypes =
-    OPERATOR_FIELD_TYPE_COMPATIBILITY[operator as keyof typeof OPERATOR_FIELD_TYPE_COMPATIBILITY];
-
-  if (!compatibleTypes || compatibleTypes.length === 0) {
-    return true;
-  }
-
-  return compatibleTypes.includes(fieldType);
-}
-
-/**
  * ルールブロック内の条件をバリデーション
  */
 function validateBlocks(
