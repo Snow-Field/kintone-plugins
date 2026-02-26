@@ -107,4 +107,3 @@ export type OneOf =
   | Subtable<{
       [fieldCode: string]: InSubtable;
     }>;
-export {};

@@ -338,6 +338,7 @@ export type Subtable<
   noLabel: boolean;
   fields: T;
 };
+
 export type OneOf =
   | RecordNumber
   | Creator
@@ -370,4 +371,3 @@ export type OneOf =
   | Subtable<{
       [fieldCode: string]: InSubtable;
     }>;
-export {};

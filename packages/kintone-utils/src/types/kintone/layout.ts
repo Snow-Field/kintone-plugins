@@ -15,6 +15,7 @@ export type Group<T extends Array<Row<Field.OneOf[]>>> = {
   code: string;
   layout: T;
 };
+
 export type OneOf =
   | Row<Field.OneOf[]>
   | Subtable<Field.InSubtable[]>

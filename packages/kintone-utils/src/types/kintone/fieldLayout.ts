@@ -8,6 +8,7 @@ type FieldLayoutWith<
   code: string;
   size: S;
 };
+
 export type RecordNumber = FieldLayoutWith<'RECORD_NUMBER'>;
 export type Creator = FieldLayoutWith<'CREATOR'>;
 export type CreatedTime = FieldLayoutWith<'CREATED_TIME'>;
@@ -67,6 +68,7 @@ export type Spacer = {
     height: string;
   };
 };
+
 export type OneOf =
   | RecordNumber
   | Creator
@@ -106,4 +108,3 @@ export type InSubtable = Exclude<
   | HR
   | Spacer
 >;
-export {};
