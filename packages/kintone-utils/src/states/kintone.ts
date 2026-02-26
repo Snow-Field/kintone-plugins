@@ -7,12 +7,6 @@ type ClientParams = {
   guestSpaceId?: string;
 };
 
-export type FieldProperty = {
-  code: string;
-  label: string;
-  type: string;
-};
-
 /**
  * アプリのフィールド情報を格納するAtom
  */
