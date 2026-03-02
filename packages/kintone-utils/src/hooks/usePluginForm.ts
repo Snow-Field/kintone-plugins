@@ -1,14 +1,14 @@
 import { useMemo, useEffect } from 'react';
 import { useForm, type FieldValues, type DefaultValues } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { type KintoneFormFieldProperty } from '@kintone/rest-api-client';
 import type { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useAppFields } from './useAppFields';
 import { useUnsavedChanges } from './useUnsavedChanges';
-import type { FieldType } from '../types';
 
 type FieldInfo = {
   code: string;
-  type: FieldType;
+  type: KintoneFormFieldProperty.OneOf['type'];
 };
 
 type UsePluginFormProps<T extends FieldValues> = {
