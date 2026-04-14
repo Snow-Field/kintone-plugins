@@ -24,16 +24,19 @@ export const storeConfig = (config: PluginConfig, callback?: () => void): void =
 /**
  * 変換: 古い設定情報を新しい設定情報に変換
  */
-const migrateConfig = (parsedConfig: Record<string, any>): PluginConfig => {
+const migrateConfig = (parsedConfig: AnyPluginConfig): PluginConfig => {
   const config = { ...parsedConfig };
 
-  // 初期状態（undefined）の処理
+  // バージョン情報がない、または認識できない構造の場合はデフォルト値で初期化
   if (config.version === undefined) {
-    if (!config.conditions) {
-      return createConfig(); // デフォルト値を返却
-    }
-    config.version = 1;
+    return createConfig();
   }
+
+  // 将来のバージョンアップ時はここにマイグレーションステップを追加
+  // if (config.version === 1) {
+  //   config.version = 2;
+  //   // ... V1 → V2 のマイグレーション処理
+  // }
 
   return config as PluginConfig;
 };
