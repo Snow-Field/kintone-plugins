@@ -113,7 +113,6 @@ const OPERATOR_COMPATIBILITY: Record<FieldType, OPERATOR_TYPES[]> = {
 | 一覧編集 | `app.record.index.edit.show` | — |
 | 新規作成 | `app.record.create.show` | `mobile.app.record.create.show` |
 | 編集 | `app.record.edit.show` | `mobile.app.record.edit.show` |
-| インライン編集 | `app.record.index.edit.show` |  |
 
 ### 2.5 条件値（`value`）の型設計
 
