@@ -2,7 +2,7 @@
 
 > **バージョン**: 1.0
 > **最終更新**: 2026-04-14
-> **ステータス**: 設計フェーズ（`staticSchema.ts` 完了済み）
+> **ステータス**: 設計フェーズ（`staticSchema.ts` / `dynamicSchema.ts` / `persistence.ts` 完了済み）
 
 ---
 
@@ -213,16 +213,14 @@ src/
 - `OPERATOR_TYPES`: 演算子の列挙型
 - 型エクスポート: `PluginConfig`, `VisibilityRule`, `DisableRule`, `RuleBlock` 等
 
-#### `dynamicSchema.ts`（方針策定済み、要調整）
+#### `dynamicSchema.ts` ✅（実装済み）
 
 **責務**: kintone アプリのフィールド情報を用いた動的バリデーション
 
 - `createConfigSchema(fields)`: フィールド情報から動的 Zod スキーマを生成
 - `validateBlocks()`: ルールブロック内の条件を検証
-- `isOperatorCompatibleWithFieldType()`: 【未実装】演算子とフィールドタイプの互換性チェック
-
-> **注意**: `dynamicSchema.ts` のプロパティパスは `config.visibilityRules` / `config.disableRules` で
-> `staticSchema.ts` と整合済み。ただし `FieldInfo` 型の解決と `isOperatorCompatibleWithFieldType()` の実装が未完了。
+- `isOperatorCompatibleWithFieldType()`: 演算子とフィールドタイプの互換性チェック
+- `OPERATOR_COMPATIBILITY`: 演算子互換性マップ（`KintoneFormFieldProperty.OneOf['type']` → `OPERATOR_TYPES[]`）
 
 #### `persistence.ts` ✅（実装済み）
 
@@ -439,9 +437,9 @@ const OPERATOR_COMPATIBILITY: Record<FieldType, OPERATOR_TYPES[]> = {
 | 3 | `disableExecutor.ts` | ✅ 整合済み | `rule.enabled` がスキーマに存在 | ルール単位 `enabled` 追加により解消 |
 | 4 | `visibilityExecutor.ts` | ✅ 整合済み | `rule.enabled` がスキーマに存在 | ルール単位 `enabled` 追加により解消 |
 | 5 | `dynamicSchema.ts` | ✅ 整合済み | プロパティパス `visibilityRules` / `disableRules` | スキーマと一致 |
-| 6 | `dynamicSchema.ts` | ⚠️ 未解決 | `isOperatorCompatibleWithFieldType()` が未定義で使用されている | 関数を実装するか、import を追加 |
-| 7 | `dynamicSchema.ts` | ⚠️ 未解決 | `FieldInfo` 型が未定義 | `FieldProperty`（`@kintone-plugin/kintone-utils`）を使用するよう修正 |
-| 8 | `persistence.ts` | ⚠️ 要修正 | `createConfig()` が旧構造（`visibilitySetting` / `disableSetting`）を返却 | 新構造（`visibilityRules` / `disableRules`）に合わせて修正 |
+| 6 | `dynamicSchema.ts` | ✅ 整合済み | `isOperatorCompatibleWithFieldType()` 実装済み | `OPERATOR_COMPATIBILITY` マップと共に実装 |
+| 7 | `dynamicSchema.ts` | ✅ 整合済み | `FieldProperty` 型定義済み | `KintoneFormFieldProperty.OneOf` を使用 |
+| 8 | `persistence.ts` | ✅ 整合済み | `createConfig()` が新構造で定義済み | `visibilityRules` / `disableRules` に対応。`migrateConfig()` のテンプレート残骸も除去済み |
 
 ---
 
@@ -519,16 +517,16 @@ return event
 
 ## 9. 実装優先度とタスクリスト
 
-### Phase 1: スキーマ整合性の修正（最優先）
+### Phase 1: スキーマ整合性の修正（最優先） ✅ 完了
 
 - [x] ~~`desktop/index.ts` のパス参照を修正~~ → スキーマ変更により整合済み
 - [x] ~~`mobile/index.ts` のパス参照を修正~~ → スキーマ変更により整合済み
 - [x] ~~`disableExecutor.ts` の `rule.enabled` 整合~~ → スキーマにルール単位 `enabled` 追加により解消
 - [x] ~~`visibilityExecutor.ts` の `rule.enabled` 整合~~ → スキーマにルール単位 `enabled` 追加により解消
 - [x] ~~`dynamicSchema.ts` のパス参照を修正~~ → スキーマ変更により整合済み
-- [ ] `dynamicSchema.ts` の `FieldInfo` → `FieldProperty` 型の修正
-- [ ] `dynamicSchema.ts` の `isOperatorCompatibleWithFieldType()` を実装
-- [ ] `persistence.ts` の `createConfig()` を新スキーマ構造に合わせて修正
+- [x] ~~`dynamicSchema.ts` の `FieldInfo` → `FieldProperty` 型の修正~~ → `KintoneFormFieldProperty.OneOf` を使用
+- [x] ~~`dynamicSchema.ts` の `isOperatorCompatibleWithFieldType()` を実装~~ → `OPERATOR_COMPATIBILITY` マップと共に実装
+- [x] ~~`persistence.ts` の `createConfig()` を新スキーマ構造に合わせて修正~~ → 新構造対応済み。`migrateConfig()` のテンプレート残骸も除去済み
 
 ### Phase 2: ルール評価エンジンの拡充
 
