@@ -1,0 +1,343 @@
+# {{プラグイン名}} 設計書
+
+> **バージョン**: 1.0
+> **最終更新**: {{YYYY-MM-DD}}
+> **タスク管理**: [TASKS.md](./TASKS.md)
+
+---
+
+## 1. 概要
+
+### 1.1 目的
+
+<!-- プラグインの目的を1〜2文で説明する -->
+
+{{プラグインの目的を記述}}
+
+### 1.2 提供機能
+
+<!-- 主要な機能を表形式で一覧化する -->
+
+| 機能 | 概要 | 対象イベント |
+|------|------|-------------|
+| **{{機能名}}** | {{概要}} | {{対象イベント}} |
+
+### 1.3 技術スタック
+
+| レイヤー | 技術 |
+|----------|------|
+| UI フレームワーク | React 19 + MUI 7 |
+| 状態管理 | Jotai |
+| フォーム管理 | React Hook Form + Zod Resolver |
+| バリデーション | Zod 4（静的 + 動的） |
+| ビルドツール | Rsbuild |
+| モノレポ共通 | `@kintone-plugin/ui`, `@kintone-plugin/kintone-utils` |
+
+---
+
+## 2. データモデル
+
+### 2.1 設定スキーマ（階層図）
+
+<!-- プラグイン設定の Zod スキーマ構造をツリー形式で表現する -->
+
+```
+PluginConfigSchemaV1
+├── version: literal(1)
+└── {{プロパティ}}
+    └── ...
+```
+
+### 2.2 列挙値・定数定義
+
+<!-- スキーマ内で使用する列挙値や定数を定義する -->
+
+| 列挙値 | 用途 |
+|--------|------|
+| `{{値}}` | {{説明}} |
+
+### 2.3 kintone イベント定義
+
+<!-- プラグインが登録するイベントの一覧を定義する -->
+
+| トリガー | PC | モバイル |
+|----------|:--:|:--------:|
+| {{イベント名}} | `{{PC イベント}}` | `{{モバイルイベント}}` |
+
+### 2.4 バリデーション戦略
+
+```
+┌─────────────────┐     ┌──────────────────┐
+│  staticSchema   │     │  dynamicSchema   │
+│  （構造検証）     │     │  （意味検証）      │
+│                 │     │                  │
+│  ・型の正当性     │ ──→ │  ・フィールド存在   │
+│  ・必須項目      │      │  ・値の整合性     │
+│  ・列挙値範囲     │     │  ・ビジネスルール  │
+└─────────────────┘     └──────────────────┘
+                              ↑
+                       kintone API から
+                       フィールド情報を取得
+```
+
+- **静的バリデーション**（`staticSchema.ts`）: Zod スキーマによる構造的な型チェック
+- **動的バリデーション**（`dynamicSchema.ts`）: `superRefine` によるアプリ固有のフィールド情報を用いた意味的検証
+
+---
+
+## 3. アーキテクチャ
+
+### 3.1 ディレクトリ構成
+
+```
+src/
+├── config/                          # 設定画面（React SPA）
+│   ├── index.tsx                    # エントリーポイント
+│   ├── App.tsx                      # ルートコンポーネント
+│   ├── components/
+│   │   ├── PluginContent.tsx        # メインフォームコンテナ
+│   │   ├── PluginErrorBoundary.tsx  # エラーバウンダリ
+│   │   └── features/
+│   │       └── {{機能別コンポーネント}}
+│   ├── hooks/
+│   │   ├── usePluginForm.ts         # フォーム初期化
+│   │   ├── useSubmitConfig.ts       # 保存処理
+│   │   ├── useResetConfig.ts        # リセット処理
+│   │   ├── useImportConfig.ts       # インポート処理
+│   │   ├── useExportConfig.ts       # エクスポート処理
+│   │   └── useSyncConfig.ts         # 状態同期
+│   └── states/
+│       ├── store.ts                 # Jotai ストア
+│       └── plugin.ts               # プラグイン状態 atom
+│
+├── desktop/                         # デスクトップ実行エントリ
+│   └── index.ts                     # イベントハンドラ登録
+│
+├── mobile/                          # モバイル実行エントリ
+│   └── index.ts                     # イベントハンドラ登録
+│
+└── shared/                          # 設定画面・実行の両方で共有
+    ├── config/
+    │   ├── index.ts                 # バレルエクスポート
+    │   ├── staticSchema.ts          # Zod 静的スキーマ定義
+    │   ├── dynamicSchema.ts         # 動的バリデーション生成
+    │   └── persistence.ts           # 設定の保存・復元・マイグレーション
+    └── lib/
+        └── {{共有ロジック}}
+```
+
+### 3.2 レイヤー構成図
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                    設定画面 (config/)                      │
+│  ┌─────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  │
+│  │  React   │  │ React    │  │  Jotai   │  │  Zod     │  │
+│  │  UI      │→ │ Hook Form│→ │  State   │→ │ Validate │  │
+│  │Components│  │          │  │          │  │          │  │
+│  └─────────┘  └──────────┘  └──────────┘  └──────────┘  │
+│         ↓           ↓                           ↓        │
+│  ┌──────────────────────────────────────────────────┐    │
+│  │              shared/config/persistence.ts         │    │
+│  │         kintone.plugin.setConfig() で保存           │    │
+│  └──────────────────────────────────────────────────┘    │
+└──────────────────────────────────────────────────────────┘
+                            ↓ JSON
+┌──────────────────────────────────────────────────────────┐
+│              実行レイヤー (desktop/ | mobile/)              │
+│  ┌──────────┐  ┌──────────┐  ┌──────────────────────┐   │
+│  │ 設定復元  │→ │ ビジネス  │→ │ kintone API          │   │
+│  │ restore  │  │ ロジック  │  │ フィールド操作          │   │
+│  │ Config() │  │          │  │                      │   │
+│  └──────────┘  └──────────┘  └──────────────────────┘   │
+└──────────────────────────────────────────────────────────┘
+```
+
+### 3.3 型定義の依存関係
+
+<!-- 型の定義元（源泉）と、それを参照するモジュールの関係を記載する -->
+
+```
+staticSchema.ts (型の源泉)
+│
+├── PluginConfig ─────────→ persistence.ts (createConfig, restoreConfig)
+│                          → config/states/plugin.ts (pluginConfigAtom)
+│                          → config/hooks/usePluginForm.ts
+│                          → config/hooks/useSubmitConfig.ts
+│                          → config/hooks/useExportConfig.ts
+│
+├── PluginConfigSchema ────→ dynamicSchema.ts (superRefine)
+│                          → config/hooks/useImportConfig.ts
+│                          → persistence.ts (restoreConfig)
+│
+└── {{追加の型}} ───────────→ {{参照先}}
+```
+
+---
+
+## 4. モジュール設計
+
+### 4.1 shared/config — 設定基盤
+
+#### `staticSchema.ts`
+
+**責務**: プラグイン設定のデータ構造と型を StaticSchema として定義
+
+- `PluginConfigSchemaV1`: 全体設定の Zod スキーマ
+- 型エクスポート: `PluginConfig` 等
+
+#### `dynamicSchema.ts`
+
+**責務**: kintone アプリのフィールド情報を用いた動的バリデーション
+
+- `createConfigSchema(fields)`: フィールド情報から動的 Zod スキーマを生成
+
+#### `persistence.ts`
+
+**責務**: 設定の保存・復元・マイグレーション
+
+- `createConfig()`: デフォルト設定の生成
+- `storeConfig()`: kintone への保存
+- `restoreConfig()`: kintone からの復元（Zod 検証付き）
+- `migrateConfig()`: 旧バージョンからのマイグレーション
+
+### 4.2 shared/lib — ビジネスロジック
+
+<!-- プラグイン固有のロジックモジュールを記載する -->
+
+#### `{{モジュール名}}.ts`
+
+**責務**: {{責務を記述}}
+
+### 4.3 desktop / mobile — エントリポイント
+
+#### `desktop/index.ts`
+
+**責務**: PC 向けイベントハンドラの登録
+
+```typescript
+const pluginConfig = restoreConfig();
+// イベントごとのロジック呼び出し
+```
+
+#### `mobile/index.ts`
+
+**責務**: モバイル向けイベントハンドラの登録（`desktop/index.ts` と同構造）
+
+### 4.4 config/ — 設定画面
+
+#### コンポーネント階層
+
+<!-- 設定画面の UI コンポーネントツリーを記載する -->
+
+```
+App
+└── JotaiProvider + PluginThemeProvider + SnackbarProvider
+    └── PluginErrorBoundary
+        └── Suspense
+            └── PluginContent
+                └── FormProvider (React Hook Form)
+                    └── PluginContentForm
+                        ├── Header (タブ / メニュー / 保存ボタン)
+                        └── Form
+                            └── {{機能別コンポーネント}}
+```
+
+#### 主要コンポーネント仕様
+
+<!-- 主要なコンポーネントの仕様を記述する。以下の形式を参考にすること。 -->
+<!--
+##### `コンポーネント名.tsx`
+
+**概要**: {{コンポーネントの概要}}
+
+| セクション | UI 要素 | データパス |
+|-----------|---------|-----------|
+| {{セクション名}} | {{UI 要素}} | {{フォームのデータパス}} |
+
+**実装ポイント**:
+- {{ポイント1}}
+- {{ポイント2}}
+-->
+
+#### カスタムフック仕様
+
+<!-- プラグイン固有のカスタムフックを記述する。以下の形式を参考にすること。 -->
+<!--
+##### `useXxx.ts`
+
+**概要**: {{フックの概要}}
+
+```typescript
+type UseXxxReturn = {
+  xxx: () => void;
+};
+```
+-->
+
+---
+
+## 5. フロー設計
+
+### 5.1 設定保存フロー
+
+```
+ユーザー操作（設定画面）
+  ↓
+React Hook Form: フォーム値を収集
+  ↓
+Zod 静的バリデーション (staticSchema)
+  ↓
+Zod 動的バリデーション (dynamicSchema + kintone フィールド情報)
+  ↓
+kintone.plugin.setConfig() で JSON 保存
+  ↓
+Jotai atom に同期 (useSyncConfig)
+```
+
+### 5.2 実行フロー（Desktop / Mobile）
+
+<!-- プラグインの実行時の処理フローを記述する -->
+
+```
+kintone イベント発火
+  ↓
+restoreConfig(): kintone から設定 JSON を復元 + Zod 検証
+  ↓
+{{ビジネスロジックの実行}}
+  ↓
+return event
+```
+
+---
+
+## 6. 設計判断記録（ADR）
+
+<!--
+設計上の重要な判断を以下のフォーマットで記録する。
+新しい判断が発生した場合は、ADR-XXX を追番して追加する。
+
+### ADR-XXX: {{タイトル}}
+
+**決定内容**:
+{{何を決めたか}}
+
+**背景・理由**:
+{{なぜそう決めたか}}
+
+**検討した代替案**:
+{{他に何を検討し、なぜ不採用としたか}}
+-->
+
+---
+
+## 付録
+
+<!--
+本文から参照される補足的なデータや対応表を記載する。
+（例: フィールドタイプ別 UI マッピング、エラーコード一覧 等）
+
+### 付録A: {{タイトル}}
+
+{{内容}}
+-->
