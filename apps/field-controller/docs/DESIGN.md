@@ -1,7 +1,7 @@
 # Field Controller プラグイン 設計書
 
 > **バージョン**: 1.0
-> **最終更新**: 2026-02-25
+> **最終更新**: 2026-04-14
 > **ステータス**: 設計フェーズ（`staticSchema.ts` 完了済み）
 
 ---
@@ -49,12 +49,12 @@ PluginConfigSchemaV1
 │   │   │   ├── operator: OPERATOR_TYPES   // 演算子（enum）
 │   │   │   └── value: string | string[]   // 比較値
 │   │   ├── logic: 'AND' | 'OR'
-│   │   └── triggers: VisibilityTriggerSchemaV1[]
+│   │   └── triggers: VisibilityTriggerSchemaV1[]  // イベント選択
 │   └── targetFields: string[]             // 制御対象フィールドコード
 │
 └── disableRules: DisableRuleSchemaV1[]
     ├── id: string
-    ├── enabled: boolean                   // ルール単位の有効/無効
+    ├── enabled: boolean
     ├── block: DisableRuleBlockSchemaV1
     │   ├── conditions: ConditionSchemaV1[]
     │   ├── logic: 'AND' | 'OR'
@@ -66,8 +66,8 @@ PluginConfigSchemaV1
 
 | 列挙値 | 用途 | 対応フィールドタイプ |
 |--------|------|---------------------------|
-| `equals` | 完全一致 | 配列型を除く全フィールド |
-| `notEquals` | 不一致 | 配列型を除く全フィールド |
+| `equals` | 完全一致 | 文字列, 数値, 日付 |
+| `notEquals` | 不一致 | 文字列, 数値, 日付 |
 | `greaterThan` | より大きい | 数値, 日付 |
 | `lessThan` | より小さい | 数値, 日付 |
 | `greaterThanOrEqual` | 以上 | 数値, 日付 |
@@ -92,6 +92,7 @@ PluginConfigSchemaV1
 | 一覧編集 | `app.record.index.edit.show` | — |
 | 新規作成 | `app.record.create.show` | `mobile.app.record.create.show` |
 | 編集 | `app.record.edit.show` | `mobile.app.record.edit.show` |
+| インライン編集 | `app.record.index.edit.show` |  |
 
 ### 2.4 バリデーション戦略
 
@@ -160,10 +161,12 @@ src/
 └── shared/                          # 設定画面・実行の両方で共有
     ├── config/
     │   ├── index.ts                 # バレルエクスポート
-    │   ├── staticSchema.ts          # ✅ Zod 静的スキーマ定義
+    │   ├── staticSchema.ts          # Zod 静的スキーマ定義
     │   ├── dynamicSchema.ts         # 動的バリデーション生成
     │   └── persistence.ts           # 設定の保存・復元・マイグレーション
     └── lib/
+        ├── convertNumber.ts         # テキストから数値変換
+        ├── convertDate.ts           # テキストから日付変換
         ├── ruleEvaluator.ts         # ルール評価エンジン
         ├── disableExecutor.ts       # 非活性制御の実行
         └── visibilityExecutor.ts    # 非表示制御の実行
@@ -361,6 +364,23 @@ type RuleSettingsProps = {
 - フィールド選択時に、そのフィールドタイプに応じた演算子リストをフィルタリング
 - フィールドタイプに応じて値入力の UI を切り替え（テキスト入力 / ドロップダウン等）
 
+**フィールドごとのUI**
+
+| フィールドタイプ | 値入力UI |
+|----------------|----------------|
+| `SINGLE_LINE_TEXT` | テキスト入力 |
+| `NUMBER` | 数値入力 |
+| `CALC` | 数値入力 |
+| `MULTI_LINE_TEXT` | テキスト入力 |
+| `CHECK_BOX` | マルチセレクト |
+| `RADIO_BUTTON` | マルチセレクト |
+| `DROP_DOWN` | マルチセレクト |
+| `MULTI_SELECT` | マルチセレクト |
+| `DATE` | 日付ピッカー |
+| `TIME` | 時刻ピッカー |
+| `DATETIME` | 日付ピッカー & 時刻ピッカー |
+| `OTHERS` | テキスト入力 |
+
 ### 5.4 `useRuleActions.ts`
 
 **ルールの CRUD 操作を管理するカスタムフック**
@@ -391,14 +411,18 @@ type UseConditionActionsReturn = {
 
 ```typescript
 const OPERATOR_COMPATIBILITY: Record<FieldType, OPERATOR_TYPES[]> = {
-  SINGLE_LINE_TEXT: ['equals', 'notEquals', 'includes', 'notIncludes'],
+  SINGLE_LINE_TEXT:['equals', 'notEquals', 'includes', 'notIncludes'],
   NUMBER:          ['equals', 'notEquals', 'greaterThan', 'lessThan', 'greaterThanOrEqual', 'lessThanOrEqual'],
-  DATE:            ['equals', 'notEquals', 'greaterThan', 'lessThan', 'greaterThanOrEqual', 'lessThanOrEqual'],
-  DROP_DOWN:       ['equals', 'notEquals'],
+  CALC:            ['equals', 'notEquals', 'greaterThan', 'lessThan', 'greaterThanOrEqual', 'lessThanOrEqual'],
+  MULTI_LINE_TEXT: ['includes', 'notIncludes'],
   CHECK_BOX:       ['includes', 'notIncludes'],
-  RADIO_BUTTON:    ['equals', 'notEquals'],
+  RADIO_BUTTON:    ['includes', 'notIncludes'],
+  DROP_DOWN:       ['includes', 'notIncludes'],
   MULTI_SELECT:    ['includes', 'notIncludes'],
-  // ... 他フィールドタイプ
+  DATE:            ['equals', 'notEquals', 'greaterThan', 'lessThan', 'greaterThanOrEqual', 'lessThanOrEqual'],
+  TIME:            ['equals', 'notEquals', 'greaterThan', 'lessThan', 'greaterThanOrEqual', 'lessThanOrEqual'],
+  DATETIME:        ['equals', 'notEquals', 'greaterThan', 'lessThan', 'greaterThanOrEqual', 'lessThanOrEqual'],
+  OTHERS:          ['includes', 'notIncludes']
 };
 ```
 
@@ -523,6 +547,7 @@ return event
 - [ ] `ConditionRow.tsx` の実装
 - [ ] `ConditionList.tsx` の実装
 - [ ] `TriggerSelect.tsx` の実装
+- [ ] `OperatorSelect.tsx` の実装
 - [ ] `FieldSelect.tsx` の実装（kintone フィールド一覧から選択）
 - [ ] `useRuleActions.ts` の実装
 - [ ] `useConditionActions.ts` の実装
