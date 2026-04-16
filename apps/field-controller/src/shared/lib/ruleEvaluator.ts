@@ -2,10 +2,6 @@ import { OPERATOR_TYPES, type RuleBlock } from '../config/staticSchema';
 import { convertDate } from './convertDate';
 import { convertNumber } from './convertNumber';
 
-// =============================================================================
-// 型定義
-// =============================================================================
-
 /**
  * kintone イベントのレコードフィールド値の型。
  * オプショナルプロパティは、一部のイベントでのみ存在する。
@@ -37,16 +33,6 @@ export type KintoneEvent = {
 function toStringValue(value: KintoneEventField['value']): string {
   if (Array.isArray(value)) return value[0] ?? '';
   return value ?? '';
-}
-
-/**
- * フィールド値を文字列配列として取得する。
- * 文字列の場合は単一要素の配列に変換する。
- */
-function toArrayValue(value: KintoneEventField['value']): string[] {
-  if (Array.isArray(value)) return value;
-  if (value === null || value === undefined) return [];
-  return [value];
 }
 
 /**
@@ -172,35 +158,51 @@ function evaluateLessThanOrEqual(
 
 /**
  * includes 評価。
+ *
+ * フィールド値の型によって評価方法を切り替える。
  * - 配列フィールド（CHECK_BOX, MULTI_SELECT 等）:
  *   conditionValue の全要素がフィールド値の配列に含まれるか
- * - 文字列フィールド: 部分一致
+ * - 文字列フィールド（SINGLE_LINE_TEXT, MULTI_LINE_TEXT, RADIO_BUTTON, DROP_DOWN 等）:
+ *   フィールド値が conditionValue を部分文字列として含むか
  */
 function evaluateIncludes(
   fieldValue: KintoneEventField['value'],
   conditionValue: string | string[]
 ): boolean {
-  if (Array.isArray(conditionValue)) {
-    const fvArray = toArrayValue(fieldValue);
-    return conditionValue.every((cv) => fvArray.includes(cv));
+  if (Array.isArray(fieldValue)) {
+    // 配列フィールド: conditionValue の全要素が含まれるか
+    const cvArray = Array.isArray(conditionValue) ? conditionValue : [conditionValue];
+    return cvArray.every((cv) => fieldValue.includes(cv));
   }
-  return toStringValue(fieldValue).includes(conditionValue);
+  // 文字列フィールド: 部分一致
+  const fv = fieldValue ?? '';
+  const cv = toConditionString(conditionValue);
+  return fv.includes(cv);
 }
 
 /**
  * notIncludes 評価。
- * - 配列フィールド: conditionValue の要素が1つも含まれていないか
- * - 文字列フィールド: 部分一致しない
+ *
+ * フィールド値の型によって評価方法を切り替える。
+ *
+ * - 配列フィールド（CHECK_BOX, MULTI_SELECT 等）:
+ *   conditionValue の要素が1つも含まれていないか
+ * - 文字列フィールド（SINGLE_LINE_TEXT, MULTI_LINE_TEXT, RADIO_BUTTON, DROP_DOWN 等）:
+ *   フィールド値が conditionValue を部分文字列として含まないか
  */
 function evaluateNotIncludes(
   fieldValue: KintoneEventField['value'],
   conditionValue: string | string[]
 ): boolean {
-  if (Array.isArray(conditionValue)) {
-    const fvArray = toArrayValue(fieldValue);
-    return conditionValue.every((cv) => !fvArray.includes(cv));
+  if (Array.isArray(fieldValue)) {
+    // 配列フィールド: conditionValue の要素が1つも含まれていないか
+    const cvArray = Array.isArray(conditionValue) ? conditionValue : [conditionValue];
+    return cvArray.every((cv) => !fieldValue.includes(cv));
   }
-  return !toStringValue(fieldValue).includes(conditionValue);
+  // 文字列フィールド: 部分一致しない
+  const fv = fieldValue ?? '';
+  const cv = toConditionString(conditionValue);
+  return !fv.includes(cv);
 }
 
 // =============================================================================
