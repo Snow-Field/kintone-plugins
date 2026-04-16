@@ -1,0 +1,33 @@
+{
+  "$schema": "https://raw.githubusercontent.com/kintone/js-sdk/%40kintone/plugin-manifest-validator%4010.2.0/packages/plugin-manifest-validator/manifest-schema.json",
+  "manifest_version": 1,
+  "version": "0.0.1",
+  "type": "APP",
+  "icon": "image/icon.png",
+  "name": {
+    "en": "Field Controller",
+    "ja": "フィールド制御プラグイン"
+  },
+  "description": {
+    "en": "This plugin controls whether fields are editable or hidden.",
+    "ja": "フィールドの編集不可や非表示を制御するプラグインです。"
+  },
+  "homepage_url": {
+    "en": "https://github.com/HaruCraftz/kintone-plugins/tree/main/apps/field-controller",
+    "ja": "https://github.com/HaruCraftz/kintone-plugins/tree/main/apps/field-controller"
+  },
+  "desktop": {
+    "js": ["js/desktop.js"],
+    "css": []
+  },
+  "mobile": {
+    "js": ["js/mobile.js"],
+    "css": []
+  },
+  "config": {
+    "html": "html/config.html",
+    "js": ["js/config.js"],
+    "css": [],
+    "required_params": []
+  }
+}
