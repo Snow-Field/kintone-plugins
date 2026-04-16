@@ -5,7 +5,7 @@
   "type": "APP",
   "icon": "image/icon.png",
   "name": {
-    "en": "Field Controller",
+    "en": "Field Control Plugin",
     "ja": "フィールド制御プラグイン"
   },
   "description": {
