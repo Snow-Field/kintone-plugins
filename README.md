@@ -21,6 +21,7 @@ kintone プラグイン開発の効率化と品質向上を目的とした、モ
 
 ### 🔌 プラグイン (Apps)
 - **[🎂 age-calculator](./apps/age-calculator)**: 誕生日フィールドから年齢を自動計算するプラグイン。
+- **[🎂 field-controller](./apps/field-controller)**: フィールドの編集・表示制御するプラグイン。
 
 ### 📚 共有パッケージ (Packages)
 - **[@kintone-plugin/ui](./packages/ui)**: MUI ベースのプラグイン共通 UI コンポーネント集。
