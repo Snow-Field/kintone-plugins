@@ -13,6 +13,7 @@ import {
   FormHelperText,
   Autocomplete,
 } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useAppFields } from '@kintone-plugin/kintone-utils';
 import { type PluginConfig, OPERATOR_TYPES } from '@/shared/config';
@@ -53,8 +54,8 @@ type Props = {
   rulesPath: 'visibilityRules' | 'disableRules';
   ruleIndex: number;
   condIndex: number;
+  onInsert: () => void;
   onRemove: () => void;
-  isRemoveDisabled?: boolean;
 };
 
 /**
@@ -64,8 +65,8 @@ export const ConditionRow: FC<Props> = ({
   rulesPath,
   ruleIndex,
   condIndex,
+  onInsert,
   onRemove,
-  isRemoveDisabled,
 }) => {
   const { control, setValue } = useFormContext<PluginConfig>();
   const basePath = `${rulesPath}.${ruleIndex}.block.conditions.${condIndex}` as const;
@@ -194,8 +195,7 @@ export const ConditionRow: FC<Props> = ({
         control={control}
         render={({ field, fieldState: { error } }) => {
           if (isMultiValue && hasOptions) {
-            // 複数選択 + 選択肢あり → Autocomplete (multiple)
-            const currentValue = Array.isArray(field.value) ? field.value : [];
+            const currentValue = Array.isArray(field.value) ? (field.value as string[]) : [];
             return (
               <Autocomplete
                 multiple
@@ -223,8 +223,7 @@ export const ConditionRow: FC<Props> = ({
           }
 
           if (isMultiValue && !hasOptions) {
-            // 複数選択 + 選択肢なし → Autocomplete (freeSolo multiple)
-            const currentValue = Array.isArray(field.value) ? field.value : [];
+            const currentValue = Array.isArray(field.value) ? (field.value as string[]) : [];
             return (
               <Autocomplete
                 multiple
@@ -254,7 +253,6 @@ export const ConditionRow: FC<Props> = ({
           }
 
           if (hasOptions && !isMultiValue) {
-            // 単一選択 + 選択肢あり → Select
             const currentValue = typeof field.value === 'string' ? field.value : '';
             return (
               <FormControl sx={{ flex: 2, minWidth: 160 }} size='small' error={!!error}>
@@ -308,20 +306,19 @@ export const ConditionRow: FC<Props> = ({
         }}
       />
 
-      {/* 削除ボタン */}
-      <Tooltip title='この条件を削除'>
-        <span>
-          <IconButton
-            size='small'
-            color='error'
-            onClick={onRemove}
-            disabled={isRemoveDisabled}
-            sx={{ mt: 0.5 }}
-          >
+      {/* 行内操作ボタン */}
+      <Box sx={{ display: 'flex', mt: 0.5, flexShrink: 0 }}>
+        <Tooltip title='この行の下に条件を追加'>
+          <IconButton size='small' onClick={onInsert}>
+            <AddIcon fontSize='small' />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title='この条件を削除'>
+          <IconButton size='small' color='error' onClick={onRemove}>
             <DeleteIcon fontSize='small' />
           </IconButton>
-        </span>
-      </Tooltip>
+        </Tooltip>
+      </Box>
     </Box>
   );
 };

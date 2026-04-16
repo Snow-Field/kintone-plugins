@@ -106,29 +106,12 @@ export const RuleCard: FC<Props> = ({
 
       <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
         {/* イベント選択 */}
-        <Box>
-          <Typography variant='body2' color='text.secondary' fontWeight={500} sx={{ mb: 1 }}>
-            イベント
-          </Typography>
-          <TriggerSelect
-            name={`${rulesPath}.${ruleIndex}.block.triggers`}
-            options={triggerOptions}
-          />
-        </Box>
+        <TriggerSelect name={`${rulesPath}.${ruleIndex}.block.triggers`} options={triggerOptions} />
 
         <Divider />
 
         {/* 対象フィールド */}
-        <Box>
-          <Typography variant='body2' color='text.secondary' fontWeight={500} sx={{ mb: 1 }}>
-            対象フィールド
-          </Typography>
-          <FieldSelect
-            name={`${rulesPath}.${ruleIndex}.targetFields`}
-            label='対象フィールド'
-            multiple
-          />
-        </Box>
+        <FieldSelect name={`${rulesPath}.${ruleIndex}.targetFields`} multiple />
 
         <Divider />
 

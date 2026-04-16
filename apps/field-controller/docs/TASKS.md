@@ -26,17 +26,17 @@
 
 ## Phase 3: 設定画面 UI の実装
 
-- [ ] `InvisibleSettings.tsx` の実装
-- [ ] `DisableSettings.tsx` の実装
-- [ ] `RuleCard.tsx` の実装
-- [ ] `RuleList.tsx` の実装（dnd-kit による並び替え対応）
-- [ ] `ConditionRow.tsx` の実装
-- [ ] `ConditionList.tsx` の実装
-- [ ] `TriggerSelect.tsx` の実装
-- [ ] `OperatorSelect.tsx` の実装
-- [ ] `FieldSelect.tsx` の実装（kintone フィールド一覧から選択）
-- [ ] `useRuleActions.ts` の実装
-- [ ] `useConditionActions.ts` の実装
+- [x] `InvisibleSettings.tsx` の実装
+- [x] `DisableSettings.tsx` の実装
+- [x] `RuleCard.tsx` の実装
+- [x] `RuleList.tsx` の実装（dnd-kit による並び替え対応）
+- [x] `ConditionRow.tsx` の実装
+- [x] `ConditionList.tsx` の実装
+- [x] `TriggerSelect.tsx` の実装
+- [x] `OperatorSelect.tsx` の実装（ConditionRow 内に統合）
+- [x] `FieldSelect.tsx` の実装（kintone フィールド一覧から選択）
+- [x] `useRuleActions.ts` の実装
+- [x] `useConditionActions.ts` の実装
 
 ## Phase 4: テストと品質向上
 

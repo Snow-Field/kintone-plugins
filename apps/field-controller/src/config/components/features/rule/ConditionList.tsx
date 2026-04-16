@@ -1,9 +1,18 @@
 import { type FC } from 'react';
-import { useFormContext, useWatch } from 'react-hook-form';
-import { Box, Button, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material';
+import { useFormContext, useFieldArray, useWatch } from 'react-hook-form';
+import {
+  Box,
+  Button,
+  IconButton,
+  ToggleButton,
+  ToggleButtonGroup,
+  Tooltip,
+  Typography,
+} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import ClearAllIcon from '@mui/icons-material/ClearAll';
 import { type PluginConfig } from '@/shared/config';
-import { useConditionActions } from '@/config/hooks/useConditionActions';
+import { createDefaultCondition } from '@/config/hooks/useConditionActions';
 import { ConditionRow } from './ConditionRow';
 
 type Props = {
@@ -16,12 +25,11 @@ type Props = {
  */
 export const ConditionList: FC<Props> = ({ rulesPath, ruleIndex }) => {
   const { setValue, control } = useFormContext<PluginConfig>();
-  const { appendCondition, removeCondition } = useConditionActions(rulesPath);
 
-  const conditions = useWatch({
+  const { fields, append, insert, remove, replace } = useFieldArray({
     control,
     name: `${rulesPath}.${ruleIndex}.block.conditions` as never,
-  }) as unknown as PluginConfig['visibilityRules'][number]['block']['conditions'];
+  });
 
   const logic = useWatch({
     control,
@@ -36,36 +44,61 @@ export const ConditionList: FC<Props> = ({ rulesPath, ruleIndex }) => {
     }
   };
 
+  const hasConditions = fields.length > 0;
+
   return (
     <Box>
+      {/* ヘッダー行 */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-        <Typography variant='body2' color='text.secondary' fontWeight={500}>
-          条件
-        </Typography>
-        {conditions && conditions.length > 1 && (
-          <ToggleButtonGroup
-            value={logic}
-            exclusive
-            onChange={handleLogicChange}
-            size='small'
-            color='primary'
-          >
-            <ToggleButton value='AND'>AND</ToggleButton>
-            <ToggleButton value='OR'>OR</ToggleButton>
-          </ToggleButtonGroup>
-        )}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant='body2' color='text.secondary' fontWeight={500}>
+            条件
+          </Typography>
+          {fields.length > 1 && (
+            <ToggleButtonGroup
+              value={logic}
+              exclusive
+              onChange={handleLogicChange}
+              size='small'
+              color='primary'
+            >
+              <ToggleButton value='AND'>AND</ToggleButton>
+              <ToggleButton value='OR'>OR</ToggleButton>
+            </ToggleButtonGroup>
+          )}
+        </Box>
+
+        {/* 右上ボタン群 */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          {/* 条件を追加ボタン — 常に右上に表示 */}
+          <Tooltip title='条件を追加'>
+            <IconButton size='small' onClick={() => append(createDefaultCondition() as never)}>
+              <AddIcon fontSize='small' />
+            </IconButton>
+          </Tooltip>
+
+          {/* 全クリアボタン — 条件が1件以上あるときのみ表示 */}
+          {hasConditions && (
+            <Tooltip title='すべての条件をクリア'>
+              <IconButton size='small' color='error' onClick={() => replace([] as never)}>
+                <ClearAllIcon fontSize='small' />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
       </Box>
 
+      {/* 条件行リスト */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-        {conditions && conditions.length > 0 ? (
-          conditions.map((_, condIndex) => (
+        {hasConditions ? (
+          fields.map((fieldItem, condIndex) => (
             <ConditionRow
-              key={condIndex}
+              key={fieldItem.id}
               rulesPath={rulesPath}
               ruleIndex={ruleIndex}
               condIndex={condIndex}
-              onRemove={() => removeCondition(ruleIndex, condIndex)}
-              isRemoveDisabled={conditions.length <= 1}
+              onInsert={() => insert(condIndex + 1, createDefaultCondition() as never)}
+              onRemove={() => remove(condIndex)}
             />
           ))
         ) : (
@@ -74,16 +107,6 @@ export const ConditionList: FC<Props> = ({ rulesPath, ruleIndex }) => {
           </Typography>
         )}
       </Box>
-
-      <Button
-        variant='outlined'
-        size='small'
-        startIcon={<AddIcon />}
-        onClick={() => appendCondition(ruleIndex)}
-        sx={{ mt: 1, borderStyle: 'dashed' }}
-      >
-        条件を追加
-      </Button>
     </Box>
   );
 };

@@ -12,8 +12,9 @@ import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-
 import { Box, Button, IconButton, Tooltip } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import { nanoid } from 'nanoid';
 import { type PluginConfig } from '@/shared/config';
-import { useRuleActions } from '@/config/hooks/useRuleActions';
+import { createDefaultRule } from '@/config/hooks/useRuleActions';
 import { RuleCard } from './RuleCard';
 
 type TriggerOption = {
@@ -35,7 +36,6 @@ const SortableRuleItem: FC<{
     id,
   });
 
-  // CSS.Transform.toString の代替実装（@dnd-kit/utilities 不要）
   const transformStr = transform
     ? `translate3d(${transform.x}px, ${transform.y}px, 0) scaleX(${transform.scaleX}) scaleY(${transform.scaleY})`
     : undefined;
@@ -68,11 +68,16 @@ const SortableRuleItem: FC<{
 
 /**
  * ルール一覧コンポーネント（dnd-kit による並び替え対応）
+ * useFieldArray はここだけで呼ぶ（二重呼び出しによる不整合を防ぐ）
  */
 export const RuleList: FC<Props> = ({ rulesPath, triggerOptions }) => {
-  const { control } = useFormContext<PluginConfig>();
-  const { fields } = useFieldArray({ control, name: rulesPath });
-  const { appendRule, removeRule, moveRule, duplicateRule } = useRuleActions(rulesPath);
+  const { control, getValues } = useFormContext<PluginConfig>();
+
+  // useFieldArray はここだけで呼ぶ
+  const { fields, append, insert, remove, move } = useFieldArray({
+    control,
+    name: rulesPath,
+  });
 
   const sensors = useSensors(useSensor(PointerSensor));
 
@@ -82,9 +87,26 @@ export const RuleList: FC<Props> = ({ rulesPath, triggerOptions }) => {
       const fromIndex = fields.findIndex((f) => f.id === active.id);
       const toIndex = fields.findIndex((f) => f.id === over.id);
       if (fromIndex !== -1 && toIndex !== -1) {
-        moveRule(fromIndex, toIndex);
+        move(fromIndex, toIndex);
       }
     }
+  };
+
+  const handleDuplicate = (index: number) => {
+    const rules = getValues(rulesPath);
+    const source = rules[index];
+    if (!source) return;
+    const duplicated = {
+      ...source,
+      id: nanoid(),
+      block: {
+        ...source.block,
+        conditions: source.block.conditions.map((c) => ({ ...c })),
+        triggers: [...source.block.triggers],
+      },
+      targetFields: [...source.targetFields],
+    };
+    insert(index + 1, duplicated as never);
   };
 
   return (
@@ -97,8 +119,8 @@ export const RuleList: FC<Props> = ({ rulesPath, triggerOptions }) => {
                 rulesPath={rulesPath}
                 ruleIndex={index}
                 triggerOptions={triggerOptions}
-                onRemove={() => removeRule(index)}
-                onDuplicate={() => duplicateRule(index)}
+                onRemove={() => remove(index)}
+                onDuplicate={() => handleDuplicate(index)}
                 isRemoveDisabled={fields.length <= 1}
               />
             </SortableRuleItem>
@@ -109,7 +131,7 @@ export const RuleList: FC<Props> = ({ rulesPath, triggerOptions }) => {
       <Button
         variant='outlined'
         startIcon={<AddIcon />}
-        onClick={appendRule}
+        onClick={() => append(createDefaultRule() as never)}
         sx={{ borderStyle: 'dashed', width: '100%', py: 1.5 }}
       >
         ルールを追加
