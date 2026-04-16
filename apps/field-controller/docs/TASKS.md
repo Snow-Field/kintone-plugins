@@ -18,11 +18,11 @@
 
 ## Phase 2: ルール評価エンジンの拡充
 
-- [ ] `ruleEvaluator.ts` に全演算子の評価ロジックを実装
+- [x] `ruleEvaluator.ts` に全演算子の評価ロジックを実装
   - `greaterThan`, `lessThan`, `greaterThanOrEqual`, `lessThanOrEqual`
   - `notIncludes`
   - 配列値（複数選択）の `includes` / `notIncludes`
-- [ ] 型安全な `Event` 型の定義（`Record<string, any>` の改善）
+- [x] 型安全な `Event` 型の定義（`Record<string, any>` の改善）
 
 ## Phase 3: 設定画面 UI の実装
 
