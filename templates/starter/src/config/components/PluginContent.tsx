@@ -25,7 +25,7 @@ const PluginContentForm: FC = () => {
 
   /** メニューアクション */
   const resetConfig = useResetConfig();
-  const exportConfig = useExportConfig<PluginConfig>();
+  const exportConfig = useExportConfig();
   const importConfig = useImportConfig();
 
   const menuActions = {
