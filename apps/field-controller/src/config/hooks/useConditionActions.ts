@@ -4,7 +4,7 @@ import { OPERATOR_TYPES } from '@/shared/config/staticSchema';
 export function createDefaultCondition() {
   return {
     field: '',
-    operator: OPERATOR_TYPES.EQUALS,
+    operator: '',
     value: '',
   };
 }

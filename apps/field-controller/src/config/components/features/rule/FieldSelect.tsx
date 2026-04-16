@@ -2,6 +2,7 @@ import { type FC } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 import {
   FormControl,
+  InputLabel,
   Select,
   MenuItem,
   Chip,
@@ -42,7 +43,6 @@ type Props = {
 
 /**
  * kintone フィールド一覧から対象フィールドを選択するコンポーネント
- * ラベルなし・クリアボタン付き
  */
 export const FieldSelect: FC<Props> = ({ name, multiple = false }) => {
   const { control, setValue, watch } = useFormContext<PluginConfig>();
@@ -66,10 +66,11 @@ export const FieldSelect: FC<Props> = ({ name, multiple = false }) => {
       control={control}
       render={({ field, fieldState: { error } }) => (
         <FormControl fullWidth error={!!error} size='small'>
+          <InputLabel>対象フィールド</InputLabel>
           <Select
             {...field}
             multiple={multiple}
-            displayEmpty
+            label='対象フィールド'
             value={
               multiple
                 ? Array.isArray(field.value)
@@ -77,36 +78,18 @@ export const FieldSelect: FC<Props> = ({ name, multiple = false }) => {
                   : []
                 : ((field.value as unknown as string) ?? '')
             }
-            renderValue={(selected) => {
-              if (multiple) {
-                const arr = selected as string[];
-                if (arr.length === 0) {
-                  return (
-                    <Box component='span' sx={{ color: 'text.disabled' }}>
-                      対象フィールドを選択
+            renderValue={
+              multiple
+                ? (selected) => (
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                      {(selected as string[]).map((code) => {
+                        const f = fields.find((fi) => fi.code === code);
+                        return <Chip key={code} label={f?.label ?? code} size='small' />;
+                      })}
                     </Box>
-                  );
-                }
-                return (
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                    {arr.map((code) => {
-                      const f = fields.find((fi) => fi.code === code);
-                      return <Chip key={code} label={f?.label ?? code} size='small' />;
-                    })}
-                  </Box>
-                );
-              }
-              const val = selected as string;
-              if (!val) {
-                return (
-                  <Box component='span' sx={{ color: 'text.disabled' }}>
-                    対象フィールドを選択
-                  </Box>
-                );
-              }
-              const f = fields.find((fi) => fi.code === val);
-              return f?.label ?? val;
-            }}
+                  )
+                : undefined
+            }
             endAdornment={
               hasValue ? (
                 <InputAdornment position='end' sx={{ mr: 2 }}>
