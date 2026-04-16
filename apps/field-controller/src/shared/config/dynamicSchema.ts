@@ -12,6 +12,12 @@ import {
 /** フィールドプロパティの型エイリアス */
 type FieldProperty = KintoneFormFieldProperty.OneOf;
 
+/** createConfigSchema に渡すフィールド情報の型（usePluginForm の FieldInfo と互換） */
+type FieldInfo = {
+  code: string;
+  type: FieldProperty['type'];
+};
+
 /** 演算子とフィールドタイプの互換性マップ */
 const OPERATOR_COMPATIBILITY: Partial<Record<FieldProperty['type'], OPERATOR_TYPES[]>> = {
   SINGLE_LINE_TEXT: [
@@ -87,7 +93,7 @@ export function isOperatorCompatibleWithFieldType(
  */
 function validateBlocks(
   block: RuleBlock,
-  fieldInfoMap: Map<string, FieldProperty>,
+  fieldInfoMap: Map<string, FieldInfo>,
   ctx: z.RefinementCtx,
   basePath: Array<string | number>
 ) {
@@ -119,10 +125,10 @@ function validateBlocks(
 /**
  * プラグイン設定の動的バリデーションスキーマを生成
  *
- * @param fields - kintoneアプリのフィールド情報（appFieldsAtom が返す配列）
+ * @param fields - kintoneアプリのフィールド情報（usePluginForm の FieldInfo と互換）
  * @returns 動的バリデーションが追加されたZodスキーマ
  */
-export function createConfigSchema(fields: FieldProperty[]): ZodType<PluginConfig> {
+export function createConfigSchema(fields: FieldInfo[]): ZodType<PluginConfig> {
   const fieldInfoMap = new Map(fields.map((f) => [f.code, f]));
 
   return PluginConfigSchema.superRefine((config, ctx) => {
