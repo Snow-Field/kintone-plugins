@@ -1,5 +1,14 @@
 import { z } from 'zod';
-import type { FieldType } from '@kintone-plugin/kintone-utils';
+import { type KintoneFormFieldProperty } from '@kintone/rest-api-client';
+
+/** フィールドプロパティの型エイリアス */
+type FieldProperty = KintoneFormFieldProperty.OneOf;
+
+/** createConfigSchema に渡すフィールド情報の型 */
+type FieldInfo = {
+  code: string;
+  type: FieldProperty['type'];
+};
 
 /** Version 1 */
 export const PluginConfigSchemaV1 = z.object({
@@ -41,14 +50,6 @@ export type PluginConfig = z.infer<typeof PluginConfigSchema>;
 export type PluginCondition = PluginConfig['conditions'][number];
 
 const TARGET_FIELDS: Array<keyof PluginCondition> = ['srcFieldCode', 'destFieldCode'];
-
-/**
- * フィールド情報の型定義
- */
-type FieldInfo = {
-  code: string;
-  type: FieldType;
-};
 
 /**
  * 動的な検証を含むスキーマを生成する
