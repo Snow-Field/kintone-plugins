@@ -9,11 +9,11 @@ export type TabItem = {
 
 export const FormTabs: TabItem[] = [
   {
-    label: '非表示設定',
-    content: <InvisibleSettings />,
-  },
-  {
     label: '編集不可設定',
     content: <DisableSettings />,
+  },
+  {
+    label: '非表示設定',
+    content: <InvisibleSettings />,
   },
 ];

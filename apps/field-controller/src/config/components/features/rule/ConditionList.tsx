@@ -2,7 +2,6 @@ import { type FC } from 'react';
 import { useFormContext, useFieldArray, useWatch } from 'react-hook-form';
 import {
   Box,
-  Button,
   IconButton,
   ToggleButton,
   ToggleButtonGroup,
@@ -69,7 +68,7 @@ export const ConditionList: FC<Props> = ({ rulesPath, ruleIndex }) => {
         </Box>
 
         {/* 右上ボタン群 */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {/* 条件を追加ボタン — 常に右上に表示 */}
           <Tooltip title='条件を追加'>
             <IconButton size='small' onClick={() => append(createDefaultCondition() as never)}>

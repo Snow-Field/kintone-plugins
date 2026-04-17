@@ -4,11 +4,11 @@ import { RuleList } from './rule/RuleList';
 
 /** 編集不可制御で使用できるトリガーイベント */
 const DISABLE_TRIGGER_OPTIONS = [
-  { label: '一覧編集画面（PC）', value: 'app.record.index.edit.show' },
-  { label: '追加画面（PC）', value: 'app.record.create.show' },
-  { label: '編集画面（PC）', value: 'app.record.edit.show' },
-  { label: '追加画面（モバイル）', value: 'mobile.app.record.create.show' },
-  { label: '編集画面（モバイル）', value: 'mobile.app.record.edit.show' },
+  { label: '一覧編集画面表示時（PC）', value: 'app.record.index.edit.show' },
+  { label: '追加画面表示時（PC）', value: 'app.record.create.show' },
+  { label: '編集画面表示時（PC）', value: 'app.record.edit.show' },
+  { label: '追加画面表示時（モバイル）', value: 'mobile.app.record.create.show' },
+  { label: '編集画面表示時（モバイル）', value: 'mobile.app.record.edit.show' },
 ];
 
 /**

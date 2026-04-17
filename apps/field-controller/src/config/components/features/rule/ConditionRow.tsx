@@ -2,16 +2,17 @@ import { type FC, useMemo } from 'react';
 import { Controller, useFormContext, useWatch } from 'react-hook-form';
 import {
   Box,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   TextField,
   IconButton,
   Tooltip,
   Chip,
   FormHelperText,
   Autocomplete,
+  Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -57,6 +58,15 @@ type Props = {
   onInsert: () => void;
   onRemove: () => void;
 };
+
+/** フィールドタイプに応じた input type を返す */
+function resolveInputType(fieldType: string | undefined): string {
+  if (fieldType === 'NUMBER' || fieldType === 'CALC') return 'number';
+  if (fieldType === 'DATE') return 'date';
+  if (fieldType === 'TIME') return 'time';
+  if (fieldType === 'DATETIME') return 'datetime-local';
+  return 'text';
+}
 
 /**
  * 1条件行のフォームコンポーネント
@@ -143,27 +153,56 @@ export const ConditionRow: FC<Props> = ({
         flexWrap: { xs: 'wrap', md: 'nowrap' },
       }}
     >
-      {/* フィールド選択 */}
+      {/* フィールド選択（Autocomplete） */}
       <Controller
         name={`${basePath}.field` as never}
         control={control}
-        render={({ field, fieldState: { error } }) => (
-          <FormControl sx={{ flex: 2, minWidth: 160 }} size='small' error={!!error}>
-            <InputLabel>フィールド</InputLabel>
-            <Select
-              value={(field.value as unknown as string) ?? ''}
-              label='フィールド'
-              onChange={(e) => handleFieldChange(e.target.value as string)}
-            >
-              {allFields.map((f) => (
-                <MenuItem key={f.code} value={f.code}>
-                  {f.label}
-                </MenuItem>
-              ))}
-            </Select>
-            {error && <FormHelperText>{error.message}</FormHelperText>}
-          </FormControl>
-        )}
+        render={({ field, fieldState: { error } }) => {
+          const selectedOption =
+            allFields.find((f) => f.code === (field.value as unknown as string)) ?? null;
+          return (
+            <Autocomplete
+              options={allFields}
+              value={selectedOption}
+              onChange={(_, newValue) => {
+                handleFieldChange((newValue as (typeof allFields)[number] | null)?.code ?? '');
+              }}
+              getOptionLabel={(option) => option.label}
+              isOptionEqualToValue={(option, value) => option.code === value.code}
+              size='small'
+              filterOptions={(opts, { inputValue }) => {
+                const lower = inputValue.toLowerCase();
+                return opts.filter(
+                  (o) =>
+                    o.label.toLowerCase().includes(lower) || o.code.toLowerCase().includes(lower)
+                );
+              }}
+              renderOption={(props, option) => {
+                const { key, ...rest } = props;
+                return (
+                  <li key={key} {...rest}>
+                    <Box>
+                      <Typography variant='body2'>{option.label}</Typography>
+                      <Typography variant='caption' color='text.secondary'>
+                        {option.code}
+                      </Typography>
+                    </Box>
+                  </li>
+                );
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label='フィールド'
+                  size='small'
+                  error={!!error}
+                  helperText={error?.message}
+                />
+              )}
+              sx={{ flex: 2, minWidth: 160 }}
+            />
+          );
+        }}
       />
 
       {/* 演算子選択 */}
@@ -202,11 +241,20 @@ export const ConditionRow: FC<Props> = ({
                 options={fieldOptions}
                 value={currentValue}
                 onChange={(_, v) => field.onChange(v)}
-                renderTags={(value, getTagProps) =>
-                  value.map((option, index) => {
-                    const { key, ...tagProps } = getTagProps({ index });
-                    return <Chip key={key} label={option} size='small' {...tagProps} />;
-                  })
+                renderValue={(value) =>
+                  value.map((option, index) => (
+                    <Chip
+                      key={option}
+                      label={option}
+                      size='small'
+                      sx={{ mr: 0.5, mb: 0.5 }}
+                      onDelete={() => {
+                        const next = [...currentValue];
+                        next.splice(index, 1);
+                        field.onChange(next);
+                      }}
+                    />
+                  ))
                 }
                 renderInput={(params) => (
                   <TextField
@@ -231,11 +279,20 @@ export const ConditionRow: FC<Props> = ({
                 options={[]}
                 value={currentValue}
                 onChange={(_, v) => field.onChange(v)}
-                renderTags={(value, getTagProps) =>
-                  value.map((option, index) => {
-                    const { key, ...tagProps } = getTagProps({ index });
-                    return <Chip key={key} label={option} size='small' {...tagProps} />;
-                  })
+                renderValue={(value) =>
+                  value.map((option, index) => (
+                    <Chip
+                      key={option}
+                      label={option}
+                      size='small'
+                      sx={{ mr: 0.5, mb: 0.5 }}
+                      onDelete={() => {
+                        const next = [...currentValue];
+                        next.splice(index, 1);
+                        field.onChange(next);
+                      }}
+                    />
+                  ))
                 }
                 renderInput={(params) => (
                   <TextField
@@ -275,16 +332,7 @@ export const ConditionRow: FC<Props> = ({
 
           // デフォルト: テキスト入力
           const currentValue = typeof field.value === 'string' ? field.value : '';
-          const inputType =
-            selectedFieldProp?.type === 'NUMBER' || selectedFieldProp?.type === 'CALC'
-              ? 'number'
-              : selectedFieldProp?.type === 'DATE'
-                ? 'date'
-                : selectedFieldProp?.type === 'TIME'
-                  ? 'time'
-                  : selectedFieldProp?.type === 'DATETIME'
-                    ? 'datetime-local'
-                    : 'text';
+          const inputType = resolveInputType(selectedFieldProp?.type);
 
           return (
             <TextField
@@ -295,9 +343,9 @@ export const ConditionRow: FC<Props> = ({
               onChange={(e) => field.onChange(e.target.value)}
               error={!!error}
               helperText={error?.message}
-              InputLabelProps={
+              slotProps={
                 ['date', 'time', 'datetime-local'].includes(inputType)
-                  ? { shrink: true }
+                  ? { inputLabel: { shrink: true } }
                   : undefined
               }
               sx={{ flex: 2, minWidth: 160 }}

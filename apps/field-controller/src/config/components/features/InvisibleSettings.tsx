@@ -4,12 +4,12 @@ import { RuleList } from './rule/RuleList';
 
 /** 非表示制御で使用できるトリガーイベント */
 const VISIBILITY_TRIGGER_OPTIONS = [
-  { label: '詳細画面（PC）', value: 'app.record.detail.show' },
-  { label: '追加画面（PC）', value: 'app.record.create.show' },
-  { label: '編集画面（PC）', value: 'app.record.edit.show' },
-  { label: '詳細表示（モバイル）', value: 'mobile.app.record.detail.show' },
-  { label: '追加画面（モバイル）', value: 'mobile.app.record.create.show' },
-  { label: '編集画面（モバイル）', value: 'mobile.app.record.edit.show' },
+  { label: '詳細画面表示時（PC）', value: 'app.record.detail.show' },
+  { label: '追加画面表示時（PC）', value: 'app.record.create.show' },
+  { label: '編集画面表示時（PC）', value: 'app.record.edit.show' },
+  { label: '詳細画面表示時（モバイル）', value: 'mobile.app.record.detail.show' },
+  { label: '追加画面表示時（モバイル）', value: 'mobile.app.record.create.show' },
+  { label: '編集画面表示時（モバイル）', value: 'mobile.app.record.edit.show' },
 ];
 
 /**
