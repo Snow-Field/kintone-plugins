@@ -24,14 +24,14 @@ const PluginContentForm: FC = () => {
   const { isDirty, isSubmitting } = formState;
 
   /** メニューアクション */
-  const resetConfig = useResetConfig();
   const exportConfig = useExportConfig();
   const importConfig = useImportConfig();
+  const resetConfig = useResetConfig();
 
   const menuActions = {
-    reset: resetConfig,
     export: exportConfig,
     import: importConfig,
+    reset: resetConfig,
   };
 
   /** プラグイン一覧へ戻る処理 */

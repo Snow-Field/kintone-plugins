@@ -16,9 +16,9 @@ type Props = {
   isSaveLoading?: boolean;
   isSaveDisabled?: boolean;
   menuActions: {
-    reset: () => void;
     export: () => void;
     import: (data: unknown) => void;
+    reset: () => void;
   };
 };
 
@@ -88,8 +88,8 @@ export const Header: FC<Props> = ({
         <SaveButton loading={isSaveLoading} disabled={isSaveDisabled} />
         <CancelButton onClick={onCancel} loading={isSaveLoading} />
         <MenuButton disabled={isSaveLoading}>
-          <ImportMenuItem onImport={onImport} />
           <ExportMenuItem onExport={onExport} />
+          <ImportMenuItem onImport={onImport} />
           <Divider />
           <ResetMenuItem onReset={onReset} />
         </MenuButton>

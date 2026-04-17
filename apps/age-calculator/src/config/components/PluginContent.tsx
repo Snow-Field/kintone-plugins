@@ -20,14 +20,14 @@ const PluginContentForm: FC = () => {
   const [activeTab, setActiveTab] = useAtom(activeTabIndexAtom);
   const loading = useAtomValue(loadingAtom);
 
-  const reset = useResetConfig();
   const exportConfig = useExportConfig();
   const importConfig = useImportConfig();
+  const resetConfig = useResetConfig();
 
   const menuActions = {
-    reset,
     export: exportConfig,
     import: importConfig,
+    reset: resetConfig,
   };
 
   const { isDirty, isSubmitting } = formState;
