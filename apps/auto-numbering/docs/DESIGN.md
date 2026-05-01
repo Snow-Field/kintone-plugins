@@ -1,7 +1,7 @@
-# {{プラグイン名}} 設計書
+# 自動採番プラグイン 設計書
 
 > **バージョン**: 1.0
-> **最終更新**: {{YYYY-MM-DD}}
+> **最終更新**: 2026-04-30
 > **タスク管理**: [TASKS.md](./TASKS.md)
 
 ---
@@ -44,9 +44,8 @@
 
 ### 1.1 目的
 
-<!-- プラグインの目的を1〜2文で説明する -->
-
-{{プラグインの目的を記述}}
+kintone アプリでユニークキーを自動採番するプラグイン。
+管理者がプラグイン設定画面から自動採番ルールを定義して、レコード保存時に設定したルールをもとに自動採番を実行する。
 
 ### 1.2 提供機能
 
@@ -54,7 +53,8 @@
 
 | 機能 | 概要 | 対象イベント |
 |------|------|-------------|
-| **{{機能名}}** | {{概要}} | {{対象イベント}} |
+| **採番処理** | 最新の番号で採番する | 追加・編集・一覧編集保存成功時（PC / モバイル） |
+| **非活性制御** | 採番フィールドを編集不可にする | 追加・編集・一覧編集画面表示時（PC / モバイル） |
 
 ### 1.3 技術スタック
 
@@ -73,22 +73,52 @@
 
 ### 2.1 設定スキーマ（階層図）
 
-<!-- プラグイン設定の Zod スキーマ構造をツリー形式で表現する -->
-
 ```
 PluginConfigSchemaV1
 ├── version: literal(1)
-└── {{プロパティ}}
-    └── ...
+├── resultFieldCode: string          # 採番結果を書き込むフィールドコード
+├── apiToken?: string                # kintone API トークン（省略可）
+├── formatParts: FormatPart[]        # 採番フォーマットのパーツ配列
+│   ├── { type: 'text',  value: string }
+│   ├── { type: 'field', fieldCode: string }
+│   └── { type: 'date',  source: DATE_SOURCE, format: DATE_FORMATS }
+├── connector: CONNECTORS            # パーツ間の区切り文字
+├── serialConfig: SerialConfig       # 連番設定
+│   ├── initialValue: number         # 連番の初期値
+│   ├── digit: number                # ゼロ埋め桁数
+│   ├── position: 'prefix' | 'suffix'  # 連番の位置
+│   └── resetTiming: ResetTiming     # リセットタイミング
+│       ├── 'none',
+│       ├── 'yearly',
+│       ├── 'monthly',
+│       └── 'daily'
+└── maxRetryCount: number            # 重複時の最大リトライ回数
 ```
 
 ### 2.2 列挙値・定数定義
 
-<!-- スキーマ内で使用する列挙値や定数を定義する -->
-
-| 列挙値 | 用途 |
-|--------|------|
-| `{{値}}` | {{説明}} |
+| 列挙値 | 値 | 用途 |
+|--------|-----|------|
+| **DATE_SOURCE** | | 日付ソースの指定 |
+| `NOW` | `'now'` | 現在日時を使用 |
+| `CREATED_AT` | `'createdAt'` | レコード作成日時を使用 |
+| **DATE_FORMATS** | | 日付フォーマット |
+| `YYYYMMDD` | `'YYYYMMDD'` | 例: 20260430 |
+| `YYMMDD` | `'YYMMDD'` | 例: 260430 |
+| `YYYYMM` | `'YYYYMM'` | 例: 202604 |
+| `YYMM` | `'YYMM'` | 例: 2604 |
+| `YYYY` | `'YYYY'` | 例: 2026 |
+| `YY` | `'YY'` | 例: 26 |
+| **CONNECTORS** | | パーツ間の区切り文字 |
+| `HYPHEN` | `'-'` | ハイフン区切り |
+| **ResetTiming** | | 連番リセットタイミング |
+| `none` | `'none'` | リセットなし（全期間で連番） |
+| `yearly` | `'yearly'` | 年次リセット |
+| `monthly` | `'monthly'` | 月次リセット |
+| `daily` | `'daily'` | 日次リセット |
+| **SerialConfig.position** | | 連番の配置位置 |
+| `prefix` | `'prefix'` | 先頭（例: 00001-XX-26） |
+| `suffix` | `'suffix'` | 末尾（例: XX-26-00001） |
 
 ### 2.3 バリデーション戦略
 
@@ -149,7 +179,7 @@ src/
     │   ├── dynamicSchema.ts         # 動的バリデーション生成
     │   └── persistence.ts           # 設定の保存・復元・マイグレーション
     └── lib/
-        └── {{共有ロジック}}
+        └── numbering.ts             # 採番コアロジック（resolveFormatParts, resolveNextSerial 等）
 ```
 
 ### 3.2 レイヤー構成図
@@ -196,7 +226,10 @@ staticSchema.ts (型の源泉)
 │                          → config/hooks/useImportConfig.ts
 │                          → persistence.ts (restoreConfig)
 │
-└── {{追加の型}} ───────────→ {{参照先}}
+├── FormatPart ────────────→ shared/lib/numbering.ts (resolveFormatParts)
+├── SerialConfig ──────────→ shared/lib/numbering.ts (resolveNextSerial, buildNumberingValue)
+├── NumberingSettings ─────→ desktop/index.ts, mobile/index.ts (main 関数の引数)
+└── DateContext ───────────→ shared/lib/numbering.ts (createDateContext, formatDate)
 ```
 
 ---
@@ -229,11 +262,39 @@ staticSchema.ts (型の源泉)
 
 ### 4.2 shared/lib — ビジネスロジック
 
-<!-- プラグイン固有のロジックモジュールを記載する -->
+#### `numbering.ts`
 
-#### `{{モジュール名}}.ts`
+**責務**: 採番処理のコアロジック全体を担う
 
-**責務**: {{責務を記述}}
+主要な関数:
+
+| 関数 | 概要 |
+|------|------|
+| `resolveFormatParts(formatParts, record)` | 各フォーマットパーツ（text / field / date）をレコード情報から実値に解決する |
+| `buildFormatString(resolvedParts, connector)` | 解決済みパーツを connector で結合し、連番を除いたフォーマット文字列を生成する |
+| `resolveNextSerial(ctx)` | リセットポリシーに応じて次の連番を決定する（kintone API 呼び出しを含む） |
+| `extractSerialWithResets(ctx, records)` | リセットあり時に既存レコードから最大連番を抽出する |
+| `buildNumberingValue(formatString, serialString, position, connector)` | 連番文字列とフォーマット文字列を position に応じて結合し最終採番値を生成する |
+| `checkDuplicate(appId, fieldCode, value, apiToken)` | 採番値の重複チェックを行う |
+| `updateRecords(...)` | 採番値をレコードに書き戻す（`resetPolicy.timing === 'none'` の場合は連番フィールドも更新） |
+| `main(event, settings)` | 採番処理全体のオーケストレーション（採番済みチェック → 採番 → 重複時リトライ → 更新） |
+
+**採番フロー概要**:
+
+```
+resolveFormatParts()  →  buildFormatString()
+                                ↓
+                        resolveNextSerial()
+                          ├── timing: 'none'  → serialFieldCode で最大値取得 + 1
+                          └── timing: yearly/monthly/daily
+                                → formatString で like 検索 → extractSerialWithResets() + 1
+                                ↓
+                        padZero() → buildNumberingValue()
+                                ↓
+                        checkDuplicate() → 重複なら currentSerial++ してリトライ
+                                ↓
+                        updateRecords()
+```
 
 ### 4.3 desktop / mobile — エントリポイント
 
@@ -309,11 +370,11 @@ type UseXxxReturn = {
 
 ### 6.1 kintone イベント定義
 
-<!-- プラグインが登録するイベントの一覧を定義する -->
-
 | トリガー | PC | モバイル |
 |----------|:--:|:--------:|
-| {{イベント名}} | `{{PC イベント}}` | `{{モバイルイベント}}` |
+| 追加・編集画面 表示時（採番フィールド非活性化） | `app.record.create.show` / `app.record.edit.show` | `mobile.app.record.create.show` / `mobile.app.record.edit.show` |
+| 追加保存成功時（採番実行） | `app.record.create.submit.success` | `mobile.app.record.create.submit.success` |
+| 編集保存成功時（採番実行） | `app.record.edit.submit.success` | `mobile.app.record.edit.submit.success` |
 
 ### 6.2 設定保存フロー
 
@@ -333,14 +394,37 @@ Jotai atom に同期 (useSyncConfig)
 
 ### 6.3 実行フロー（Desktop / Mobile）
 
-<!-- プラグインの実行時の処理フローを記述する -->
-
 ```
-kintone イベント発火
+kintone イベント発火（submit.success）
   ↓
 restoreConfig(): kintone から設定 JSON を復元 + Zod 検証
   ↓
-{{ビジネスロジックの実行}}
+採番済みチェック: record[resultFieldCode].value が存在すればスキップ
+  ↓
+resolveFormatParts(): text / field / date パーツを実値に解決
+  ↓
+buildFormatString(): connector で結合しフォーマット文字列を生成
+  ↓
+resolveNextSerial(): リセットポリシーに応じて次の連番を取得
+  │  timing: 'none'   → serialFieldCode の最大値 + 1
+  └  timing: yearly/monthly/daily → formatString で like 検索 → 最大連番 + 1
+  ↓
+【リトライループ（最大 maxRetryCount 回）】
+  padZero() → buildNumberingValue() → checkDuplicate()
+  重複あり → currentSerial++ して再試行
+  重複なし → updateRecords() でレコード更新
+  ↓
+return event
+```
+
+**画面表示時フロー（show イベント）**:
+
+```
+kintone イベント発火（create.show / edit.show）
+  ↓
+record[resultFieldCode].disabled = true  # 採番フィールドを編集不可に
+  ↓
+create.show の場合: record[resultFieldCode].value = ''  # 値をクリア
   ↓
 return event
 ```
@@ -359,7 +443,10 @@ return event
 | マイグレーション失敗 | `migrateConfig()` | デフォルト設定へフォールバック + コンソール警告 |
 | kintone フィールド情報の取得失敗 | 動的バリデーション | エラー通知を表示し、保存を中断 |
 | 動的バリデーションエラー | `createConfigSchema()` | フォームにフィールド単位のエラーを表示 |
-| {{追加のエラーシナリオ}} | {{発生箇所}} | {{フォールバック戦略}} |
+| フィールド値の取得失敗（type: 'field' パーツ） | `resolveFormatParts()` | エラーをスロー → `main()` の catch でコンソール出力 |
+| kintone API エラー（非 200 レスポンス） | `callKintoneProxy()` | エラーをスロー → `main()` の catch でコンソール出力 |
+| 最大リトライ回数超過 | `main()` のリトライループ | エラーをスロー → catch でコンソール出力 |
+| 不正な連番値（NaN） | `resolveNextSerial()` / `extractSerialWithResets()` | NaN レコードをスキップ、または明示的エラーをスロー |
 
 ### 7.2 kintone プラットフォーム制約
 
@@ -369,37 +456,69 @@ return event
 |------|------|------|
 | 設定データ容量 | `kintone.plugin.setConfig()` は合計 200KB まで | 不要データの排除、スキーマ設計時にサイズを考慮 |
 | API リクエスト制限 | kintone REST API のレートリミット | 必要最小限のリクエストに抑制 |
-| {{追加の制約}} | {{内容}} | {{対策}} |
+| 採番の競合 | 複数ユーザーが同時保存した場合に同一連番が払い出される可能性がある | 重複チェック + リトライ（`maxRetryCount` 回）で対処。完全な排他制御は kintone プラットフォームの制約上不可 |
+| `kintone.proxy` 経由の API 呼び出し | プラグインからの REST API 呼び出しは `kintone.proxy` を経由する必要がある | `callKintoneProxy()` でラップして統一的に処理 |
+| リセットあり時の検索件数上限 | `like` クエリで取得するレコードは最大 500 件 | 同一期間内の採番数が 500 件を超える場合は最大連番を見逃す可能性がある（設計上の既知制約） |
 
 ---
 
 ## 8. 設計判断記録（ADR）
 
-<!--
-設計上の重要な判断を以下のフォーマットで記録する。
-新しい判断が発生した場合は、ADR-XXX を追番して追加する。
-
-### ADR-XXX: {{タイトル}}
+### ADR-001: 採番タイミングを submit.success イベントに限定する
 
 **決定内容**:
-{{何を決めたか}}
+採番処理は `app.record.create.submit.success` / `app.record.edit.submit.success`（モバイル含む）でのみ実行する。
 
 **背景・理由**:
-{{なぜそう決めたか}}
+`submit` イベント（保存前）で採番すると、バリデーションエラーや通信エラーで保存が中断された場合に連番が欠番になる。`submit.success` であれば保存確定後に採番するため欠番リスクを最小化できる。
 
 **検討した代替案**:
-{{他に何を検討し、なぜ不採用としたか}}
--->
+- `submit` イベントで採番 → 保存失敗時に欠番が発生するため不採用
+
+---
+
+### ADR-002: 重複チェック + リトライによる競合対策
+
+**決定内容**:
+採番後に `checkDuplicate()` で重複確認し、重複があれば連番をインクリメントして再試行する（最大 `maxRetryCount` 回）。
+
+**背景・理由**:
+kintone には採番専用のアトミック API がないため、楽観的ロック的なアプローチで競合を吸収する。
+
+**検討した代替案**:
+- 採番専用フィールド（数値型）を使った排他制御 → kintone の制約上、真の排他制御は実現困難なため不採用
+
+---
+
+### ADR-003: リセットあり時の連番抽出に like 検索を使用する
+
+**決定内容**:
+`timing: yearly/monthly/daily` の場合、`resultFieldCode like "formatString"` クエリで対象期間のレコードを取得し、連番部分を文字列分割で抽出する。
+
+**背景・理由**:
+採番値は単一フィールドに格納されるため、期間フィルタリングには採番値のプレフィックス/サフィックスパターンを利用するしかない。
+
+**検討した代替案**:
+- 連番を別フィールドに保持 → `timing: 'none'` では `serialFieldCode` を使う設計で対応済み。リセットあり時は採番値フィールドのみで完結させる方針を採用
 
 ---
 
 ## 付録
 
-<!--
-本文から参照される補足的なデータや対応表を記載する。
-（例: フィールドタイプ別 UI マッピング、エラーコード一覧 等）
+### 付録A: 採番値の組み立てパターン例
 
-### 付録A: {{タイトル}}
+`connector: '-'`、`formatParts: [{ type: 'field', fieldCode: '部門' }, { type: 'date', source: 'createdAt', format: 'YY' }]`、`serialConfig.digit: 5` の場合:
 
-{{内容}}
--->
+| position | 採番値の例 |
+|----------|-----------|
+| `suffix` | `営業部-26-00001` |
+| `prefix` | `00001-営業部-26` |
+
+---
+
+### 付録B: リセットポリシー別の連番取得クエリ
+
+| timing | クエリ例 | 取得対象 |
+|--------|---------|---------|
+| `none` | `serialFieldCode != "" order by serialFieldCode desc limit 1` | 全期間の最大連番レコード 1 件 |
+| `yearly` / `monthly` / `daily` | `resultFieldCode like "営業部-26" order by $id desc limit 500` | formatString に一致する最新 500 件 |
