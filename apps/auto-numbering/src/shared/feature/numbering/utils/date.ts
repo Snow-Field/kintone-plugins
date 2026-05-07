@@ -1,19 +1,13 @@
-/**
- * 日付ユーティリティ
- */
-
 import type { DateContext } from '../types/numbering';
 import { DATE_FORMATS } from '../types/numbering';
 import { padZero } from './string';
 
 /**
  * 日付コンテキストを作成
- * タイムゾーンを考慮してJSTで処理
  */
 export function createDateContext(dateString?: string): DateContext {
   const date = dateString ? new Date(dateString) : new Date();
 
-  // JSTでの年月日を取得
   const yyyy = String(date.getFullYear());
   const mm = padZero(date.getMonth() + 1, 2);
   const dd = padZero(date.getDate(), 2);

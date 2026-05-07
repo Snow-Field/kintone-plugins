@@ -1,7 +1,3 @@
-/**
- * 採番エンジン（コアロジック）
- */
-
 import type { KintoneAPI, KintoneEvent } from '../types/kintone';
 import type { NumberingSettings } from '../types/numbering';
 import { fetchRecordWithRevision, updateRecord, checkDuplicate } from '../services/recordService';
@@ -83,7 +79,7 @@ export async function executeNumbering(
         continue;
       }
 
-      // レコードを更新（リビジョンチェック付き）
+      // レコードを更新
       await updateRecord({
         appId,
         recordId,
@@ -96,7 +92,7 @@ export async function executeNumbering(
         api,
       });
 
-      return; // 成功
+      return;
     }
 
     // 最大リトライ回数に達した
