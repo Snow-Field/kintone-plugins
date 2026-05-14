@@ -146,9 +146,10 @@ kintone.events.on(['app.record.create.show'], (event) => {
 - `ChangeEventSupportedFieldType`: 変更イベント対応フィールドタイプ
 - `CreatePageFieldType`: 作成画面で使用可能なフィールドタイプ
 
-### 4. **イベント型（event.ts / events.ts）**
-- `event.ts`: シンプルな型定義（既存コードとの互換性）
-- `events.ts`: 詳細な型定義（型安全性重視、グローバル型）
+### 4. **イベント型（events.ts）**
+- 詳細なイベント型定義（`declare global`内）
+- `kintone.events.EventMap`インターフェース
+- 各イベントの詳細な型定義
 
 ### 5. **グローバルAPI型（global.ts）**
 - `kintone.*` 名前空間の型定義
