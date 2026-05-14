@@ -2,6 +2,7 @@
   "name": "@kintone-plugin/kintone-utils",
   "version": "1.0.0",
   "main": "src/index.ts",
+  "types": "src/types/global.d.ts",
   "type": "module",
   "scripts": {
     "lint": "run-p lint:*",

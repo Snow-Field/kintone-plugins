@@ -4,6 +4,22 @@
  */
 
 /**
+ * フィールドの共通プロパティ
+ * @see https://cybozu.dev/ja/kintone/docs/js-api/events/event-object-actions/
+ */
+export interface FieldProperty {
+  /**
+   * フィールドの編集可否
+   * true: 編集不可、false: 編集可
+   */
+  disabled?: boolean;
+  /**
+   * フィールドのエラーメッセージ
+   */
+  error?: string;
+}
+
+/**
  * フィールド値の型マップ
  * @see https://cybozu.dev/ja/kintone/docs/overview/field-types/
  */
@@ -58,7 +74,7 @@ export type FieldMap = {
   };
 
   CATEGORY: {
-    get: { type: 'CATEGORY'; value: string[] };
+    get: { type: 'CATEGORY'; value: string[] } & FieldProperty;
     set: { type: 'CATEGORY'; value: string[] };
   };
 
@@ -77,22 +93,22 @@ export type FieldMap = {
   // ==========================================================================
 
   SINGLE_LINE_TEXT: {
-    get: { type: 'SINGLE_LINE_TEXT'; value: string | undefined };
+    get: { type: 'SINGLE_LINE_TEXT'; value: string | undefined } & FieldProperty;
     set: { type: 'SINGLE_LINE_TEXT'; value: string | undefined };
   };
 
   LINK: {
-    get: { type: 'LINK'; value: string | undefined };
+    get: { type: 'LINK'; value: string | undefined } & FieldProperty;
     set: { type: 'LINK'; value: string | undefined };
   };
 
   MULTI_LINE_TEXT: {
-    get: { type: 'MULTI_LINE_TEXT'; value: string | undefined };
+    get: { type: 'MULTI_LINE_TEXT'; value: string | undefined } & FieldProperty;
     set: { type: 'MULTI_LINE_TEXT'; value: string | undefined };
   };
 
   RICH_TEXT: {
-    get: { type: 'RICH_TEXT'; value: string };
+    get: { type: 'RICH_TEXT'; value: string } & FieldProperty;
     set: { type: 'RICH_TEXT'; value: string };
   };
 
@@ -101,7 +117,7 @@ export type FieldMap = {
   // ==========================================================================
 
   NUMBER: {
-    get: { type: 'NUMBER'; value: string | undefined };
+    get: { type: 'NUMBER'; value: string | undefined } & FieldProperty;
     set: { type: 'NUMBER'; value: string | undefined };
   };
 
@@ -115,17 +131,17 @@ export type FieldMap = {
   // ==========================================================================
 
   DATE: {
-    get: { type: 'DATE'; value: string | null | undefined };
+    get: { type: 'DATE'; value: string | null | undefined } & FieldProperty;
     set: { type: 'DATE'; value: string | null | undefined };
   };
 
   TIME: {
-    get: { type: 'TIME'; value: string | null | undefined };
+    get: { type: 'TIME'; value: string | null | undefined } & FieldProperty;
     set: { type: 'TIME'; value: string | null | undefined };
   };
 
   DATETIME: {
-    get: { type: 'DATETIME'; value: string | undefined };
+    get: { type: 'DATETIME'; value: string | undefined } & FieldProperty;
     set: { type: 'DATETIME'; value: string | undefined };
   };
 
@@ -134,22 +150,22 @@ export type FieldMap = {
   // ==========================================================================
 
   RADIO_BUTTON: {
-    get: { type: 'RADIO_BUTTON'; value: string };
+    get: { type: 'RADIO_BUTTON'; value: string } & FieldProperty;
     set: { type: 'RADIO_BUTTON'; value: string };
   };
 
   DROP_DOWN: {
-    get: { type: 'DROP_DOWN'; value: string | undefined };
+    get: { type: 'DROP_DOWN'; value: string | undefined } & FieldProperty;
     set: { type: 'DROP_DOWN'; value: string | undefined };
   };
 
   CHECK_BOX: {
-    get: { type: 'CHECK_BOX'; value: string[] };
+    get: { type: 'CHECK_BOX'; value: string[] } & FieldProperty;
     set: { type: 'CHECK_BOX'; value: string[] };
   };
 
   MULTI_SELECT: {
-    get: { type: 'MULTI_SELECT'; value: string[] };
+    get: { type: 'MULTI_SELECT'; value: string[] } & FieldProperty;
     set: { type: 'MULTI_SELECT'; value: string[] };
   };
 
@@ -158,17 +174,20 @@ export type FieldMap = {
   // ==========================================================================
 
   USER_SELECT: {
-    get: { type: 'USER_SELECT'; value: Array<{ code: string; name: string }> };
+    get: { type: 'USER_SELECT'; value: Array<{ code: string; name: string }> } & FieldProperty;
     set: { type: 'USER_SELECT'; value: Array<{ code: string }> };
   };
 
   GROUP_SELECT: {
-    get: { type: 'GROUP_SELECT'; value: Array<{ code: string; name: string }> };
+    get: { type: 'GROUP_SELECT'; value: Array<{ code: string; name: string }> } & FieldProperty;
     set: { type: 'GROUP_SELECT'; value: Array<{ code: string }> };
   };
 
   ORGANIZATION_SELECT: {
-    get: { type: 'ORGANIZATION_SELECT'; value: Array<{ code: string; name: string }> };
+    get: {
+      type: 'ORGANIZATION_SELECT';
+      value: Array<{ code: string; name: string }>;
+    } & FieldProperty;
     set: { type: 'ORGANIZATION_SELECT'; value: Array<{ code: string }> };
   };
 
@@ -185,7 +204,7 @@ export type FieldMap = {
         name: string;
         size: string;
       }>;
-    };
+    } & FieldProperty;
     set: { type: 'FILE' };
   };
 

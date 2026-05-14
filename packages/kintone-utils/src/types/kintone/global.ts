@@ -6,9 +6,6 @@
 
 import type { BuildRecord, BuildRecordForSet } from './record';
 
-// events.tsで定義されたイベント型をインポート（グローバル型定義として注入される）
-import './events';
-
 // ============================================================================
 // グローバル型定義
 // ============================================================================
@@ -479,7 +476,6 @@ declare global {
       failureCallback?: (errorBody: string) => void
     ): void;
   }
-}
 
   // --------------------------------------------------------------------------
   // kintone.events 名前空間
@@ -492,17 +488,16 @@ declare global {
      */
     function on<T extends keyof kintone.events.EventMap>(
       type: T | T[],
-      handler: (event: kintone.events.EventMap[T]) => kintone.events.EventMap[T] | Promise<kintone.events.EventMap[T]>
+      handler: (
+        event: kintone.events.EventMap[T]
+      ) => kintone.events.EventMap[T] | Promise<kintone.events.EventMap[T]>
     ): void;
 
     /**
      * イベントハンドラーを登録（フィールド変更イベント用）
      * @see https://cybozu.dev/ja/kintone/docs/js-api/events/
      */
-    function on(
-      type: string | string[],
-      handler: (event: any) => any | Promise<any>
-    ): void;
+    function on(type: string | string[], handler: (event: any) => any | Promise<any>): void;
 
     /**
      * イベントハンドラーを解除
@@ -510,16 +505,15 @@ declare global {
      */
     function off<T extends keyof kintone.events.EventMap>(
       type: T | T[],
-      handler: (event: kintone.events.EventMap[T]) => kintone.events.EventMap[T] | Promise<kintone.events.EventMap[T]>
+      handler: (
+        event: kintone.events.EventMap[T]
+      ) => kintone.events.EventMap[T] | Promise<kintone.events.EventMap[T]>
     ): void;
 
     /**
      * イベントハンドラーを解除（フィールド変更イベント用）
      * @see https://cybozu.dev/ja/kintone/docs/js-api/events/
      */
-    function off(
-      type: string | string[],
-      handler: (event: any) => any | Promise<any>
-    ): void;
+    function off(type: string | string[], handler: (event: any) => any | Promise<any>): void;
   }
 }

@@ -1,11 +1,12 @@
 /**
  * Kintone 型定義エクスポート
  * @module kintone
+ * @note グローバルAPI型定義は global.d.ts 経由で自動的に読み込まれます
  */
 
 // フィールド型
 export * as Field from './field';
-export type { FieldMap, AnyFieldType } from './field';
+export type { FieldMap, AnyFieldType, FieldProperty } from './field';
 
 // レコード型
 export type {
@@ -33,7 +34,3 @@ export type {
 
 // イベント型（既存）
 export * as Event from './event';
-
-// グローバルAPI型定義（副作用のみ、型定義をグローバルに注入）
-import './global';
-import './events';
