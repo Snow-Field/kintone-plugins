@@ -10,9 +10,8 @@ kintone/
 ├── field.ts       # フィールド値の型定義
 ├── record.ts      # レコード型定義
 ├── utils.ts       # ユーティリティ型
-├── event.ts       # イベント型（シンプル版）
-├── events.ts      # イベント型（詳細版）
-├── global.ts      # グローバルAPI型定義
+├── events.ts      # イベント型定義（declare global）
+├── global.ts      # グローバルAPI型定義（declare global）
 ├── global.d.ts    # グローバル型定義エントリーポイント
 └── README.md      # このファイル
 ```
@@ -95,9 +94,6 @@ kintone.events.on('app.record.detail.show', (event) => {
   console.log(event.record);
   return event;
 });
-
-// シンプル版（既存の互換性維持）
-import type { KintoneEventType } from '@kintone-plugin/kintone-utils';
 ```
 
 ### フィールドの編集可否とエラー表示

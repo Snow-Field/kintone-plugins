@@ -31,6 +31,3 @@ export type {
   ChangeEventSupportedFieldType,
   CreatePageFieldType,
 } from './utils';
-
-// イベント型（既存）
-export * as Event from './event';
