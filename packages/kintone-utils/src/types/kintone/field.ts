@@ -11,6 +11,19 @@ export interface FieldProperty {
   /**
    * フィールドの編集可否
    * true: 編集不可、false: 編集可
+   *
+   * 注意: 以下のフィールドは disabled プロパティに対応していません:
+   * - __ID__
+   * - __REVISION__
+   * - レコード番号 (RECORD_NUMBER)
+   * - 作成者 (CREATOR)
+   * - 作成日時 (CREATED_TIME)
+   * - 更新者 (MODIFIER)
+   * - 更新日時 (UPDATED_TIME)
+   * - ステータス (STATUS)
+   * - 作業者 (STATUS_ASSIGNEE)
+   * - 計算 (CALC)
+   * - 自動計算にした文字列1行
    */
   disabled?: boolean;
   /**
@@ -218,3 +231,15 @@ export type FieldMap = {
  * すべてのフィールドタイプ
  */
 export type AnyFieldType = keyof FieldMap;
+
+/**
+ * フィールドに FieldProperty (disabled, error) を追加するヘルパー型
+ *
+ * kintone の仕様上、多くのフィールドに disabled/error を設定可能ですが、
+ * 一部のシステムフィールドや計算フィールドには対応していません。
+ *
+ * 実行時に設定する際は、型アサーションとして使用してください。
+ *
+ * @see https://cybozu.dev/ja/kintone/docs/js-api/events/event-object-actions/
+ */
+export type WithFieldProperty<T> = T & FieldProperty;

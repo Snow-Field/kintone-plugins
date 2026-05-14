@@ -6,7 +6,7 @@
 
 // フィールド型
 export * as Field from './field';
-export type { FieldMap, AnyFieldType, FieldProperty } from './field';
+export type { FieldMap, AnyFieldType, FieldProperty, WithFieldProperty } from './field';
 
 // レコード型
 export type {
