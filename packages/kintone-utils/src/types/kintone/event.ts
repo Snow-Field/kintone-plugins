@@ -1,9 +1,11 @@
 export type KintoneEventType =
   | 'portal.show'
+  | 'space.portal.show'
   | 'app.record.index.show'
   | 'app.record.index.edit.show'
   | 'app.record.index.edit.submit'
   | 'app.record.index.edit.submit.success'
+  | 'app.record.index.edit.finish'
   | 'app.record.index.delete.submit'
   | 'app.record.detail.show'
   | 'app.record.detail.delete.submit'
@@ -15,6 +17,8 @@ export type KintoneEventType =
   | 'app.record.edit.submit'
   | 'app.record.edit.submit.success'
   | 'app.record.print.show'
+  | 'mobile.portal.show'
+  | 'mobile.space.portal.show'
   | 'mobile.app.record.index.show'
   | 'mobile.app.record.detail.show'
   | 'mobile.app.record.detail.delete.submit'
@@ -30,8 +34,6 @@ export interface CommonEvent<T> {
   appId: number;
   recordId: number;
   record: T;
-  error: string;
-  url: string;
   type: KintoneEventType;
   changes?: {
     field: {
@@ -41,6 +43,8 @@ export interface CommonEvent<T> {
     row: any;
   };
   records?: T[];
+  error?: string | null;
+  url?: string | null;
   /**
    * 現在表示している一覧のID
    * app.record.index.show イベントでのみ取得できます
@@ -71,13 +75,11 @@ export interface CommonEvent<T> {
    * app.record.detail.process.proceed イベントで取得できます
    */
   action?: { value: string };
-
   /**
    * プロセス - 現在のステータス
    * app.record.detail.process.proceed イベントで取得できます
    */
   status?: { value: string };
-
   /**
    * プロセス - 次のステータス
    * app.record.detail.process.proceed イベントで取得できます
@@ -93,6 +95,11 @@ type CommonRecordEvent<T> = {
 
 type PortalEvent = {
   type: 'portal.show' | 'mobile.portal.show';
+};
+
+type SpacePortalEvent = {
+  type: 'portal.show' | 'mobile.portal.show';
+  spaceId: string;
 };
 
 type AppRecordIndexShowEvent<T> = {
@@ -118,6 +125,11 @@ type AppRecordIndexEditSubmitEvent<T> = CommonRecordEvent<T> & {
 
 type AppRecordIndexEditSubmitSuccessEvent<T> = CommonRecordEvent<T> & {
   type: 'app.record.index.edit.submit.success';
+};
+
+type AppRecordIndexEditFinishEvent<T> = CommonRecordEvent<T> & {
+  type: 'app.record.index.edit.finish';
+  error: string | null;
 };
 
 type AppRecordIndexDeleteSubmitEvent<T> = CommonRecordEvent<T> & {
@@ -173,10 +185,12 @@ type AppRecordPrintShowEvent<T> = CommonRecordEvent<T> & {
 
 export interface KintoneEventMap<T> {
   'portal.show': PortalEvent;
+  'space.portal.show': SpacePortalEvent;
   'app.record.index.show': AppRecordIndexShowEvent<T>;
   'app.record.index.edit.show': AppRecordIndexEditShowEvent<T>;
   'app.record.index.edit.submit': AppRecordIndexEditSubmitEvent<T>;
   'app.record.index.edit.submit.success': AppRecordIndexEditSubmitSuccessEvent<T>;
+  'app.record.index.edit.finish': AppRecordIndexEditFinishEvent<T>;
   'app.record.index.delete.submit': AppRecordIndexDeleteSubmitEvent<T>;
   'app.record.detail.show': AppRecordDetailShowEvent<T>;
   'app.record.detail.delete.submit': AppRecordDetailDeleteSubmitEvent<T>;

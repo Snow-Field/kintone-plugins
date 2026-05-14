@@ -1,0 +1,161 @@
+# Kintone 型定義
+
+Kintone JavaScript API の TypeScript 型定義集です。
+
+## 📁 ファイル構成
+
+```
+kintone/
+├── index.ts       # エクスポート統合
+├── field.ts       # フィールド値の型定義
+├── record.ts      # レコード型定義
+├── utils.ts       # ユーティリティ型
+├── event.ts       # イベント型（シンプル版）
+├── events.ts      # イベント型（詳細版）
+├── global.ts      # グローバルAPI型定義
+└── README.md      # このファイル
+```
+
+## 🎯 使用方法
+
+### 基本的なインポート
+
+```typescript
+import type { KintoneRecord, BuildRecord } from '@/types/kintone';
+```
+
+### フィールド型の使用
+
+```typescript
+import type { FieldMap } from '@/types/kintone';
+
+// 特定のフィールドタイプを取得
+type SingleLineTextField = FieldMap['SINGLE_LINE_TEXT']['get'];
+```
+
+### レコード型の使用
+
+```typescript
+// 汎用レコード型
+const record: KintoneRecord = {
+  $id: { type: '__ID__', value: '1' },
+  $revision: { type: '__REVISION__', value: '1' },
+  name: { type: 'SINGLE_LINE_TEXT', value: 'John Doe' },
+};
+
+// スキーマベースのレコード型
+type AppSchema = {
+  properties: {
+    name: { type: 'SINGLE_LINE_TEXT' };
+    age: { type: 'NUMBER' };
+  };
+};
+
+const typedRecord: BuildRecord<AppSchema> = {
+  $id: { type: '__ID__', value: '1' },
+  $revision: { type: '__REVISION__', value: '1' },
+  name: { type: 'SINGLE_LINE_TEXT', value: 'John Doe' },
+  age: { type: 'NUMBER', value: '30' },
+};
+```
+
+### イベント型の使用
+
+```typescript
+// シンプル版（既存の互換性維持）
+import type { KintoneEventType } from '@/types/kintone/event';
+
+// 詳細版（型安全性が高い）
+kintone.events.on('app.record.detail.show', (event) => {
+  // event は AppRecordDetailShowEvent 型として推論される
+  console.log(event.record);
+  return event;
+});
+```
+
+### グローバルAPIの使用
+
+```typescript
+// グローバル型定義は自動的に適用される
+const user = kintone.getLoginUser();
+const appId = kintone.app.getId();
+const record = kintone.app.record.get();
+```
+
+## 📝 型定義の特徴
+
+### 1. **フィールド型（field.ts）**
+- レコードフィールドの値の型定義
+- `get`（取得）と `set`（設定）の2つのモードをサポート
+- システムフィールドからユーザー定義フィールドまで網羅
+
+### 2. **レコード型（record.ts）**
+- `KintoneRecord`: 汎用レコード型
+- `KintoneRecordForSet`: レコード設定用
+- `KintoneRecordOnCreatePage`: 作成画面用
+- `BuildRecord<AppSchema>`: スキーマベースの型生成
+
+### 3. **ユーティリティ型（utils.ts）**
+- `RemoveNeverProperties`: never型プロパティの除外
+- `InSubtableFieldType`: サブテーブル内で使用可能なフィールドタイプ
+- `ChangeEventSupportedFieldType`: 変更イベント対応フィールドタイプ
+- `CreatePageFieldType`: 作成画面で使用可能なフィールドタイプ
+
+### 4. **イベント型（event.ts / events.ts）**
+- `event.ts`: シンプルな型定義（既存コードとの互換性）
+- `events.ts`: 詳細な型定義（型安全性重視）
+
+### 5. **グローバルAPI型（global.ts）**
+- `kintone.*` 名前空間の型定義
+- `kintone.app.*` 名前空間の型定義
+- `kintone.plugin.*` 名前空間の型定義
+
+## 🎨 ベストプラクティス
+
+### 1. スキーマベースの型を使用する
+
+```typescript
+// ❌ 汎用型（型安全性が低い）
+const record: KintoneRecord = kintone.app.record.get()?.record;
+
+// ✅ スキーマベースの型（型安全性が高い）
+type MyAppSchema = {
+  properties: {
+    name: { type: 'SINGLE_LINE_TEXT' };
+    age: { type: 'NUMBER' };
+  };
+};
+
+const record = kintone.app.record.get<MyAppSchema>()?.record;
+// record.name は型推論される
+```
+
+### 2. イベントハンドラーで型を活用する
+
+```typescript
+// ✅ 型安全なイベントハンドラー
+kintone.events.on('app.record.detail.show', (event) => {
+  // event.record は BuildRecord<AppSchema> 型
+  const name = event.record.name?.value;
+  return event;
+});
+```
+
+### 3. ユーティリティ型を活用する
+
+```typescript
+import type { RemoveNeverProperties } from '@/types/kintone';
+
+// never型のプロパティを除外
+type CleanType = RemoveNeverProperties<{
+  a: string;
+  b: never;
+  c: number;
+}>;
+// => { a: string; c: number }
+```
+
+## 📚 参考リンク
+
+- [Kintone JavaScript API ドキュメント](https://cybozu.dev/ja/kintone/docs/js-api/)
+- [Kintone REST API ドキュメント](https://cybozu.dev/ja/kintone/docs/rest-api/)
