@@ -108,6 +108,7 @@ declare global {
       recordId: string;
       record: BuildRecord<AppSchema>;
       changes: { field: ChangedField };
+      error?: string;
     }
 
     /**
@@ -121,6 +122,7 @@ declare global {
       appId: string;
       recordId: string;
       record: BuildRecord<AppSchema>;
+      error?: string;
     }
 
     /**
@@ -134,6 +136,7 @@ declare global {
       appId: number;
       recordId: string;
       record: BuildRecord<AppSchema>;
+      url?: string | null;
     }
 
     /**
@@ -190,6 +193,7 @@ declare global {
       appId: number;
       recordId: number;
       record: BuildRecord<AppSchema>;
+      error?: string;
     }
 
     /**
@@ -204,6 +208,7 @@ declare global {
       status: { value: string };
       nextStatus: { value: string };
       record: BuildRecord<AppSchema>;
+      error?: string;
     }
 
     // ========================================================================
@@ -221,6 +226,7 @@ declare global {
       appId: number;
       reuse: boolean;
       record: BuildRecordOnCreatePage<AppSchema>;
+      error?: string;
     }
 
     /**
@@ -237,6 +243,7 @@ declare global {
       changes:
         | { field: ChangedField; row: ChangedRow | null }
         | { field: ChangedSubtable; row: ChangedRow | null };
+      error?: string;
     }
 
     /**
@@ -249,6 +256,7 @@ declare global {
       type: 'app.record.create.submit';
       appId: number;
       record: BuildRecordOnCreatePage<AppSchema>;
+      error?: string;
     }
 
     /**
@@ -262,6 +270,7 @@ declare global {
       appId: number;
       recordId: string;
       record: BuildRecordOnCreatePage<AppSchema>;
+      url?: string | null;
     }
 
     // ========================================================================
@@ -277,6 +286,7 @@ declare global {
       appId: number;
       recordId: number;
       record: BuildRecord<AppSchema>;
+      error?: string;
     }
 
     /**
@@ -294,6 +304,7 @@ declare global {
       changes:
         | { field: ChangedField; row: ChangedRow | null }
         | { field: ChangedSubtable; row: ChangedRow | null };
+      error?: string;
     }
 
     /**
@@ -307,6 +318,7 @@ declare global {
       appId: number;
       recordId: number;
       record: BuildRecord<AppSchema>;
+      error?: string;
     }
 
     /**
@@ -320,6 +332,7 @@ declare global {
       appId: number;
       recordId: string;
       record: BuildRecord<AppSchema>;
+      url?: string | null;
     }
 
     // ========================================================================
