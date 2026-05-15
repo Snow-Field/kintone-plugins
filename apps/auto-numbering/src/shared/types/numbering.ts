@@ -7,7 +7,7 @@ export type ResolvedPart = {
 };
 
 export type SerialContext = {
-  appId: number;
+  appId: string | number;
   apiToken?: string;
   resultFieldCode: string;
   serialConfig: SerialConfig;
@@ -23,12 +23,12 @@ export type DateContext = {
 };
 
 export type UpdateRecordParams = {
-  appId: number;
-  recordId: number;
+  appId: string | number;
+  recordId: string | number;
   resultFieldCode: string;
   numberingValue: string;
   serialConfig: SerialConfig;
   currentSerial: number;
-  revision?: string;
+  revision?: string | number;
   apiToken?: string;
 };

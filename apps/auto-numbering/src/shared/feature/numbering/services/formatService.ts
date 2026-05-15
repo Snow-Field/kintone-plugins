@@ -2,7 +2,6 @@
  * フォーマット処理サービス
  */
 
-import type { KintoneRecord } from '@/shared/types/kintone';
 import type { ResolvedPart } from '@/shared/types/numbering';
 import type { FormatPart, SerialConfig, ConnectorsSchema } from '@/shared/config/staticSchema';
 import type { z } from 'zod';
@@ -15,7 +14,7 @@ import { getRecordCreatedAt } from './recordService';
  */
 export function resolveFormatParts(
   formatParts: FormatPart[],
-  record: KintoneRecord
+  record: Record<string, { type: string; value: unknown }>
 ): ResolvedPart[] {
   return formatParts.map((part) => {
     switch (part.type) {

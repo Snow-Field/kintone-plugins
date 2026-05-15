@@ -1,7 +1,7 @@
 import { type NumberingSetting } from '@/shared/config';
 import type { KintoneEvent } from '@/shared/types/kintone';
 import { DEFAULT_RETRY_COUNT } from '@/shared/constant/numbering';
-import { fetchRecordWithRevision, updateRecord, checkDuplicate } from '../services/recordService';
+import { fetchRecord, updateRecord, checkDuplicate } from '../services/recordService';
 import {
   resolveFormatParts,
   buildFormatString,
@@ -18,7 +18,8 @@ export async function executeNumbering(
   numberingSetting: NumberingSetting,
   apiToken?: string
 ): Promise<void> {
-  const { appId, recordId, record } = event;
+  const { appId, record } = event;
+  const recordId = Number(event.recordId);
   const { resultFieldCode, formatParts, connector, serialConfig } = numberingSetting;
   const { digit, position } = serialConfig;
 
@@ -26,8 +27,9 @@ export async function executeNumbering(
     // 採番済みチェック
     if (record[resultFieldCode]?.value) return;
 
-    // リビジョン取得
-    const { revision } = await fetchRecordWithRevision(appId, recordId, apiToken);
+    // レコード取得（リビジョン取得のため）
+    const fetchedRecord = await fetchRecord(appId, recordId, apiToken);
+    const revision = String(fetchedRecord.$revision?.value ?? '');
 
     // 各パーツの値を解決
     const resolvedParts = resolveFormatParts(formatParts, record);

@@ -1,12 +1,33 @@
-import { PluginLogger } from '@kintone-plugin/kintone-utils';
+import { restoreConfig } from '@/shared/config';
+import { executeNumbering } from '@/shared/feature/numbering';
 
-const logger = new PluginLogger('Mobile');
+kintone.events.on(['mobile.app.record.create.show', 'mobile.app.record.edit.show'], (event) => {
+  const record = event.record;
+  const pluginConfig = restoreConfig();
 
-(function () {
-  'use strict';
+  pluginConfig.numberingSettings.forEach(({ resultFieldCode }) => {
+    const resultField = record[resultFieldCode];
+    if (resultField) {
+      // 採番フィールド編集不可
+      resultField.disabled = true;
 
-  kintone.events.on('mobile.app.record.index.show', (event) => {
-    logger.info('Hello kintone mobile! Plugin is active.');
-    return event;
+      // 値クリア
+      if (event.type === 'mobile.app.record.create.show') {
+        resultField.value = '';
+      }
+    }
   });
-})();
+
+  return event;
+});
+
+kintone.events.on(
+  ['mobile.app.record.create.submit.success', 'mobile.app.record.edit.submit.success'],
+  async (event) => {
+    const pluginConfig = restoreConfig();
+    for (const numberingSetting of pluginConfig.numberingSettings) {
+      await executeNumbering(event, numberingSetting, pluginConfig.common.apiToken);
+    }
+    return event;
+  }
+);

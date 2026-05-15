@@ -2,7 +2,6 @@
  * 連番管理サービス
  */
 
-import type { KintoneRecord } from '@/shared/types/kintone';
 import type { SerialContext } from '@/shared/types/numbering';
 import { RESET_TIMING, FETCH_LIMIT_FOR_RESET } from '@/shared/constant/numbering';
 import { fetchRecords } from './recordService';
@@ -10,7 +9,10 @@ import { fetchRecords } from './recordService';
 /**
  * レコードから連番を抽出する
  */
-function extractSerialWithResets(ctx: SerialContext, records: KintoneRecord[]): number {
+function extractSerialWithResets(
+  ctx: SerialContext,
+  records: Array<Record<string, { type: string; value: unknown }>>
+): number {
   const { resultFieldCode, serialConfig, connector } = ctx;
   const { position } = serialConfig;
 

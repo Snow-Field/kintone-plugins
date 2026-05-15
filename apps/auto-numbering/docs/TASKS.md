@@ -13,9 +13,15 @@
 
 ## Phase 2: 実行ロジック
 
-- [ ] `desktop/index.ts` のイベントハンドラ実装
-- [ ] `mobile/index.ts` のイベントハンドラ実装
-- [ ] `shared/lib/` 配下のビジネスロジック実装
+- [x] `desktop/index.ts` のイベントハンドラ実装
+- [x] `mobile/index.ts` のイベントハンドラ実装
+- [x] `shared/feature/numbering/` 配下のビジネスロジック実装
+  - [x] `core/numberingEngine.ts` - 採番処理のオーケストレーション
+  - [x] `services/formatService.ts` - フォーマット処理
+  - [x] `services/recordService.ts` - レコード操作（RestAPIClient）
+  - [x] `services/serialService.ts` - 連番管理
+  - [x] `utils/date.ts` - 日付処理
+  - [x] `utils/string.ts` - 文字列処理
 
 ## Phase 3: 設定画面 UI
 

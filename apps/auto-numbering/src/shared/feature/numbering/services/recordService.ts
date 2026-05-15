@@ -1,4 +1,3 @@
-import type { KintoneRecord } from '@/shared/types/kintone';
 import type { UpdateRecordParams } from '@/shared/types/numbering';
 import { RESET_TIMING } from '@/shared/constant/numbering';
 import { KintoneRestAPIClient } from '@kintone/rest-api-client';
@@ -16,10 +15,10 @@ function createClient(apiToken?: string): KintoneRestAPIClient {
 /**
  * レコードから作成日時を取得する
  */
-export function getRecordCreatedAt(record: KintoneRecord): string {
+export function getRecordCreatedAt(record: Record<string, { type: string; value: unknown }>) {
   const createdTime =
     record['作成日時']?.value ??
-    Object.values(record).find((f) => f.type === 'CREATED_TIME')?.value;
+    Object.values(record).find((f) => f?.type === 'CREATED_TIME')?.value;
 
   if (typeof createdTime === 'string') {
     return createdTime;
@@ -30,14 +29,14 @@ export function getRecordCreatedAt(record: KintoneRecord): string {
 }
 
 /**
- * レコードを取得する
+ * レコードを取得する（複数）
  */
 export async function fetchRecords(
-  appId: number,
+  appId: string | number,
   query: string,
   fields: string[],
   apiToken?: string
-): Promise<KintoneRecord[]> {
+) {
   const client = createClient(apiToken);
 
   const response = await client.record.getRecords({
@@ -46,17 +45,17 @@ export async function fetchRecords(
     fields,
   });
 
-  return response.records as KintoneRecord[];
+  return response.records;
 }
 
 /**
- * レコードをリビジョン付きで取得する
+ * レコードを取得する（単一）
  */
-export async function fetchRecordWithRevision(
-  appId: number,
-  recordId: number,
+export async function fetchRecord(
+  appId: string | number,
+  recordId: string | number,
   apiToken?: string
-): Promise<{ record: KintoneRecord; revision: string }> {
+) {
   const client = createClient(apiToken);
 
   const response = await client.record.getRecord({
@@ -64,10 +63,7 @@ export async function fetchRecordWithRevision(
     id: recordId,
   });
 
-  return {
-    record: response.record as KintoneRecord,
-    revision: response.revision as string,
-  };
+  return response.record;
 }
 
 /**
@@ -114,7 +110,7 @@ export async function updateRecord(params: UpdateRecordParams): Promise<void> {
  * 重複チェック（キャッシュ対応版）
  */
 export async function checkDuplicate(
-  appId: number,
+  appId: string | number,
   fieldCode: string,
   value: string,
   existingValues: Set<string>,
