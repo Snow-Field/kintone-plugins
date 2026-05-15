@@ -1,8 +1,9 @@
 # 自動採番プラグイン 設計書
 
-> **バージョン**: 1.0
-> **最終更新**: 2026-04-30
+> **バージョン**: 1.1
+> **最終更新**: 2026-05-15
 > **タスク管理**: [TASKS.md](./TASKS.md)
+> **変更履歴**: プラグイン用に全面リファクタリング（kintone Proxy → RestAPIClient、型定義の整理）
 
 ---
 
@@ -65,6 +66,7 @@ kintone アプリでユニークキーを自動採番するプラグイン。
 | フォーム管理 | React Hook Form + Zod Resolver |
 | バリデーション | Zod 4（静的 + 動的） |
 | ビルドツール | Rsbuild |
+| kintone API | `@kintone/rest-api-client` 6.1.0 |
 | モノレポ共通 | `@kintone-plugin/ui`, `@kintone-plugin/kintone-utils` |
 
 ---
@@ -76,26 +78,36 @@ kintone アプリでユニークキーを自動採番するプラグイン。
 ```
 PluginConfigSchemaV1
 ├── version: literal(1)
-├── resultFieldCode: string          # 採番結果を書き込むフィールドコード
-├── apiToken?: string                # kintone API トークン（省略可）
-├── formatParts: FormatPart[]        # 採番フォーマットのパーツ配列
-│   ├── { type: 'text',  value: string }
-│   ├── { type: 'field', fieldCode: string }
-│   └── { type: 'date',  source: DATE_SOURCE, format: DATE_FORMATS }
-├── connector: CONNECTORS            # パーツ間の区切り文字
-├── serialConfig: SerialConfig       # 連番設定
-│   ├── initialValue: number         # 連番の初期値
-│   ├── digit: number                # ゼロ埋め桁数
-│   ├── position: 'prefix' | 'suffix'  # 連番の位置
-│   └── resetTiming: ResetTiming     # リセットタイミング
-│       ├── 'none',
-│       ├── 'yearly',
-│       ├── 'monthly',
-│       └── 'daily'
-└── maxRetryCount: number            # 重複時の最大リトライ回数
+├── numberingSettings: NumberingSetting[]  # 採番設定（複数設定可能）
+│   ├── resultFieldCode: string            # 採番結果を書き込むフィールドコード
+│   ├── formatParts: FormatPart[]          # 採番フォーマットのパーツ配列
+│   │   ├── { type: 'text',  value: string }
+│   │   ├── { type: 'field', fieldCode: string }
+│   │   └── { type: 'date',  source: DATE_SOURCE, format: DATE_FORMATS }
+│   ├── connector: CONNECTORS              # パーツ間の区切り文字
+│   └── serialConfig: SerialConfig         # 連番設定
+│       ├── initialValue: number           # 連番の初期値
+│       ├── digit: number                  # ゼロ埋め桁数
+│       ├── position: 'prefix' | 'suffix'  # 連番の位置
+│       ├── resetTiming: ResetTiming       # リセットタイミング
+│       │   ├── 'none'
+│       │   ├── 'yearly'
+│       │   ├── 'monthly'
+│       │   └── 'daily'
+│       └── serialFieldCode?: string       # resetTiming が 'none' の場合のみ必要
+└── common: { apiToken?: string }          # APIトークン（共通設定）
 ```
 
 ### 2.2 列挙値・定数定義
+
+#### 定数（`shared/constant/numbering.ts`）
+
+| 定数名 | 値 | 用途 |
+|--------|-----|------|
+| `FETCH_LIMIT_FOR_RESET` | `500` | リセットあり時の検索上限件数 |
+| `DEFAULT_RETRY_COUNT` | `10` | 重複時の最大リトライ回数 |
+
+#### 列挙値（`shared/constant/numbering.ts`）
 
 | 列挙値 | 値 | 用途 |
 |--------|-----|------|
@@ -111,14 +123,29 @@ PluginConfigSchemaV1
 | `YY` | `'YY'` | 例: 26 |
 | **CONNECTORS** | | パーツ間の区切り文字 |
 | `HYPHEN` | `'-'` | ハイフン区切り |
-| **ResetTiming** | | 連番リセットタイミング |
-| `none` | `'none'` | リセットなし（全期間で連番） |
-| `yearly` | `'yearly'` | 年次リセット |
-| `monthly` | `'monthly'` | 月次リセット |
-| `daily` | `'daily'` | 日次リセット |
+| **RESET_TIMING** | | 連番リセットタイミング |
+| `NONE` | `'none'` | リセットなし（全期間で連番） |
+| `YEARLY` | `'yearly'` | 年次リセット |
+| `MONTHLY` | `'monthly'` | 月次リセット |
+| `DAILY` | `'daily'` | 日次リセット |
 | **SerialConfig.position** | | 連番の配置位置 |
 | `prefix` | `'prefix'` | 先頭（例: 00001-XX-26） |
 | `suffix` | `'suffix'` | 末尾（例: XX-26-00001） |
+
+**実装例**:
+```typescript
+export const DATE_SOURCE = {
+  NOW: 'now' as const,
+  CREATED_AT: 'createdAt' as const,
+} as const;
+
+export const RESET_TIMING = {
+  NONE: 'none' as const,
+  YEARLY: 'yearly' as const,
+  MONTHLY: 'monthly' as const,
+  DAILY: 'daily' as const,
+} as const;
+```
 
 ### 2.3 バリデーション戦略
 
@@ -164,7 +191,7 @@ src/
 │   │   └── useSyncConfig.ts         # 状態同期
 │   └── states/
 │       ├── store.ts                 # Jotai ストア
-│       └── plugin.ts               # プラグイン状態 atom
+│       └── plugin.ts                # プラグイン状態 atom
 │
 ├── desktop/                         # デスクトップ実行エントリ
 │   └── index.ts                     # イベントハンドラ登録
@@ -178,8 +205,23 @@ src/
     │   ├── staticSchema.ts          # Zod 静的スキーマ定義
     │   ├── dynamicSchema.ts         # 動的バリデーション生成
     │   └── persistence.ts           # 設定の保存・復元・マイグレーション
-    └── lib/
-        └── numbering.ts             # 採番コアロジック（resolveFormatParts, resolveNextSerial 等）
+    ├── constant/
+    │   └── numbering.ts             # 定数・列挙値定義
+    ├── types/
+    │   ├── kintone.ts               # kintone 型定義
+    │   └── numbering.ts             # 採番処理用の型定義
+    └── feature/
+        └── numbering/               # 採番機能
+            ├── index.ts             # バレルエクスポート
+            ├── core/
+            │   └── numberingEngine.ts  # 採番処理のメインロジック
+            ├── services/
+            │   ├── formatService.ts    # フォーマット処理
+            │   ├── recordService.ts    # レコード操作（RestAPIClient）
+            │   └── serialService.ts    # 連番管理
+            └── utils/
+                ├── date.ts             # 日付処理
+                └── string.ts           # 文字列処理
 ```
 
 ### 3.2 レイヤー構成図
@@ -211,8 +253,6 @@ src/
 
 ### 3.3 型定義の依存関係
 
-<!-- 型の定義元（源泉）と、それを参照するモジュールの関係を記載する -->
-
 ```
 staticSchema.ts (型の源泉)
 │
@@ -221,15 +261,40 @@ staticSchema.ts (型の源泉)
 │                          → config/hooks/usePluginForm.ts
 │                          → config/hooks/useSubmitConfig.ts
 │                          → config/hooks/useExportConfig.ts
+│                          → desktop/index.ts, mobile/index.ts
 │
 ├── PluginConfigSchema ────→ dynamicSchema.ts (superRefine)
 │                          → config/hooks/useImportConfig.ts
 │                          → persistence.ts (restoreConfig)
 │
-├── FormatPart ────────────→ shared/lib/numbering.ts (resolveFormatParts)
-├── SerialConfig ──────────→ shared/lib/numbering.ts (resolveNextSerial, buildNumberingValue)
-├── NumberingSettings ─────→ desktop/index.ts, mobile/index.ts (main 関数の引数)
-└── DateContext ───────────→ shared/lib/numbering.ts (createDateContext, formatDate)
+├── NumberingSetting ──────→ desktop/index.ts, mobile/index.ts
+│                          → feature/numbering/core/numberingEngine.ts
+│
+├── FormatPart ────────────→ types/numbering.ts (ResolvedPart)
+│                          → feature/numbering/services/formatService.ts
+│
+├── SerialConfig ──────────→ types/numbering.ts (SerialContext, UpdateRecordParams)
+│                          → feature/numbering/services/serialService.ts
+│                          → feature/numbering/services/recordService.ts
+│
+└── ConnectorsSchema ──────→ types/numbering.ts (SerialContext)
+                           → feature/numbering/services/formatService.ts
+
+types/kintone.ts
+│
+├── KintoneRecord ─────────→ feature/numbering/services/recordService.ts
+│                          → feature/numbering/services/serialService.ts
+│                          → feature/numbering/services/formatService.ts
+│
+└── KintoneEvent ──────────→ feature/numbering/core/numberingEngine.ts
+                           → desktop/index.ts, mobile/index.ts
+
+types/numbering.ts
+│
+├── ResolvedPart ──────────→ feature/numbering/services/formatService.ts
+├── SerialContext ─────────→ feature/numbering/services/serialService.ts
+├── DateContext ───────────→ feature/numbering/utils/date.ts
+└── UpdateRecordParams ────→ feature/numbering/services/recordService.ts
 ```
 
 ---
@@ -260,41 +325,133 @@ staticSchema.ts (型の源泉)
 - `restoreConfig()`: kintone からの復元（Zod 検証付き）
 - `migrateConfig()`: 旧バージョンからのマイグレーション
 
-### 4.2 shared/lib — ビジネスロジック
+### 4.2 shared/feature/numbering — 採番機能
 
-#### `numbering.ts`
+#### モジュール構成
 
-**責務**: 採番処理のコアロジック全体を担う
+```
+feature/numbering/
+├── core/
+│   └── numberingEngine.ts      # 採番処理のオーケストレーション
+├── services/
+│   ├── formatService.ts        # フォーマット処理
+│   ├── recordService.ts        # レコード操作（RestAPIClient）
+│   └── serialService.ts        # 連番管理
+└── utils/
+    ├── date.ts                 # 日付処理
+    └── string.ts               # 文字列処理（ゼロパディング）
+```
 
-主要な関数:
+#### `core/numberingEngine.ts`
+
+**責務**: 採番処理全体のオーケストレーション
+
+**主要関数**:
+- `executeNumbering(event, numberingSetting, apiToken?)`: 採番処理のメインエントリーポイント
+
+**処理フロー**:
+```typescript
+1. 採番済みチェック（record[resultFieldCode].value が存在すればスキップ）
+2. リビジョン取得（fetchRecordWithRevision）
+3. フォーマットパーツの解決（resolveFormatParts）
+4. フォーマット文字列の構築（buildFormatString）
+5. 次の連番を取得（resolveNextSerial）
+6. 重複回避ループ（最大 DEFAULT_RETRY_COUNT 回）
+   - ゼロパディング（padZero）
+   - 採番値の構築（buildNumberingValue）
+   - 重複チェック（checkDuplicate）
+   - 重複あり → currentSerial++ して再試行
+   - 重複なし → レコード更新（updateRecord）
+7. エラーハンドリング
+```
+
+#### `services/formatService.ts`
+
+**責務**: フォーマット処理
+
+**主要関数**:
 
 | 関数 | 概要 |
 |------|------|
 | `resolveFormatParts(formatParts, record)` | 各フォーマットパーツ（text / field / date）をレコード情報から実値に解決する |
 | `buildFormatString(resolvedParts, connector)` | 解決済みパーツを connector で結合し、連番を除いたフォーマット文字列を生成する |
-| `resolveNextSerial(ctx)` | リセットポリシーに応じて次の連番を決定する（kintone API 呼び出しを含む） |
-| `extractSerialWithResets(ctx, records)` | リセットあり時に既存レコードから最大連番を抽出する |
 | `buildNumberingValue(formatString, serialString, position, connector)` | 連番文字列とフォーマット文字列を position に応じて結合し最終採番値を生成する |
-| `checkDuplicate(appId, fieldCode, value, apiToken)` | 採番値の重複チェックを行う |
-| `updateRecords(...)` | 採番値をレコードに書き戻す（`resetPolicy.timing === 'none'` の場合は連番フィールドも更新） |
-| `main(event, settings)` | 採番処理全体のオーケストレーション（採番済みチェック → 採番 → 重複時リトライ → 更新） |
 
-**採番フロー概要**:
+#### `services/recordService.ts`
 
+**責務**: kintone レコード操作（RestAPIClient 使用）
+
+**主要関数**:
+
+| 関数 | 概要 |
+|------|------|
+| `createClient(apiToken?)` | RestAPIClient インスタンスを作成 |
+| `getRecordCreatedAt(record)` | レコードから作成日時を取得 |
+| `fetchRecords(appId, query, fields, apiToken?)` | レコードを取得 |
+| `fetchRecordWithRevision(appId, recordId, apiToken?)` | レコードをリビジョン付きで取得 |
+| `updateRecord(params)` | レコードを更新（リビジョン対応版） |
+| `checkDuplicate(appId, fieldCode, value, existingValues, apiToken?)` | 重複チェック（キャッシュ対応版） |
+
+**RestAPIClient の使用**:
+```typescript
+const client = new KintoneRestAPIClient({
+  baseUrl: location.origin,
+  auth: apiToken ? { apiToken } : undefined,
+});
+
+// レコード取得
+const response = await client.record.getRecords({ app, query, fields });
+
+// レコード更新
+await client.record.updateRecord({ app, id, record, revision });
 ```
-resolveFormatParts()  →  buildFormatString()
-                                ↓
-                        resolveNextSerial()
-                          ├── timing: 'none'  → serialFieldCode で最大値取得 + 1
-                          └── timing: yearly/monthly/daily
-                                → formatString で like 検索 → extractSerialWithResets() + 1
-                                ↓
-                        padZero() → buildNumberingValue()
-                                ↓
-                        checkDuplicate() → 重複なら currentSerial++ してリトライ
-                                ↓
-                        updateRecords()
+
+#### `services/serialService.ts`
+
+**責務**: 連番管理
+
+**主要関数**:
+
+| 関数 | 概要 |
+|------|------|
+| `resolveNextSerial(ctx)` | リセットポリシーに応じて次の連番を決定する |
+| `extractSerialWithResets(ctx, records)` | リセットあり時に既存レコードから最大連番を抽出する |
+
+**連番取得ロジック**:
+```typescript
+switch (resetTiming) {
+  case RESET_TIMING.NONE:
+    // serialFieldCode で最大値取得 + 1
+    query = `${serialFieldCode} != "" order by ${serialFieldCode} desc limit 1`;
+
+  case RESET_TIMING.YEARLY:
+  case RESET_TIMING.MONTHLY:
+  case RESET_TIMING.DAILY:
+    // formatString で like 検索 → extractSerialWithResets() + 1
+    query = `${resultFieldCode} like "${formatString}" order by $id desc limit ${FETCH_LIMIT_FOR_RESET}`;
+}
 ```
+
+#### `utils/date.ts`
+
+**責務**: 日付処理
+
+**主要関数**:
+
+| 関数 | 概要 |
+|------|------|
+| `createDateContext(dateString?)` | 日付コンテキストを作成 |
+| `formatDate(ctx, format)` | 日付フォーマット |
+
+#### `utils/string.ts`
+
+**責務**: 文字列処理
+
+**主要関数**:
+
+| 関数 | 概要 |
+|------|------|
+| `padZero(value, digit)` | ゼロ埋め |
 
 ### 4.3 desktop / mobile — エントリポイント
 
@@ -302,14 +459,50 @@ resolveFormatParts()  →  buildFormatString()
 
 **責務**: PC 向けイベントハンドラの登録
 
+**実装内容**:
 ```typescript
-const pluginConfig = restoreConfig();
-// イベントごとのロジック呼び出し
+import { restoreConfig } from '@/shared/config';
+import { executeNumbering } from '@/shared/feature/numbering';
+
+// 画面表示時: 採番フィールドを編集不可にする
+kintone.events.on(['app.record.create.show', 'app.record.edit.show'], (event) => {
+  const record = event.record;
+  const pluginConfig = restoreConfig();
+
+  pluginConfig.numberingSettings.forEach(({ resultFieldCode }) => {
+    const resultField = record[resultFieldCode];
+    // 型ガード: disabledプロパティが存在する型のみ処理
+    if (resultField && 'disabled' in resultField) {
+      resultField.disabled = true;
+
+      // 作成画面の場合は値をクリア
+      if (event.type === 'app.record.create.show' && 'value' in resultField) {
+        resultField.value = '';
+      }
+    }
+  });
+
+  return event;
+});
+
+// 保存成功時: 採番処理を実行
+kintone.events.on(
+  ['app.record.create.submit.success', 'app.record.edit.submit.success'],
+  async (event) => {
+    const pluginConfig = restoreConfig();
+    for (const numberingSetting of pluginConfig.numberingSettings) {
+      await executeNumbering(event, numberingSetting, pluginConfig.common.apiToken);
+    }
+    return event;
+  }
+);
 ```
 
 #### `mobile/index.ts`
 
-**責務**: モバイル向けイベントハンドラの登録（`desktop/index.ts` と同構造）
+**責務**: モバイル向けイベントハンドラの登録
+
+**実装内容**: `desktop/index.ts`と同構造で、イベント名を`mobile.`プレフィックス付きに変更
 
 ---
 
@@ -394,37 +587,47 @@ Jotai atom に同期 (useSyncConfig)
 
 ### 6.3 実行フロー（Desktop / Mobile）
 
+#### 保存成功時フロー（submit.success イベント）
+
 ```
 kintone イベント発火（submit.success）
   ↓
 restoreConfig(): kintone から設定 JSON を復元 + Zod 検証
   ↓
+executeNumbering() 開始
+  ↓
 採番済みチェック: record[resultFieldCode].value が存在すればスキップ
+  ↓
+fetchRecordWithRevision(): リビジョン取得（RestAPIClient）
   ↓
 resolveFormatParts(): text / field / date パーツを実値に解決
   ↓
 buildFormatString(): connector で結合しフォーマット文字列を生成
   ↓
 resolveNextSerial(): リセットポリシーに応じて次の連番を取得
-  │  timing: 'none'   → serialFieldCode の最大値 + 1
-  └  timing: yearly/monthly/daily → formatString で like 検索 → 最大連番 + 1
+  │  resetTiming: 'none'   → serialFieldCode の最大値 + 1
+  └  resetTiming: yearly/monthly/daily → formatString で like 検索 → 最大連番 + 1
   ↓
-【リトライループ（最大 maxRetryCount 回）】
+【リトライループ（最大 DEFAULT_RETRY_COUNT 回）】
   padZero() → buildNumberingValue() → checkDuplicate()
   重複あり → currentSerial++ して再試行
-  重複なし → updateRecords() でレコード更新
+  重複なし → updateRecord() でレコード更新（RestAPIClient）
   ↓
 return event
 ```
 
-**画面表示時フロー（show イベント）**:
+#### 画面表示時フロー（show イベント）
 
 ```
 kintone イベント発火（create.show / edit.show）
   ↓
-record[resultFieldCode].disabled = true  # 採番フィールドを編集不可に
+restoreConfig(): 設定を復元
   ↓
-create.show の場合: record[resultFieldCode].value = ''  # 値をクリア
+numberingSettings をループ
+  ↓
+resultField.disabled = true  # 採番フィールドを編集不可に
+  ↓
+create.show の場合: resultField.value = ''  # 値をクリア
   ↓
 return event
 ```
@@ -443,9 +646,9 @@ return event
 | マイグレーション失敗 | `migrateConfig()` | デフォルト設定へフォールバック + コンソール警告 |
 | kintone フィールド情報の取得失敗 | 動的バリデーション | エラー通知を表示し、保存を中断 |
 | 動的バリデーションエラー | `createConfigSchema()` | フォームにフィールド単位のエラーを表示 |
-| フィールド値の取得失敗（type: 'field' パーツ） | `resolveFormatParts()` | エラーをスロー → `main()` の catch でコンソール出力 |
-| kintone API エラー（非 200 レスポンス） | `callKintoneProxy()` | エラーをスロー → `main()` の catch でコンソール出力 |
-| 最大リトライ回数超過 | `main()` のリトライループ | エラーをスロー → catch でコンソール出力 |
+| フィールド値の取得失敗（type: 'field' パーツ） | `resolveFormatParts()` | エラーをスロー → `executeNumbering()` の catch でアラート表示 |
+| RestAPIClient エラー | `createClient()` 経由の API 呼び出し | エラーをスロー → `executeNumbering()` の catch でアラート表示 |
+| 最大リトライ回数超過 | `executeNumbering()` のリトライループ | エラーをスロー → catch でアラート表示 |
 | 不正な連番値（NaN） | `resolveNextSerial()` / `extractSerialWithResets()` | NaN レコードをスキップ、または明示的エラーをスロー |
 
 ### 7.2 kintone プラットフォーム制約
@@ -456,9 +659,9 @@ return event
 |------|------|------|
 | 設定データ容量 | `kintone.plugin.setConfig()` は合計 200KB まで | 不要データの排除、スキーマ設計時にサイズを考慮 |
 | API リクエスト制限 | kintone REST API のレートリミット | 必要最小限のリクエストに抑制 |
-| 採番の競合 | 複数ユーザーが同時保存した場合に同一連番が払い出される可能性がある | 重複チェック + リトライ（`maxRetryCount` 回）で対処。完全な排他制御は kintone プラットフォームの制約上不可 |
-| `kintone.proxy` 経由の API 呼び出し | プラグインからの REST API 呼び出しは `kintone.proxy` を経由する必要がある | `callKintoneProxy()` でラップして統一的に処理 |
-| リセットあり時の検索件数上限 | `like` クエリで取得するレコードは最大 500 件 | 同一期間内の採番数が 500 件を超える場合は最大連番を見逃す可能性がある（設計上の既知制約） |
+| 採番の競合 | 複数ユーザーが同時保存した場合に同一連番が払い出される可能性がある | 重複チェック + リトライ（`DEFAULT_RETRY_COUNT` 回）で対処。完全な排他制御は kintone プラットフォームの制約上不可 |
+| RestAPIClient の使用 | プラグインからの REST API 呼び出しは `@kintone/rest-api-client` を使用 | `createClient()` でインスタンスを作成し、統一的に処理 |
+| リセットあり時の検索件数上限 | `like` クエリで取得するレコードは最大 `FETCH_LIMIT_FOR_RESET`（500）件 | 同一期間内の採番数が 500 件を超える場合は最大連番を見逃す可能性がある（設計上の既知制約） |
 
 ---
 
@@ -480,13 +683,43 @@ return event
 ### ADR-002: 重複チェック + リトライによる競合対策
 
 **決定内容**:
-採番後に `checkDuplicate()` で重複確認し、重複があれば連番をインクリメントして再試行する（最大 `maxRetryCount` 回）。
+採番後に `checkDuplicate()` で重複確認し、重複があれば連番をインクリメントして再試行する（最大 `DEFAULT_RETRY_COUNT` 回）。
 
 **背景・理由**:
 kintone には採番専用のアトミック API がないため、楽観的ロック的なアプローチで競合を吸収する。
 
 **検討した代替案**:
 - 採番専用フィールド（数値型）を使った排他制御 → kintone の制約上、真の排他制御は実現困難なため不採用
+
+---
+
+### ADR-004: kintone Proxy から RestAPIClient への移行
+
+**決定内容**:
+kintone API 呼び出しに `@kintone/rest-api-client` を使用する。
+
+**背景・理由**:
+- 型安全性の向上（TypeScript の型定義が充実）
+- エラーハンドリングの統一
+- コードの可読性向上
+- メンテナンス性の向上
+
+**実装方法**:
+```typescript
+const client = new KintoneRestAPIClient({
+  baseUrl: location.origin,
+  auth: apiToken ? { apiToken } : undefined,
+});
+
+// レコード取得
+const response = await client.record.getRecords({ app, query, fields });
+
+// レコード更新
+await client.record.updateRecord({ app, id, record, revision });
+```
+
+**検討した代替案**:
+- `kintone.proxy` を使用 → 型安全性が低く、エラーハンドリングが煩雑なため不採用
 
 ---
 

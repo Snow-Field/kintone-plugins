@@ -1,4 +1,5 @@
-import type { FormatPart, SerialConfig } from '@/shared/config/staticSchema';
+import type { FormatPart, SerialConfig, ConnectorsSchema } from '@/shared/config/staticSchema';
+import type { z } from 'zod';
 
 export type ResolvedPart = {
   type: FormatPart['type'];
@@ -10,7 +11,7 @@ export type SerialContext = {
   apiToken?: string;
   resultFieldCode: string;
   serialConfig: SerialConfig;
-  connector: string;
+  connector: z.infer<typeof ConnectorsSchema>;
   formatString: string;
 };
 
@@ -28,7 +29,6 @@ export type UpdateRecordParams = {
   numberingValue: string;
   serialConfig: SerialConfig;
   currentSerial: number;
-  header: import('./kintone').KintoneProxyHeader;
   revision?: string;
-  api?: import('./kintone').KintoneAPI;
+  apiToken?: string;
 };

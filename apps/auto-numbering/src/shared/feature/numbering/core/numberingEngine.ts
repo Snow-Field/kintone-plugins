@@ -1,5 +1,6 @@
-import type { KintoneAPI, KintoneEvent } from '../types/kintone';
-import type { NumberingSettings } from '../types/numbering';
+import { type NumberingSetting } from '@/shared/config';
+import type { KintoneEvent } from '@/shared/types/kintone';
+import { DEFAULT_RETRY_COUNT } from '@/shared/constant/numbering';
 import { fetchRecordWithRevision, updateRecord, checkDuplicate } from '../services/recordService';
 import {
   resolveFormatParts,
@@ -7,7 +8,6 @@ import {
   buildNumberingValue,
 } from '../services/formatService';
 import { resolveNextSerial } from '../services/serialService';
-import { createApiHeader } from '../utils/kintoneProxy';
 import { padZero } from '../utils/string';
 
 /**
@@ -15,20 +15,19 @@ import { padZero } from '../utils/string';
  */
 export async function executeNumbering(
   event: KintoneEvent,
-  settings: NumberingSettings,
-  api: KintoneAPI = kintone as unknown as KintoneAPI
+  numberingSetting: NumberingSetting,
+  apiToken?: string
 ): Promise<void> {
   const { appId, recordId, record } = event;
-  const { resultFieldCode, apiToken, formatParts, connector, serialConfig, maxRetryCount } =
-    settings;
+  const { resultFieldCode, formatParts, connector, serialConfig } = numberingSetting;
   const { digit, position } = serialConfig;
 
   try {
     // 採番済みチェック
     if (record[resultFieldCode]?.value) return;
 
-    // リビジョン取得（競合制御のため）
-    const { revision } = await fetchRecordWithRevision(appId, recordId, apiToken, api);
+    // リビジョン取得
+    const { revision } = await fetchRecordWithRevision(appId, recordId, apiToken);
 
     // 各パーツの値を解決
     const resolvedParts = resolveFormatParts(formatParts, record);
@@ -37,26 +36,20 @@ export async function executeNumbering(
     const formatString = buildFormatString(resolvedParts, connector);
 
     // 次の連番を取得（既存値のキャッシュも取得）
-    const { nextSerial, existingValues } = await resolveNextSerial(
-      {
-        appId,
-        apiToken,
-        resultFieldCode,
-        serialConfig,
-        formatString,
-        connector,
-      },
-      api
-    );
-
-    // ヘッダー作成
-    const header = createApiHeader(apiToken);
+    const { nextSerial, existingValues } = await resolveNextSerial({
+      appId,
+      apiToken,
+      resultFieldCode,
+      serialConfig,
+      formatString,
+      connector,
+    });
 
     // 重複回避ループ
     let retryCount = 0;
     let currentSerial = nextSerial;
 
-    while (retryCount < maxRetryCount) {
+    while (retryCount < DEFAULT_RETRY_COUNT) {
       // 連番をゼロパディング
       const serialString = padZero(currentSerial, digit);
 
@@ -69,8 +62,7 @@ export async function executeNumbering(
         resultFieldCode,
         numberingValue,
         existingValues,
-        apiToken,
-        api
+        apiToken
       );
 
       if (isDuplicate) {
@@ -87,16 +79,15 @@ export async function executeNumbering(
         numberingValue,
         serialConfig,
         currentSerial,
-        header,
         revision,
-        api,
+        apiToken,
       });
 
       return;
     }
 
     // 最大リトライ回数に達した
-    throw new Error(`最大リトライ回数（${maxRetryCount}）に達しました`);
+    throw new Error(`最大リトライ回数（${DEFAULT_RETRY_COUNT}）に達しました`);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : '不明なエラーが発生しました';
     console.error('採番処理に失敗しました:', error);

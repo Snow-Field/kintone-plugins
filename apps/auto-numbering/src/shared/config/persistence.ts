@@ -5,13 +5,35 @@ import {
   type PluginConfig,
   type AnyPluginConfig,
 } from '@/shared/config/staticSchema';
+import { RESET_TIMING, CONNECTORS, DATE_SOURCE, DATE_FORMATS } from '@/shared/constant/numbering';
 
 /**
  * 初期化: デフォルトの設定情報を返す
  */
 export const createConfig = (): PluginConfig => ({
   version: LATEST_PLUGIN_VERSION,
-  message: 'Hello kintone!',
+  numberingSettings: [
+    {
+      resultFieldCode: '',
+      formatParts: [
+        {
+          type: 'text',
+          value: '',
+        },
+      ],
+      connector: CONNECTORS.HYPHEN,
+      serialConfig: {
+        initialValue: 1,
+        digit: 5,
+        position: 'suffix',
+        resetTiming: RESET_TIMING.NONE,
+        serialFieldCode: '',
+      },
+    },
+  ],
+  common: {
+    apiToken: '',
+  },
 });
 
 /**
@@ -29,6 +51,7 @@ const migrateConfig = (parsedConfig: AnyPluginConfig): PluginConfig => {
 
   // バージョン情報がない、または認識できない構造の場合はデフォルト値で初期化
   if (config.version === undefined) {
+    console.warn('[migrateConfig] No version found in config. Using default config.');
     return createConfig();
   }
 
@@ -36,6 +59,7 @@ const migrateConfig = (parsedConfig: AnyPluginConfig): PluginConfig => {
   // if (config.version === 1) {
   //   config.version = 2;
   //   // ... V1 → V2 のマイグレーション処理
+  //   // 例: 新しいフィールドの追加、フィールド名の変更など
   // }
 
   return config as PluginConfig;

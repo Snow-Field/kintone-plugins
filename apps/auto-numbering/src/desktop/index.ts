@@ -1,23 +1,33 @@
-import { PluginLogger } from '@kintone-plugin/kintone-utils';
 import { restoreConfig } from '@/shared/config';
-
-const logger = new PluginLogger('Desktop');
+import { executeNumbering } from '@/shared/feature/numbering';
 
 kintone.events.on(['app.record.create.show', 'app.record.edit.show'], (event) => {
-  logger.info('Hello kintone! Plugin is active.');
-
   const record = event.record;
   const pluginConfig = restoreConfig();
 
   pluginConfig.numberingSettings.forEach(({ resultFieldCode }) => {
-    // 採番フィールド編集不可
-    record[resultFieldCode].disabled = true;
+    const resultField = record[resultFieldCode];
+    if (resultField) {
+      // 採番フィールド編集不可
+      resultField.disabled = true;
 
-    // 値クリア
-    if (event.type === 'app.record.create.show') {
-      record[resultFieldCode].value = '';
+      // 値クリア
+      if (event.type === 'app.record.create.show') {
+        resultField.value = '';
+      }
     }
   });
 
   return event;
 });
+
+kintone.events.on(
+  ['app.record.create.submit.success', 'app.record.edit.submit.success'],
+  async (event) => {
+    const pluginConfig = restoreConfig();
+    for (const numberingSetting of pluginConfig.numberingSettings) {
+      await executeNumbering(event, numberingSetting, pluginConfig.common.apiToken);
+    }
+    return event;
+  }
+);

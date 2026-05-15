@@ -1,5 +1,5 @@
-import type { DateContext } from '../types/numbering';
-import { DATE_FORMATS } from '../types/numbering';
+import type { DateContext } from '@/shared/types/numbering';
+import { DATE_FORMATS } from '@/shared/constant/numbering';
 import { padZero } from './string';
 
 /**
@@ -18,7 +18,10 @@ export function createDateContext(dateString?: string): DateContext {
 /**
  * 日付フォーマット
  */
-export function formatDate(ctx: DateContext, format: DATE_FORMATS): string {
+export function formatDate(
+  ctx: DateContext,
+  format: (typeof DATE_FORMATS)[keyof typeof DATE_FORMATS]
+): string {
   const { yyyy, mm, dd } = ctx;
   const yy = yyyy.slice(-2);
 

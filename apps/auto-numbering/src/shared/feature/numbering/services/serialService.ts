@@ -2,10 +2,9 @@
  * 連番管理サービス
  */
 
-import type { KintoneAPI, KintoneRecord } from '../types/kintone';
-import type { SerialContext } from '../types/numbering';
-import { RESET_TIMING } from '../types/numbering';
-import { FETCH_LIMIT_FOR_RESET } from '../config/constants';
+import type { KintoneRecord } from '@/shared/types/kintone';
+import type { SerialContext } from '@/shared/types/numbering';
+import { RESET_TIMING, FETCH_LIMIT_FOR_RESET } from '@/shared/constant/numbering';
 import { fetchRecords } from './recordService';
 
 /**
@@ -41,8 +40,7 @@ function extractSerialWithResets(ctx: SerialContext, records: KintoneRecord[]): 
  * 次の連番を決定する（パフォーマンス改善版）
  */
 export async function resolveNextSerial(
-  ctx: SerialContext,
-  api: KintoneAPI = kintone as unknown as KintoneAPI
+  ctx: SerialContext
 ): Promise<{ nextSerial: number; existingValues: Set<string> }> {
   const { appId, apiToken, resultFieldCode, serialConfig, formatString } = ctx;
   const { initialValue, resetTiming, serialFieldCode } = serialConfig;
@@ -57,7 +55,7 @@ export async function resolveNextSerial(
       const fields = [resultFieldCode, serialFieldCode];
 
       // リセットなし → 全期間で最大の連番を取得
-      const records = await fetchRecords(appId, query, fields, apiToken, api);
+      const records = await fetchRecords(appId, query, fields, apiToken);
 
       // レコードから連番を抽出
       if (records.length === 0) {
@@ -80,7 +78,7 @@ export async function resolveNextSerial(
       const fields = [resultFieldCode];
 
       // 期間リセット → formatString（連番を除く部分）で一致検索
-      const records = await fetchRecords(appId, query, fields, apiToken, api);
+      const records = await fetchRecords(appId, query, fields, apiToken);
 
       // 既存の採番値をキャッシュ（パフォーマンス改善）
       const existingValues = new Set(

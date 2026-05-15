@@ -2,9 +2,11 @@
  * フォーマット処理サービス
  */
 
-import type { KintoneRecord } from '../types/kintone';
-import type { FormatPart, ResolvedPart, CONNECTORS, SerialConfig } from '../types/numbering';
-import { DATE_SOURCE } from '../types/numbering';
+import type { KintoneRecord } from '@/shared/types/kintone';
+import type { ResolvedPart } from '@/shared/types/numbering';
+import type { FormatPart, SerialConfig, ConnectorsSchema } from '@/shared/config/staticSchema';
+import type { z } from 'zod';
+import { DATE_SOURCE } from '@/shared/constant/numbering';
 import { createDateContext, formatDate } from '../utils/date';
 import { getRecordCreatedAt } from './recordService';
 
@@ -47,7 +49,10 @@ export function resolveFormatParts(
 /**
  * 連番を除いたパーツを結合する
  */
-export function buildFormatString(resolvedParts: ResolvedPart[], connector: CONNECTORS): string {
+export function buildFormatString(
+  resolvedParts: ResolvedPart[],
+  connector: z.infer<typeof ConnectorsSchema>
+): string {
   return resolvedParts.map((p) => p.value).join(connector);
 }
 
@@ -58,7 +63,7 @@ export function buildNumberingValue(
   formatString: string,
   serialString: string,
   position: SerialConfig['position'],
-  connector: CONNECTORS
+  connector: z.infer<typeof ConnectorsSchema>
 ): string {
   // prefix: 連番が先頭 → "00001-XX-26"
   if (position === 'prefix') {

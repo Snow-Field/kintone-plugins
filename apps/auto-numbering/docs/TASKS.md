@@ -1,15 +1,15 @@
 # {{プラグイン名}} — 実装タスクリスト
 
-> **最終更新**: {{YYYY-MM-DD}}
+> **最終更新**: 2026-05-15
 > **参照**: [DESIGN.md](./DESIGN.md)
 
 ---
 
 ## Phase 1: スキーマ・設定基盤
 
-- [ ] `staticSchema.ts` の定義
-- [ ] `dynamicSchema.ts` の定義
-- [ ] `persistence.ts` の実装（`createConfig`, `storeConfig`, `restoreConfig`, `migrateConfig`）
+- [x] `staticSchema.ts` の定義
+- [x] `dynamicSchema.ts` の定義
+- [x] `persistence.ts` の実装（`createConfig`, `storeConfig`, `restoreConfig`, `migrateConfig`）
 
 ## Phase 2: 実行ロジック
 

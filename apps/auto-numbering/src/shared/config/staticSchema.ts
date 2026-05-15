@@ -1,33 +1,8 @@
 import { z } from 'zod';
+import { DATE_SOURCE, DATE_FORMATS, CONNECTORS, RESET_TIMING } from '../constant/numbering';
 
 /** プラグインバージョン */
 export const LATEST_PLUGIN_VERSION = 1;
-
-/** Enum型定義 */
-export const DATE_SOURCE = {
-  NOW: 'now' as const,
-  CREATED_AT: 'createdAt' as const,
-};
-
-export const DATE_FORMATS = {
-  YYYYMMDD: 'YYYYMMDD' as const,
-  YYMMDD: 'YYMMDD' as const,
-  YYYYMM: 'YYYYMM' as const,
-  YYMM: 'YYMM' as const,
-  YYYY: 'YYYY' as const,
-  YY: 'YY' as const,
-};
-
-export const CONNECTORS = {
-  HYPHEN: '-' as const,
-};
-
-export const RESET_TIMING = {
-  NONE: 'none' as const,
-  YEARLY: 'yearly' as const,
-  MONTHLY: 'monthly' as const,
-  DAILY: 'daily' as const,
-};
 
 // =============================================================================
 // Version 1 Schema Definitions
@@ -77,7 +52,7 @@ export const FormatPartSchema = z.discriminatedUnion('type', [
 
 /** 連番設定 */
 export const SerialConfigSchema = z.object({
-  initialValue: z.number().int().min(0),
+  initialValue: z.number().int().min(1),
   digit: z.number().int().min(1),
   position: z.enum(['prefix', 'suffix']),
   resetTiming: ResetTimingSchema,
@@ -127,10 +102,10 @@ export type AnyPluginConfig = { version?: number } & Record<string, unknown>;
 export type PluginConfig = z.infer<typeof PluginConfigSchema>;
 
 /** 採番設定型 */
-export type NumberingSettings = PluginConfig['numberingSettings'][number];
+export type NumberingSetting = PluginConfig['numberingSettings'][number];
 
 /** 連番設定型 */
-export type SerialConfig = NumberingSettings['serialConfig'];
+export type SerialConfig = NumberingSetting['serialConfig'];
 
 /** フォーマット部品型 */
 export type FormatPart = z.infer<typeof FormatPartSchema>;
