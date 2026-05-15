@@ -5,25 +5,17 @@
 
 /**
  * フィールドの共通プロパティ
+ *
+ * @remarks
+ * disabled / error プロパティは一部のフィールドタイプでのみサポートされます。
+ * 型システムにより、非対応フィールドでは使用できないように制限されています。
+ *
  * @see https://cybozu.dev/ja/kintone/docs/js-api/events/event-object-actions/
  */
 export interface FieldProperty {
   /**
    * フィールドの編集可否
    * true: 編集不可、false: 編集可
-   *
-   * 注意: 以下のフィールドは disabled プロパティに対応していません:
-   * - __ID__
-   * - __REVISION__
-   * - レコード番号 (RECORD_NUMBER)
-   * - 作成者 (CREATOR)
-   * - 作成日時 (CREATED_TIME)
-   * - 更新者 (MODIFIER)
-   * - 更新日時 (UPDATED_TIME)
-   * - ステータス (STATUS)
-   * - 作業者 (STATUS_ASSIGNEE)
-   * - 計算 (CALC)
-   * - 自動計算にした文字列1行
    */
   disabled?: boolean;
   /**
@@ -31,6 +23,14 @@ export interface FieldProperty {
    */
   error?: string;
 }
+
+/**
+ * FieldProperty を適用するヘルパー型
+ *
+ * @template T - ベースとなるフィールド型
+ * @template FieldType - フィールドタイプ文字列
+ */
+export type WithFieldProperty<T> = T & FieldProperty;
 
 /**
  * フィールド値の型マップ
@@ -42,63 +42,56 @@ export type FieldMap = {
   // ==========================================================================
 
   __ID__: {
-    get: {
-      type: '__ID__';
-      value: string;
-    };
-    set: {
-      type: '__ID__';
-    };
+    get: WithFieldProperty<{ type: '__ID__'; value: string }>;
+    set: WithFieldProperty<{ type: '__ID__' }>;
   };
 
   __REVISION__: {
-    get: {
-      type: '__REVISION__';
-      value: string;
-    };
-    set: {
-      type: '__REVISION__';
-    };
+    get: WithFieldProperty<{ type: '__REVISION__'; value: string }>;
+    set: WithFieldProperty<{ type: '__REVISION__' }>;
   };
 
   RECORD_NUMBER: {
-    get: { type: 'RECORD_NUMBER'; value: string };
-    set: { type: 'RECORD_NUMBER' };
+    get: WithFieldProperty<{ type: 'RECORD_NUMBER'; value: string }>;
+    set: WithFieldProperty<{ type: 'RECORD_NUMBER' }>;
   };
 
   CREATED_TIME: {
-    get: { type: 'CREATED_TIME'; value: string };
-    set: { type: 'CREATED_TIME' };
+    get: WithFieldProperty<{ type: 'CREATED_TIME'; value: string }>;
+    set: WithFieldProperty<{ type: 'CREATED_TIME' }>;
   };
 
   UPDATED_TIME: {
-    get: { type: 'UPDATED_TIME'; value: string };
-    set: { type: 'UPDATED_TIME' };
+    get: WithFieldProperty<{ type: 'UPDATED_TIME'; value: string }>;
+    set: WithFieldProperty<{ type: 'UPDATED_TIME' }>;
   };
 
   CREATOR: {
-    get: { type: 'CREATOR'; value: { code: string; name: string } };
-    set: { type: 'CREATOR' };
+    get: WithFieldProperty<{ type: 'CREATOR'; value: { code: string; name: string } }>;
+    set: WithFieldProperty<{ type: 'CREATOR' }>;
   };
 
   MODIFIER: {
-    get: { type: 'MODIFIER'; value: { code: string; name: string } };
-    set: { type: 'MODIFIER' };
+    get: WithFieldProperty<{ type: 'MODIFIER'; value: { code: string; name: string } }>;
+    set: WithFieldProperty<{ type: 'MODIFIER' }>;
   };
 
   CATEGORY: {
-    get: { type: 'CATEGORY'; value: string[] } & FieldProperty;
-    set: { type: 'CATEGORY'; value: string[] };
+    get: WithFieldProperty<{ type: 'CATEGORY'; value: string[] }>;
+    set: WithFieldProperty<{ type: 'CATEGORY'; value: string[] }>;
   };
 
   STATUS: {
-    get: { type: 'STATUS'; value: string };
-    set: { type: 'STATUS' };
+    get: WithFieldProperty<{ type: 'STATUS'; value: string }>;
+    set: WithFieldProperty<{ type: 'STATUS' }>;
   };
 
   STATUS_ASSIGNEE: {
-    get: { type: 'STATUS_ASSIGNEE'; value: Array<{ code: string; name: string }> };
-    set: { type: 'STATUS_ASSIGNEE' };
+    get: WithFieldProperty<{
+      type: 'STATUS_ASSIGNEE';
+      value: Array<{ code: string; name: string }>;
+    }>;
+    set: WithFieldProperty<{ type: 'STATUS_ASSIGNEE' }>;
   };
 
   // ==========================================================================
@@ -106,23 +99,23 @@ export type FieldMap = {
   // ==========================================================================
 
   SINGLE_LINE_TEXT: {
-    get: { type: 'SINGLE_LINE_TEXT'; value: string | undefined } & FieldProperty;
-    set: { type: 'SINGLE_LINE_TEXT'; value: string | undefined };
+    get: WithFieldProperty<{ type: 'SINGLE_LINE_TEXT'; value: string | undefined }>;
+    set: WithFieldProperty<{ type: 'SINGLE_LINE_TEXT'; value: string | undefined }>;
   };
 
   LINK: {
-    get: { type: 'LINK'; value: string | undefined } & FieldProperty;
-    set: { type: 'LINK'; value: string | undefined };
+    get: WithFieldProperty<{ type: 'LINK'; value: string | undefined }>;
+    set: WithFieldProperty<{ type: 'LINK'; value: string | undefined }>;
   };
 
   MULTI_LINE_TEXT: {
-    get: { type: 'MULTI_LINE_TEXT'; value: string | undefined } & FieldProperty;
-    set: { type: 'MULTI_LINE_TEXT'; value: string | undefined };
+    get: WithFieldProperty<{ type: 'MULTI_LINE_TEXT'; value: string | undefined }>;
+    set: WithFieldProperty<{ type: 'MULTI_LINE_TEXT'; value: string | undefined }>;
   };
 
   RICH_TEXT: {
-    get: { type: 'RICH_TEXT'; value: string } & FieldProperty;
-    set: { type: 'RICH_TEXT'; value: string };
+    get: WithFieldProperty<{ type: 'RICH_TEXT'; value: string }>;
+    set: WithFieldProperty<{ type: 'RICH_TEXT'; value: string }>;
   };
 
   // ==========================================================================
@@ -130,13 +123,13 @@ export type FieldMap = {
   // ==========================================================================
 
   NUMBER: {
-    get: { type: 'NUMBER'; value: string | undefined } & FieldProperty;
-    set: { type: 'NUMBER'; value: string | undefined };
+    get: WithFieldProperty<{ type: 'NUMBER'; value: string | undefined }>;
+    set: WithFieldProperty<{ type: 'NUMBER'; value: string | undefined }>;
   };
 
   CALC: {
-    get: { type: 'CALC'; value: string };
-    set: { type: 'CALC' };
+    get: WithFieldProperty<{ type: 'CALC'; value: string }>;
+    set: WithFieldProperty<{ type: 'CALC' }>;
   };
 
   // ==========================================================================
@@ -144,18 +137,18 @@ export type FieldMap = {
   // ==========================================================================
 
   DATE: {
-    get: { type: 'DATE'; value: string | null | undefined } & FieldProperty;
-    set: { type: 'DATE'; value: string | null | undefined };
+    get: WithFieldProperty<{ type: 'DATE'; value: string | null | undefined }>;
+    set: WithFieldProperty<{ type: 'DATE'; value: string | null | undefined }>;
   };
 
   TIME: {
-    get: { type: 'TIME'; value: string | null | undefined } & FieldProperty;
-    set: { type: 'TIME'; value: string | null | undefined };
+    get: WithFieldProperty<{ type: 'TIME'; value: string | null | undefined }>;
+    set: WithFieldProperty<{ type: 'TIME'; value: string | null | undefined }>;
   };
 
   DATETIME: {
-    get: { type: 'DATETIME'; value: string | undefined } & FieldProperty;
-    set: { type: 'DATETIME'; value: string | undefined };
+    get: WithFieldProperty<{ type: 'DATETIME'; value: string | undefined }>;
+    set: WithFieldProperty<{ type: 'DATETIME'; value: string | undefined }>;
   };
 
   // ==========================================================================
@@ -163,23 +156,23 @@ export type FieldMap = {
   // ==========================================================================
 
   RADIO_BUTTON: {
-    get: { type: 'RADIO_BUTTON'; value: string } & FieldProperty;
-    set: { type: 'RADIO_BUTTON'; value: string };
+    get: WithFieldProperty<{ type: 'RADIO_BUTTON'; value: string }>;
+    set: WithFieldProperty<{ type: 'RADIO_BUTTON'; value: string }>;
   };
 
   DROP_DOWN: {
-    get: { type: 'DROP_DOWN'; value: string | undefined } & FieldProperty;
-    set: { type: 'DROP_DOWN'; value: string | undefined };
+    get: WithFieldProperty<{ type: 'DROP_DOWN'; value: string | undefined }>;
+    set: WithFieldProperty<{ type: 'DROP_DOWN'; value: string | undefined }>;
   };
 
   CHECK_BOX: {
-    get: { type: 'CHECK_BOX'; value: string[] } & FieldProperty;
-    set: { type: 'CHECK_BOX'; value: string[] };
+    get: WithFieldProperty<{ type: 'CHECK_BOX'; value: string[] }>;
+    set: WithFieldProperty<{ type: 'CHECK_BOX'; value: string[] }>;
   };
 
   MULTI_SELECT: {
-    get: { type: 'MULTI_SELECT'; value: string[] } & FieldProperty;
-    set: { type: 'MULTI_SELECT'; value: string[] };
+    get: WithFieldProperty<{ type: 'MULTI_SELECT'; value: string[] }>;
+    set: WithFieldProperty<{ type: 'MULTI_SELECT'; value: string[] }>;
   };
 
   // ==========================================================================
@@ -187,21 +180,21 @@ export type FieldMap = {
   // ==========================================================================
 
   USER_SELECT: {
-    get: { type: 'USER_SELECT'; value: Array<{ code: string; name: string }> } & FieldProperty;
-    set: { type: 'USER_SELECT'; value: Array<{ code: string }> };
+    get: WithFieldProperty<{ type: 'USER_SELECT'; value: Array<{ code: string; name: string }> }>;
+    set: WithFieldProperty<{ type: 'USER_SELECT'; value: Array<{ code: string }> }>;
   };
 
   GROUP_SELECT: {
-    get: { type: 'GROUP_SELECT'; value: Array<{ code: string; name: string }> } & FieldProperty;
-    set: { type: 'GROUP_SELECT'; value: Array<{ code: string }> };
+    get: WithFieldProperty<{ type: 'GROUP_SELECT'; value: Array<{ code: string; name: string }> }>;
+    set: WithFieldProperty<{ type: 'GROUP_SELECT'; value: Array<{ code: string }> }>;
   };
 
   ORGANIZATION_SELECT: {
-    get: {
+    get: WithFieldProperty<{
       type: 'ORGANIZATION_SELECT';
       value: Array<{ code: string; name: string }>;
-    } & FieldProperty;
-    set: { type: 'ORGANIZATION_SELECT'; value: Array<{ code: string }> };
+    }>;
+    set: WithFieldProperty<{ type: 'ORGANIZATION_SELECT'; value: Array<{ code: string }> }>;
   };
 
   // ==========================================================================
@@ -209,7 +202,7 @@ export type FieldMap = {
   // ==========================================================================
 
   FILE: {
-    get: {
+    get: WithFieldProperty<{
       type: 'FILE';
       value: Array<{
         contentType: string;
@@ -217,8 +210,8 @@ export type FieldMap = {
         name: string;
         size: string;
       }>;
-    } & FieldProperty;
-    set: { type: 'FILE' };
+    }>;
+    set: WithFieldProperty<{ type: 'FILE' }>;
   };
 
   // ==========================================================================
@@ -231,15 +224,3 @@ export type FieldMap = {
  * すべてのフィールドタイプ
  */
 export type AnyFieldType = keyof FieldMap;
-
-/**
- * フィールドに FieldProperty (disabled, error) を追加するヘルパー型
- *
- * kintone の仕様上、多くのフィールドに disabled/error を設定可能ですが、
- * 一部のシステムフィールドや計算フィールドには対応していません。
- *
- * 実行時に設定する際は、型アサーションとして使用してください。
- *
- * @see https://cybozu.dev/ja/kintone/docs/js-api/events/event-object-actions/
- */
-export type WithFieldProperty<T> = T & FieldProperty;

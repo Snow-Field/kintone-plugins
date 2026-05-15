@@ -100,31 +100,35 @@ kintone.events.on('app.record.detail.show', (event) => {
 
 ```typescript
 kintone.events.on(['app.record.create.show'], (event) => {
-  const field = event.record.myField;
-
-  // フィールドを編集不可にする
-  if (field && 'disabled' in field) {
-    field.disabled = true;
+  // ✅ 対応フィールド：disabled/error が使える
+  const textField = event.record.myTextField;
+  if (textField) {
+    textField.disabled = true;
+    textField.error = 'このフィールドは必須です';
   }
 
-  // エラーメッセージを表示
-  if (field && 'error' in field) {
-    field.error = 'このフィールドは必須です';
+  // ❌ 非対応フィールド：型エラーになる
+  const idField = event.record.$id;
+  if (idField) {
+    // idField.disabled = true; // 型エラー！
   }
 
   return event;
 });
 ```
 
-**注意**：以下のフィールドは`disabled`と`error`プロパティに対応していません：
-- レコード番号（RECORD_NUMBER）
-- 作成者（CREATOR）
-- 作成日時（CREATED_TIME）
-- 更新者（MODIFIER）
-- 更新日時（UPDATED_TIME）
-- ステータス（STATUS）
-- 作業者（STATUS_ASSIGNEE）
-- 計算（CALC）
+**対応フィールド**：
+- テキスト系: `SINGLE_LINE_TEXT`, `LINK`, `MULTI_LINE_TEXT`, `RICH_TEXT`
+- 数値: `NUMBER`
+- 日時: `DATE`, `TIME`, `DATETIME`
+- 選択: `RADIO_BUTTON`, `DROP_DOWN`, `CHECK_BOX`, `MULTI_SELECT`
+- ユーザー選択: `USER_SELECT`, `GROUP_SELECT`, `ORGANIZATION_SELECT`
+- その他: `FILE`, `CATEGORY`
+
+**非対応フィールド**（型システムで制限）：
+- システムフィールド: `__ID__`, `__REVISION__`, `RECORD_NUMBER`, `CREATOR`, `CREATED_TIME`, `MODIFIER`, `UPDATED_TIME`
+- ステータス関連: `STATUS`, `STATUS_ASSIGNEE`
+- 計算: `CALC`
 
 ## 📝 型定義の特徴
 
@@ -132,7 +136,8 @@ kintone.events.on(['app.record.create.show'], (event) => {
 - レコードフィールドの値の型定義
 - `get`（取得）と `set`（設定）の2つのモードをサポート
 - システムフィールドからユーザー定義フィールドまで網羅
-- `FieldProperty`インターフェース（`disabled`, `error`）をサポート
+- `FieldProperty`インターフェース（`disabled`, `error`）を型レベルで制御
+- `WithFieldProperty<T, FieldType>`ヘルパー型で対応フィールドのみに適用
 
 ### 2. **レコード型（record.ts）**
 - `KintoneRecord`: 汎用レコード型

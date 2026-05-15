@@ -74,3 +74,33 @@ export type CreatePageFieldType =
   | 'ORGANIZATION_SELECT'
   | 'GROUP_SELECT'
   | 'FILE';
+
+/**
+ * disabled/error プロパティをサポートするフィールドタイプ
+ *
+ * @remarks
+ * 以下のフィールドタイプは disabled/error プロパティに対応していません:
+ * - システムフィールド: __ID__, __REVISION__, RECORD_NUMBER, CREATOR, CREATED_TIME, MODIFIER, UPDATED_TIME
+ * - ステータス関連: STATUS, STATUS_ASSIGNEE
+ * - 計算フィールド: CALC
+ *
+ * @note 現時点では未使用
+ */
+export type FieldPropertySupportedType =
+  | 'SINGLE_LINE_TEXT'
+  | 'LINK'
+  | 'MULTI_LINE_TEXT'
+  | 'RICH_TEXT'
+  | 'NUMBER'
+  | 'DATE'
+  | 'TIME'
+  | 'DATETIME'
+  | 'RADIO_BUTTON'
+  | 'DROP_DOWN'
+  | 'CHECK_BOX'
+  | 'MULTI_SELECT'
+  | 'USER_SELECT'
+  | 'GROUP_SELECT'
+  | 'ORGANIZATION_SELECT'
+  | 'FILE'
+  | 'CATEGORY';
