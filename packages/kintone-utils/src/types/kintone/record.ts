@@ -3,7 +3,7 @@
  * @module kintone/record
  */
 
-import type { FieldMap } from './field';
+import type { FieldProperty, FieldMap } from './field';
 import type {
   RemoveNeverProperties,
   InSubtableFieldType,
@@ -55,7 +55,7 @@ export type Subtable<T> = {
     id: string | null;
     value: T;
   }>;
-};
+} & FieldProperty;
 
 /**
  * サブテーブルフィールド（作成画面用）
@@ -66,7 +66,7 @@ export type SubtableOnCreatePage<T> = {
     id: null;
     value: T;
   }>;
-};
+} & FieldProperty;
 
 /**
  * サブテーブルフィールド（設定用）
@@ -77,7 +77,7 @@ export type SubtableForSet<T> = {
     id: string | null;
     value: T;
   }>;
-};
+} & FieldProperty;
 
 // ============================================================================
 // レコード型定義

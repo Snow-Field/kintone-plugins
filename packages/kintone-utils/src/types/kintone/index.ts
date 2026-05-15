@@ -1,7 +1,6 @@
 /**
  * Kintone 型定義エクスポート
  * @module kintone
- * @note グローバルAPI型定義は global.d.ts 経由で自動的に読み込まれます
  */
 
 // フィールド型
