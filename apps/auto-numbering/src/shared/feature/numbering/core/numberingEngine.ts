@@ -18,8 +18,7 @@ export async function executeNumbering(
   numberingSetting: NumberingSetting,
   apiToken?: string
 ): Promise<void> {
-  const { appId, record } = event;
-  const recordId = Number(event.recordId);
+  const { appId, recordId, record } = event;
   const { resultFieldCode, formatParts, connector, serialConfig } = numberingSetting;
   const { digit, position } = serialConfig;
 
@@ -29,7 +28,8 @@ export async function executeNumbering(
 
     // レコード取得（リビジョン取得のため）
     const fetchedRecord = await fetchRecord(appId, recordId, apiToken);
-    const revision = String(fetchedRecord.$revision?.value ?? '');
+    const revisionField = Object.values(fetchedRecord).find((f) => f?.type === '__REVISION__');
+    const revision = revisionField?.type === '__REVISION__' ? revisionField.value : '';
 
     // 各パーツの値を解決
     const resolvedParts = resolveFormatParts(formatParts, record);

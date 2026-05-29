@@ -1,6 +1,7 @@
+import { KintoneRestAPIClient } from '@kintone/rest-api-client';
+import type { KintoneEvent } from '@/shared/types/kintone';
 import type { UpdateRecordParams } from '@/shared/types/numbering';
 import { RESET_TIMING } from '@/shared/constant/numbering';
-import { KintoneRestAPIClient } from '@kintone/rest-api-client';
 
 /**
  * RestAPIClientインスタンスを作成
@@ -15,7 +16,7 @@ function createClient(apiToken?: string): KintoneRestAPIClient {
 /**
  * レコードから作成日時を取得する
  */
-export function getRecordCreatedAt(record: Record<string, { type: string; value: unknown }>) {
+export function getRecordCreatedAt(record: KintoneEvent['record']) {
   const createdTime =
     record['作成日時']?.value ??
     Object.values(record).find((f) => f?.type === 'CREATED_TIME')?.value;
@@ -33,19 +34,21 @@ export function getRecordCreatedAt(record: Record<string, { type: string; value:
  */
 export async function fetchRecords(
   appId: string | number,
-  query: string,
+  condition: string,
+  orderBy: string,
   fields: string[],
   apiToken?: string
 ) {
   const client = createClient(apiToken);
 
-  const response = await client.record.getRecords({
+  const records = await client.record.getAllRecords({
     app: appId,
-    query,
+    condition,
+    orderBy,
     fields,
   });
 
-  return response.records;
+  return records;
 }
 
 /**
@@ -112,17 +115,18 @@ export async function updateRecord(params: UpdateRecordParams): Promise<void> {
 export async function checkDuplicate(
   appId: string | number,
   fieldCode: string,
-  value: string,
+  numberingValue: string,
   existingValues: Set<string>,
   apiToken?: string
 ): Promise<boolean> {
   // キャッシュにある場合はAPIを呼ばない
   if (existingValues.size > 0) {
-    return existingValues.has(value);
+    return existingValues.has(numberingValue);
   }
 
   // キャッシュがない場合はAPIで確認
-  const query = `${fieldCode} = "${value}" limit 1`;
-  const records = await fetchRecords(appId, query, [fieldCode], apiToken);
+  const condition = `${fieldCode} = "${numberingValue}"`;
+  const orderBy = `limit 1`;
+  const records = await fetchRecords(appId, condition, orderBy, [fieldCode], apiToken);
   return records.length > 0;
 }

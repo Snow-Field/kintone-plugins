@@ -39,7 +39,7 @@ function extractSerialWithResets(
 }
 
 /**
- * 次の連番を決定する（パフォーマンス改善版）
+ * 次の連番を決定する
  */
 export async function resolveNextSerial(
   ctx: SerialContext
@@ -53,11 +53,12 @@ export async function resolveNextSerial(
         throw new Error('resetTiming が "none" の場合、serialFieldCode は必須です');
       }
 
-      const query = `${serialFieldCode} != "" order by ${serialFieldCode} desc limit 1`;
+      const condition = `${serialFieldCode} != ""`;
+      const orderBy = `order by ${serialFieldCode} desc limit 1`;
       const fields = [resultFieldCode, serialFieldCode];
 
       // リセットなし → 全期間で最大の連番を取得
-      const records = await fetchRecords(appId, query, fields, apiToken);
+      const records = await fetchRecords(appId, condition, orderBy, fields, apiToken);
 
       // レコードから連番を抽出
       if (records.length === 0) {
@@ -76,13 +77,14 @@ export async function resolveNextSerial(
     case RESET_TIMING.YEARLY:
     case RESET_TIMING.MONTHLY:
     case RESET_TIMING.DAILY: {
-      const query = `${resultFieldCode} like "${formatString}" order by $id desc limit ${FETCH_LIMIT_FOR_RESET}`;
+      const condition = `${resultFieldCode} like "${formatString}"`;
+      const orderBy = `order by $id desc limit ${FETCH_LIMIT_FOR_RESET}`;
       const fields = [resultFieldCode];
 
       // 期間リセット → formatString（連番を除く部分）で一致検索
-      const records = await fetchRecords(appId, query, fields, apiToken);
+      const records = await fetchRecords(appId, condition, orderBy, fields, apiToken);
 
-      // 既存の採番値をキャッシュ（パフォーマンス改善）
+      // 既存の採番値をキャッシュ
       const existingValues = new Set(
         records
           .map((r) => {

@@ -2,9 +2,10 @@
  * フォーマット処理サービス
  */
 
+import type { z } from 'zod';
+import type { KintoneEvent } from '@/shared/types/kintone';
 import type { ResolvedPart } from '@/shared/types/numbering';
 import type { FormatPart, SerialConfig, ConnectorsSchema } from '@/shared/config/staticSchema';
-import type { z } from 'zod';
 import { DATE_SOURCE } from '@/shared/constant/numbering';
 import { createDateContext, formatDate } from '../utils/date';
 import { getRecordCreatedAt } from './recordService';
@@ -14,7 +15,7 @@ import { getRecordCreatedAt } from './recordService';
  */
 export function resolveFormatParts(
   formatParts: FormatPart[],
-  record: Record<string, { type: string; value: unknown }>
+  record: KintoneEvent['record']
 ): ResolvedPart[] {
   return formatParts.map((part) => {
     switch (part.type) {
@@ -31,7 +32,7 @@ export function resolveFormatParts(
         // 日付ソース判定
         const isCreatedAt = part.source === DATE_SOURCE.CREATED_AT;
         // レコード作成日時 or 現在日時
-        const baseDate = isCreatedAt ? getRecordCreatedAt(record) : '';
+        const baseDate = isCreatedAt ? getRecordCreatedAt(record) : new Date().toISOString();
         // 日付コンテキストの作成
         const dateCtx = createDateContext(baseDate);
 
