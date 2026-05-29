@@ -1,7 +1,7 @@
-import { type FC, useCallback } from 'react';
+import { type FC, useCallback, Suspense } from 'react';
 import { useAtom, useAtomValue } from 'jotai';
 import { FormProvider, useFormContext } from 'react-hook-form';
-import { Box, Button } from '@mui/material';
+import { Box, Button, Typography } from '@mui/material';
 import { activeTabIndexAtom, loadingAtom } from '@/config/states/plugin';
 import { usePluginForm } from '@/config/hooks/usePluginForm';
 import { useSubmitConfig } from '@/config/hooks/useSubmitConfig';
@@ -9,8 +9,29 @@ import { useResetConfig } from '@/config/hooks/useResetConfig';
 import { useImportConfig } from '@/config/hooks/useImportConfig';
 import { useExportConfig } from '@/config/hooks/useExportConfig';
 import { type PluginConfig } from '@/shared/config';
-import { Header, Form } from '@kintone-plugin/ui';
+import { Header, Form, WaveLoader } from '@kintone-plugin/ui';
 import { FormTabs } from '@/config/components/features/FormTabs';
+
+/**
+ * フィールド情報読み込み中のローディング表示
+ */
+const FieldsLoadingFallback: FC = () => (
+  <Box
+    sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      minHeight: '400px',
+      gap: 2,
+    }}
+  >
+    <WaveLoader />
+    <Typography variant='body2' color='text.secondary'>
+      フィールド情報を読み込んでいます...
+    </Typography>
+  </Box>
+);
 
 /**
  * 実際のフォーム内容とロジックを管理する内部コンポーネント
@@ -87,8 +108,10 @@ export const PluginContent: FC = () => {
   const { methods } = usePluginForm();
 
   return (
-    <FormProvider {...methods}>
-      <PluginContentForm />
-    </FormProvider>
+    <Suspense fallback={<FieldsLoadingFallback />}>
+      <FormProvider {...methods}>
+        <PluginContentForm />
+      </FormProvider>
+    </Suspense>
   );
 };

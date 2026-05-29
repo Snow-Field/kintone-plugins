@@ -1,13 +1,20 @@
 import { type ZodType } from 'zod';
+import { type KintoneFormFieldProperty } from '@kintone/rest-api-client';
 import { PluginConfigSchema, type PluginConfig } from '@/shared/config/staticSchema';
 import { RESET_TIMING } from '@/shared/constant/numbering';
 
+/** フィールド情報の型（usePluginForm と互換） */
+type FieldInfo = {
+  code: string;
+  type: KintoneFormFieldProperty.OneOf['type'];
+};
+
 /**
  * 動的な検証を含むスキーマを生成する
- * @param fieldCodes アプリに存在するフィールドコードのリスト
+ * @param fields アプリに存在するフィールド情報のリスト
  */
-export const createConfigSchema = (fieldCodes: string[]): ZodType<PluginConfig> => {
-  const fieldCodeSet = new Set(fieldCodes);
+export const createConfigSchema = (fields: FieldInfo[]): ZodType<PluginConfig> => {
+  const fieldCodeSet = new Set(fields.map((f) => f.code));
 
   return PluginConfigSchema.superRefine((config, ctx) => {
     // 採番設定ごとにバリデーション

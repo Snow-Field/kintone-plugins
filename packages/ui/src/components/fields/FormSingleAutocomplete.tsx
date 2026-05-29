@@ -109,17 +109,22 @@ export const FormSingleAutocomplete = ({
               </Box>
             );
           }}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label={label}
-              placeholder={placeholder}
-              variant='outlined'
-              color='primary'
-              error={!!error}
-              helperText={error?.message}
-            />
-          )}
+          renderInput={(params) => {
+            // MUI v7 の型定義の不整合を回避するため、InputProps を明示的に型アサーション
+            const { InputProps, ...restParams } = params;
+            return (
+              <TextField
+                {...restParams}
+                InputProps={InputProps as any}
+                label={label}
+                placeholder={placeholder}
+                variant='outlined'
+                color='primary'
+                error={!!error}
+                helperText={error?.message}
+              />
+            );
+          }}
           sx={{
             width: { xs: '100%', sm: 400 },
             ...sx,
