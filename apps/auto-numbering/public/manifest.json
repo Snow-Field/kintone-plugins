@@ -5,16 +5,16 @@
   "type": "APP",
   "icon": "image/icon.png",
   "name": {
-    "en": "",
-    "ja": ""
+    "en": "Auto Numbering Plugin",
+    "ja": "自動採番プラグイン"
   },
   "description": {
-    "en": "",
-    "ja": ""
+    "en": "A kintone plugin that automatically generates sequential numbers with customizable formats including text, field values, dates, and serial numbers.",
+    "ja": "テキスト、フィールド値、日付、連番を組み合わせたカスタマイズ可能な形式で、自動的に連番を生成するプラグインです。"
   },
   "homepage_url": {
-    "en": "https://github.com/HaruCraftz/kintone-plugins/tree/main/apps/",
-    "ja": "https://github.com/HaruCraftz/kintone-plugins/tree/main/apps/"
+    "en": "https://github.com/HaruCraftz/kintone-plugins/tree/main/apps/auto-numbering",
+    "ja": "https://github.com/HaruCraftz/kintone-plugins/tree/main/apps/auto-numbering"
   },
   "desktop": {
     "js": ["js/desktop.js"],

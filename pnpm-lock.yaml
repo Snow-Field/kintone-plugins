@@ -152,7 +152,7 @@ importers:
         version: 11.14.1(@emotion/react@11.14.0(@types/react@19.2.7)(react@19.2.3))(@types/react@19.2.7)(react@19.2.3)
       '@hookform/resolvers':
         specifier: 5.2.2
-        version: 5.2.2(react-hook-form@7.69.0(react@19.2.3))
+        version: 5.2.2(react-hook-form@7.71.1(react@19.2.3))
       '@kintone-plugin/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -166,8 +166,8 @@ importers:
         specifier: 7.3.7
         version: 7.3.7(@emotion/react@11.14.0(@types/react@19.2.7)(react@19.2.3))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.7)(react@19.2.3))(@types/react@19.2.7)(react@19.2.3))(@types/react@19.2.7)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       jotai:
-        specifier: 2.16.0
-        version: 2.16.0(@babel/core@7.28.6)(@babel/template@7.28.6)(@types/react@19.2.7)(react@19.2.3)
+        specifier: 2.16.2
+        version: 2.16.2(@babel/core@7.28.6)(@babel/template@7.28.6)(@types/react@19.2.7)(react@19.2.3)
       nanoid:
         specifier: 5.1.6
         version: 5.1.6
@@ -184,8 +184,8 @@ importers:
         specifier: 6.0.0
         version: 6.0.0(react@19.2.3)
       react-hook-form:
-        specifier: 7.69.0
-        version: 7.69.0(react@19.2.3)
+        specifier: 7.71.1
+        version: 7.71.1(react@19.2.3)
       zod:
         specifier: 4.3.5
         version: 4.3.5
@@ -372,25 +372,25 @@ importers:
   packages/kintone-utils:
     dependencies:
       '@hookform/resolvers':
-        specifier: ^5.2.2
+        specifier: 5.2.2
         version: 5.2.2(react-hook-form@7.71.1(react@19.2.3))
       '@kintone/rest-api-client':
-        specifier: ^6.1.0
-        version: 6.1.1
+        specifier: 6.1.0
+        version: 6.1.0
       jotai:
-        specifier: ^2.16.0
+        specifier: 2.16.2
         version: 2.16.2(@babel/core@7.28.6)(@babel/template@7.28.6)(@types/react@19.2.8)(react@19.2.3)
       notistack:
-        specifier: ^3.0.2
+        specifier: 3.0.2
         version: 3.0.2(csstype@3.2.3)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       react:
         specifier: ^19.2.3
         version: 19.2.3
       react-hook-form:
-        specifier: ^7.69.0
+        specifier: 7.71.1
         version: 7.71.1(react@19.2.3)
       zod:
-        specifier: ^4.3.5
+        specifier: 4.3.5
         version: 4.3.5
     devDependencies:
       '@kintone-plugin/eslint-config':
@@ -420,22 +420,22 @@ importers:
   packages/ui:
     dependencies:
       '@dnd-kit/core':
-        specifier: ^6.3.1
+        specifier: 6.3.1
         version: 6.3.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@dnd-kit/sortable':
-        specifier: ^10.0.0
+        specifier: 10.0.0
         version: 10.0.0(@dnd-kit/core@6.3.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)
       '@dnd-kit/utilities':
-        specifier: ^3.2.2
+        specifier: 3.2.2
         version: 3.2.2(react@19.2.3)
       jotai:
-        specifier: ^2.16.0
+        specifier: 2.16.2
         version: 2.16.2(@babel/core@7.28.6)(@babel/template@7.28.6)(@types/react@19.2.8)(react@19.2.3)
       react-dom:
         specifier: ^19.2.3
         version: 19.2.3(react@19.2.3)
       react-hook-form:
-        specifier: ^7.69.0
+        specifier: 7.71.1
         version: 7.71.1(react@19.2.3)
     devDependencies:
       '@emotion/react':
@@ -886,10 +886,6 @@ packages:
 
   '@kintone/rest-api-client@6.1.0':
     resolution: {integrity: sha512-kg+UpaKDAxjuG6s3m3SeTl2aqO2JSZbeX9asNpw4xKPYMuG7jH2RYt4d83h9VtgR+yu5IdeXbIMlYEEI9za6RQ==}
-    engines: {node: '>=20'}
-
-  '@kintone/rest-api-client@6.1.1':
-    resolution: {integrity: sha512-DJ61P1YcdukPGM0iZJ3myXxfdP8jafLPS8KltLvN3h1DrnEInOqE4gYi+G09UQM6lGpeK/5PDTv1xRX2vnqtmw==}
     engines: {node: '>=20'}
 
   '@module-federation/error-codes@0.21.6':
@@ -4325,17 +4321,6 @@ snapshots:
     transitivePeerDependencies:
       - debug
 
-  '@kintone/rest-api-client@6.1.1':
-    dependencies:
-      axios: 1.13.2
-      core-js: 3.47.0
-      form-data: 4.0.5
-      js-base64: 3.7.8
-      mime: 3.0.0
-      qs: 6.14.1
-    transitivePeerDependencies:
-      - debug
-
   '@module-federation/error-codes@0.21.6': {}
 
   '@module-federation/error-codes@0.22.0':
@@ -6255,6 +6240,13 @@ snapshots:
   jiti@2.6.1: {}
 
   jotai@2.16.0(@babel/core@7.28.6)(@babel/template@7.28.6)(@types/react@19.2.7)(react@19.2.3):
+    optionalDependencies:
+      '@babel/core': 7.28.6
+      '@babel/template': 7.28.6
+      '@types/react': 19.2.7
+      react: 19.2.3
+
+  jotai@2.16.2(@babel/core@7.28.6)(@babel/template@7.28.6)(@types/react@19.2.7)(react@19.2.3):
     optionalDependencies:
       '@babel/core': 7.28.6
       '@babel/template': 7.28.6
