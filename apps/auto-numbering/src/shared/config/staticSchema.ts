@@ -62,10 +62,16 @@ export const SerialConfigSchema = z.object({
 
 /** 採番設定 */
 export const NumberingSettingsSchema = z.object({
+  /** 一意識別子（nanoid） */
+  id: z.string(),
+  /** 表示名（オプション） */
+  label: z.string().optional(),
+  /** 有効/無効フラグ */
+  enabled: z.boolean(),
   /** 結果を格納するフィールドコード */
-  resultFieldCode: z.string(),
+  resultFieldCode: z.string().min(1, '採番結果フィールドを選択してください'),
   /** 採番形式 */
-  formatParts: z.array(FormatPartSchema).min(1),
+  formatParts: z.array(FormatPartSchema).min(1, 'フォーマットパーツを1つ以上追加してください'),
   connector: ConnectorsSchema,
   /** 連番設定 */
   serialConfig: SerialConfigSchema,
@@ -77,8 +83,11 @@ export const NumberingSettingsSchema = z.object({
 
 export const PluginConfigSchemaV1 = z.object({
   version: z.literal(LATEST_PLUGIN_VERSION),
-  /** 採番設定（複数設定可能） */
-  numberingSettings: z.array(NumberingSettingsSchema).min(1),
+  /** 採番設定（複数設定可能、最大5件） */
+  numberingSettings: z
+    .array(NumberingSettingsSchema)
+    .min(1, '採番設定を1つ以上追加してください')
+    .max(5, '採番設定は最大5件までです'),
   /** APIトークン（共通） */
   common: z.object({
     apiToken: z.string().optional(),

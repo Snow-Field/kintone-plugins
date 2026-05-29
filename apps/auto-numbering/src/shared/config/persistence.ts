@@ -1,4 +1,5 @@
 import { PLUGIN_ID, storePluginConfig, restorePluginConfig } from '@kintone-plugin/kintone-utils';
+import { nanoid } from 'nanoid';
 import {
   LATEST_PLUGIN_VERSION,
   PluginConfigSchema,
@@ -14,6 +15,9 @@ export const createConfig = (): PluginConfig => ({
   version: LATEST_PLUGIN_VERSION,
   numberingSettings: [
     {
+      id: nanoid(),
+      label: '',
+      enabled: true,
       resultFieldCode: '',
       formatParts: [
         {
