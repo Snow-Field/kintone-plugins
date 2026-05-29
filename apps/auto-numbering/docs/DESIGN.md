@@ -1,9 +1,11 @@
 # 自動採番プラグイン 設計書
 
-> **バージョン**: 1.1
-> **最終更新**: 2026-05-15
+> **バージョン**: 1.2
+> **最終更新**: 2026-05-29
 > **タスク管理**: [TASKS.md](./TASKS.md)
-> **変更履歴**: プラグイン用に全面リファクタリング（kintone Proxy → RestAPIClient、型定義の整理）
+> **変更履歴**:
+> - v1.2: Phase 1-2 完了に伴う実装状況の更新、Phase 3 の詳細化
+> - v1.1: プラグイン用に全面リファクタリング（kintone Proxy → RestAPIClient、型定義の整理）
 
 ---
 
@@ -78,7 +80,10 @@ kintone アプリでユニークキーを自動採番するプラグイン。
 ```
 PluginConfigSchemaV1
 ├── version: literal(1)
-├── numberingSettings: NumberingSetting[]  # 採番設定（複数設定可能）
+├── numberingSettings: NumberingSetting[]  # 採番設定（複数設定可能、最大5件）
+│   ├── id: string                         # 一意識別子（nanoid）
+│   ├── label?: string                     # 表示名（オプション、未入力時は「設定 N」と表示）
+│   ├── enabled: boolean                   # 有効/無効フラグ
 │   ├── resultFieldCode: string            # 採番結果を書き込むフィールドコード
 │   ├── formatParts: FormatPart[]          # 採番フォーマットのパーツ配列
 │   │   ├── { type: 'text',  value: string }
@@ -527,35 +532,226 @@ App
 
 ### 5.2 主要コンポーネント仕様
 
-<!-- 主要なコンポーネントの仕様を記述する。以下の形式を参考にすること。 -->
-<!--
-#### `コンポーネント名.tsx`
+#### `features/NumberingSettings/NumberingSettingsList.tsx`
 
-**概要**: {{コンポーネントの概要}}
+**概要**: 採番設定の一覧管理コンポーネント（追加・削除・並び替え）
+
+**機能**:
+- 複数の採番設定を配列として管理
+- 新規設定の追加ボタン
+- 各設定の削除ボタン
+- 設定の並び替え（ドラッグ&ドロップまたは上下ボタン）
+
+**実装ポイント**:
+- `useFieldArray` を使用して配列フィールドを管理
+- 最低 1 件の設定を保持（全削除を防ぐ）
+- 削除時の確認ダイアログ
+
+---
+
+#### `features/NumberingSettings/NumberingSettingItem.tsx`
+
+**概要**: 個別の採番設定フォーム
 
 | セクション | UI 要素 | データパス |
 |-----------|---------|-----------|
-| {{セクション名}} | {{UI 要素}} | {{フォームのデータパス}} |
+| 採番結果フィールド | フィールドセレクター | `numberingSettings[index].resultFieldCode` |
+| フォーマットパーツ | パーツエディター | `numberingSettings[index].formatParts` |
+| 区切り文字 | セレクトボックス | `numberingSettings[index].connector` |
+| 連番設定 | 連番設定エディター | `numberingSettings[index].serialConfig` |
+| プレビュー | 採番例の表示 | （計算値） |
 
 **実装ポイント**:
-- {{ポイント1}}
-- {{ポイント2}}
--->
+- Accordion または Card で折りたたみ可能に
+- 各設定に識別用のラベル（例: 設定 1、設定 2）
+- バリデーションエラーの表示
+
+---
+
+#### `features/NumberingSettings/ResultFieldSelector.tsx`
+
+**概要**: 採番結果を書き込むフィールドの選択
+
+**機能**:
+- kintone アプリのフィールド一覧から選択
+- 対応フィールド型: 文字列（1行）のみ
+- 既に他の設定で使用中のフィールドは警告表示
+
+**実装ポイント**:
+- `useAppFields()` フックでフィールド情報を取得
+- フィールド型でフィルタリング
+- 重複使用の警告（エラーではなく警告）
+
+---
+
+#### `features/NumberingSettings/FormatPartsEditor.tsx`
+
+**概要**: フォーマットパーツの配列編集
+
+**機能**:
+- パーツの追加（text / field / date）
+- パーツの削除
+- パーツの並び替え
+- 各パーツタイプに応じた設定 UI
+
+**実装ポイント**:
+- `useFieldArray` で動的配列管理
+- パーツタイプ選択後に対応する設定フォームを表示
+- ドラッグ&ドロップまたは上下ボタンで並び替え
+
+---
+
+#### `features/NumberingSettings/FormatPartItem.tsx`
+
+**概要**: 個別フォーマットパーツの設定
+
+**パーツタイプ別の UI**:
+
+| type | 設定項目 | UI 要素 |
+|------|---------|---------|
+| `text` | `value` | テキスト入力 |
+| `field` | `fieldCode` | フィールドセレクター |
+| `date` | `source` | ラジオボタン（now / createdAt） |
+|  | `format` | セレクトボックス（YYYYMMDD / YYMMDD / ...） |
+
+**実装ポイント**:
+- パーツタイプに応じた条件付きレンダリング
+- field タイプは文字列・数値・日付フィールドのみ選択可能
+- date タイプのフォーマットプレビュー表示
+
+---
+
+#### `features/NumberingSettings/ConnectorSelector.tsx`
+
+**概要**: パーツ間の区切り文字選択
+
+**機能**:
+- 定義済み区切り文字から選択（ハイフン、アンダースコア、なし、等）
+- カスタム区切り文字の入力（将来拡張）
+
+**実装ポイント**:
+- セレクトボックスまたはラジオボタン
+- プレビューに反映
+
+---
+
+#### `features/NumberingSettings/SerialConfigEditor.tsx`
+
+**概要**: 連番設定の編集
+
+| 設定項目 | UI 要素 | データパス |
+|---------|---------|-----------|
+| 初期値 | 数値入力 | `serialConfig.initialValue` |
+| ゼロ埋め桁数 | 数値入力 | `serialConfig.digit` |
+| 連番位置 | ラジオボタン（prefix / suffix） | `serialConfig.position` |
+| リセットタイミング | セレクトボックス | `serialConfig.resetTiming` |
+| 連番管理フィールド | フィールドセレクター（resetTiming='none' の場合のみ） | `serialConfig.serialFieldCode` |
+
+**実装ポイント**:
+- `resetTiming` が 'none' の場合のみ `serialFieldCode` を表示
+- 数値フィールドのみ選択可能（serialFieldCode）
+- バリデーション: digit は 1-10 の範囲
+
+---
+
+#### `features/NumberingSettings/PreviewDisplay.tsx`
+
+**概要**: 採番結果のプレビュー表示
+
+**機能**:
+- 現在の設定に基づいた採番例を表示
+- 例: `00001-営業部-26`、`営業部-26-00001`
+
+**実装ポイント**:
+- フォーム値の変更に応じてリアルタイム更新
+- エラーがある場合は「プレビュー不可」と表示
+- 実際の採番ロジック（formatService）を使用してプレビュー生成
+
+---
+
+#### `features/GeneralSettings.tsx`
+
+**概要**: 共通設定（API トークン）
+
+| セクション | UI 要素 | データパス |
+|-----------|---------|-----------|
+| API トークン | パスワード入力 | `common.apiToken` |
+
+**実装ポイント**:
+- オプション項目（未入力でも可）
+- セキュリティ上、入力値はマスク表示
+- ヘルプテキストで用途を説明
 
 ### 5.3 カスタムフック仕様
 
-<!-- プラグイン固有のカスタムフックを記述する。以下の形式を参考にすること。 -->
-<!--
-#### `useXxx.ts`
+#### `useAppFields.ts`
 
-**概要**: {{フックの概要}}
+**概要**: kintone アプリのフィールド情報を取得するフック
 
 ```typescript
-type UseXxxReturn = {
-  xxx: () => void;
+type UseAppFieldsReturn = {
+  fields: kintone.FieldInfo[];
+  isLoading: boolean;
+  error: Error | null;
+  refetch: () => Promise<void>;
 };
+
+function useAppFields(): UseAppFieldsReturn;
 ```
--->
+
+**実装ポイント**:
+- `kintone.api()` でフィールド情報を取得
+- 取得結果を Jotai atom にキャッシュ
+- エラー時のリトライ機能
+
+---
+
+#### `useNumberingPreview.ts`
+
+**概要**: 採番プレビューを生成するフック
+
+```typescript
+type UseNumberingPreviewParams = {
+  numberingSetting: NumberingSetting;
+};
+
+type UseNumberingPreviewReturn = {
+  preview: string | null;
+  error: string | null;
+};
+
+function useNumberingPreview(params: UseNumberingPreviewParams): UseNumberingPreviewReturn;
+```
+
+**実装ポイント**:
+- `formatService` を使用してプレビュー生成
+- サンプルレコードデータを使用
+- エラー時は null を返す
+
+---
+
+#### `useFieldValidation.ts`
+
+**概要**: フィールド選択時の動的バリデーション
+
+```typescript
+type UseFieldValidationParams = {
+  fieldCode: string;
+  fieldType: 'string' | 'number' | 'date';
+};
+
+type UseFieldValidationReturn = {
+  isValid: boolean;
+  errorMessage: string | null;
+};
+
+function useFieldValidation(params: UseFieldValidationParams): UseFieldValidationReturn;
+```
+
+**実装ポイント**:
+- フィールドの存在チェック
+- フィールド型の整合性チェック
+- 他の設定との重複チェック
 
 ---
 
