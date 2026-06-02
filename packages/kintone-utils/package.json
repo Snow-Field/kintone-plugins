@@ -15,12 +15,12 @@
     "clean": "rimraf .turbo dist"
   },
   "dependencies": {
-    "@hookform/resolvers": "5.2.2",
-    "@kintone/rest-api-client": "6.1.0",
-    "jotai": "2.16.2",
-    "notistack": "3.0.2",
-    "react-hook-form": "7.71.1",
-    "zod": "4.3.5"
+    "@hookform/resolvers": "catalog:",
+    "@kintone/rest-api-client": "catalog:",
+    "jotai": "catalog:",
+    "notistack": "catalog:",
+    "react-hook-form": "catalog:",
+    "zod": "catalog:"
   },
   "peerDependencies": {
     "react": "^19.2.3"
@@ -28,10 +28,10 @@
   "devDependencies": {
     "@kintone-plugin/eslint-config": "workspace:*",
     "@kintone-plugin/tsconfig": "workspace:*",
-    "@kintone/dts-gen": "^9.0.0",
-    "@types/react": "^19.2.7",
-    "eslint": "^9.39.2",
-    "npm-run-all": "^4.1.5",
-    "typescript": "^5.9.3"
+    "@kintone/dts-gen": "catalog:",
+    "@types/react": "catalog:",
+    "eslint": "catalog:",
+    "npm-run-all": "catalog:",
+    "typescript": "catalog:"
   }
 }
