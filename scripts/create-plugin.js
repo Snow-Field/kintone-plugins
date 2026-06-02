@@ -36,7 +36,7 @@ async function main() {
 
   try {
     // Copy template
-    const templateDir = path.resolve(rootDir, 'templates', 'starter');
+    const templateDir = path.resolve(rootDir, 'template');
     await fs.copy(templateDir, targetDir);
 
     // Update package.json name
