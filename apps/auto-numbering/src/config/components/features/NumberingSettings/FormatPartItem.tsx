@@ -65,8 +65,8 @@ const DATE_FORMAT_OPTIONS = [
 ] as const;
 
 /**
- * 個別フォーマットパーツの編集コンポーネント
- * type に応じて異なる UI を表示
+ * 個別フォーマットパーツの編集コンポーネント（インライン形式）
+ * type に応じて異なる UI を横並びで表示
  */
 export const FormatPartItem: FC<Props> = ({ basePath, partIndex }) => {
   const { control } = useFormContext<PluginConfig>();
@@ -90,28 +90,24 @@ export const FormatPartItem: FC<Props> = ({ basePath, partIndex }) => {
   );
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      {/* パーツ番号 */}
-      <Typography variant='caption' color='text.secondary'>
-        パーツ {partIndex + 1}
-      </Typography>
-
+    <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', flexWrap: 'wrap' }}>
       {/* パーツタイプ選択 */}
       <Controller
         name={typePathName as never}
         control={control}
         render={({ field, fieldState: { error } }) => (
-          <FormControl fullWidth size='small' error={!!error}>
-            <FormLabel>パーツタイプ</FormLabel>
-            <Select {...field} value={field.value as string}>
-              {PART_TYPE_OPTIONS.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Select>
-            {error && <FormHelperText>{error.message}</FormHelperText>}
-          </FormControl>
+          <Box sx={{ minWidth: 120, maxWidth: 150 }}>
+            <FormControl fullWidth size='small' error={!!error}>
+              <Select {...field} value={field.value as string}>
+                {PART_TYPE_OPTIONS.map((option) => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            {error && <FormHelperText error>{error.message}</FormHelperText>}
+          </Box>
         )}
       />
 
@@ -121,15 +117,16 @@ export const FormatPartItem: FC<Props> = ({ basePath, partIndex }) => {
           name={`${basePath}.value` as never}
           control={control}
           render={({ field, fieldState: { error } }) => (
-            <TextField
-              {...field}
-              label='テキスト'
-              placeholder='固定文字列を入力'
-              size='small'
-              fullWidth
-              error={!!error}
-              helperText={error?.message || '採番値に含める固定文字列を入力します'}
-            />
+            <Box sx={{ flex: 1, minWidth: 200, maxWidth: 400 }}>
+              <TextField
+                {...field}
+                placeholder='固定文字列を入力'
+                size='small'
+                fullWidth
+                error={!!error}
+              />
+              {error && <FormHelperText error>{error.message}</FormHelperText>}
+            </Box>
           )}
         />
       )}
@@ -144,49 +141,48 @@ export const FormatPartItem: FC<Props> = ({ basePath, partIndex }) => {
               fieldOptions.find((o) => o.code === (field.value as unknown as string)) ?? null;
 
             return (
-              <Autocomplete
-                options={fieldOptions}
-                value={selectedOption}
-                onChange={(_, newValue) => {
-                  field.onChange(newValue?.code ?? '');
-                }}
-                getOptionLabel={(option) => option.label}
-                isOptionEqualToValue={(option, value) => option.code === value.code}
-                size='small'
-                filterOptions={(opts, { inputValue }) => {
-                  const lower = inputValue.toLowerCase();
-                  return opts.filter(
-                    (o) =>
-                      o.label.toLowerCase().includes(lower) || o.code.toLowerCase().includes(lower)
-                  );
-                }}
-                renderOption={(props, option) => {
-                  const { key, ...rest } = props;
-                  return (
-                    <li key={key} {...rest}>
-                      <Box>
-                        <Typography variant='body2'>{option.label}</Typography>
-                        <Typography variant='caption' color='text.secondary'>
-                          {option.code} ({option.type})
-                        </Typography>
-                      </Box>
-                    </li>
-                  );
-                }}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label='フィールド'
-                    placeholder='フィールドを選択'
-                    size='small'
-                    error={!!error}
-                    helperText={
-                      error?.message ||
-                      '採番値に含めるフィールドを選択します（値が動的に変わります）'
-                    }
-                  />
-                )}
-              />
+              <Box sx={{ flex: 1, minWidth: 200, maxWidth: 400 }}>
+                <Autocomplete
+                  options={fieldOptions}
+                  value={selectedOption}
+                  onChange={(_, newValue) => {
+                    field.onChange(newValue?.code ?? '');
+                  }}
+                  getOptionLabel={(option) => option.label}
+                  isOptionEqualToValue={(option, value) => option.code === value.code}
+                  size='small'
+                  filterOptions={(opts, { inputValue }) => {
+                    const lower = inputValue.toLowerCase();
+                    return opts.filter(
+                      (o) =>
+                        o.label.toLowerCase().includes(lower) ||
+                        o.code.toLowerCase().includes(lower)
+                    );
+                  }}
+                  renderOption={(props, option) => {
+                    const { key, ...rest } = props;
+                    return (
+                      <li key={key} {...rest}>
+                        <Box>
+                          <Typography variant='body2'>{option.label}</Typography>
+                          <Typography variant='caption' color='text.secondary'>
+                            {option.code}
+                          </Typography>
+                        </Box>
+                      </li>
+                    );
+                  }}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      placeholder='フィールドを選択'
+                      size='small'
+                      error={!!error}
+                    />
+                  )}
+                />
+                {error && <FormHelperText error>{error.message}</FormHelperText>}
+              </Box>
             );
           }}
         />
@@ -195,44 +191,73 @@ export const FormatPartItem: FC<Props> = ({ basePath, partIndex }) => {
       {/* type: 'date' の場合 */}
       {partType === 'date' && (
         <>
-          {/* 日付ソース */}
-          <Controller
-            name={`${basePath}.source` as never}
-            control={control}
-            render={({ field, fieldState: { error } }) => (
-              <FormControl component='fieldset' error={!!error}>
-                <FormLabel component='legend'>日付ソース</FormLabel>
-                <RadioGroup {...field} value={field.value as string}>
-                  {DATE_SOURCE_OPTIONS.map((option) => (
-                    <FormControlLabel
-                      key={option.value}
-                      value={option.value}
-                      control={<Radio size='small' />}
-                      label={option.label}
-                    />
-                  ))}
-                </RadioGroup>
-                {error && <FormHelperText>{error.message}</FormHelperText>}
-              </FormControl>
-            )}
-          />
-
           {/* 日付フォーマット */}
           <Controller
             name={`${basePath}.format` as never}
             control={control}
             render={({ field, fieldState: { error } }) => (
-              <FormControl fullWidth size='small' error={!!error}>
-                <FormLabel>日付フォーマット</FormLabel>
-                <Select {...field} value={field.value as string}>
-                  {DATE_FORMAT_OPTIONS.map((option) => (
-                    <MenuItem key={option.value} value={option.value}>
-                      {option.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {error && <FormHelperText>{error.message}</FormHelperText>}
-              </FormControl>
+              <Box sx={{ minWidth: 150, maxWidth: 200 }}>
+                <FormControl fullWidth size='small' error={!!error}>
+                  <Select
+                    {...field}
+                    value={field.value as string}
+                    displayEmpty
+                    renderValue={(selected) => {
+                      if (!selected) {
+                        return (
+                          <Typography variant='body2' color='text.secondary'>
+                            フォーマットを選択
+                          </Typography>
+                        );
+                      }
+                      const option = DATE_FORMAT_OPTIONS.find((o) => o.value === selected);
+                      return option?.label || selected;
+                    }}
+                  >
+                    {DATE_FORMAT_OPTIONS.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                {error && <FormHelperText error>{error.message}</FormHelperText>}
+              </Box>
+            )}
+          />
+
+          {/* 日付ソース */}
+          <Controller
+            name={`${basePath}.source` as never}
+            control={control}
+            render={({ field, fieldState: { error } }) => (
+              <Box sx={{ minWidth: 150, maxWidth: 200 }}>
+                <FormControl fullWidth size='small' error={!!error}>
+                  <Select
+                    {...field}
+                    value={field.value as string}
+                    displayEmpty
+                    renderValue={(selected) => {
+                      if (!selected) {
+                        return (
+                          <Typography variant='body2' color='text.secondary'>
+                            日付ソースを選択
+                          </Typography>
+                        );
+                      }
+                      const option = DATE_SOURCE_OPTIONS.find((o) => o.value === selected);
+                      return option?.label || selected;
+                    }}
+                  >
+                    {DATE_SOURCE_OPTIONS.map((option) => (
+                      <MenuItem key={option.value} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                {error && <FormHelperText error>{error.message}</FormHelperText>}
+              </Box>
             )}
           />
         </>

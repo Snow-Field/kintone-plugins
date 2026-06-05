@@ -26,27 +26,35 @@ export const useNumberingPreview = (setting: NumberingSetting | undefined) => {
         分類: { value: 'A' },
       };
 
-      // フォーマットパーツを解決
-      const resolvedParts = setting.formatParts.map((part) => {
-        if (part.type === 'text') {
-          return { type: 'text' as const, value: part.value || '(空)' };
-        }
-        if (part.type === 'field') {
-          // サンプルレコードから値を取得、なければフィールドコードを表示
-          const fieldValue = sampleRecord[part.fieldCode]?.value;
-          return {
-            type: 'field' as const,
-            value: fieldValue !== undefined ? String(fieldValue) : `[${part.fieldCode}]`,
-          };
-        }
-        if (part.type === 'date') {
-          // 現在日時または固定日時でプレビュー
-          const dateContext = createDateContext();
-          const formattedDate = formatDate(dateContext, part.format);
-          return { type: 'date' as const, value: formattedDate };
-        }
-        return { type: 'text' as const, value: '' };
-      });
+      // フォーマットパーツを解決（未設定のパーツはスキップ）
+      const resolvedParts = setting.formatParts
+        .map((part) => {
+          if (part.type === 'text') {
+            // 値が未設定の場合はスキップ
+            if (!part.value) return null;
+            return { type: 'text' as const, value: part.value };
+          }
+          if (part.type === 'field') {
+            // fieldCodeが未設定の場合はスキップ
+            if (!part.fieldCode) return null;
+            // サンプルレコードから値を取得、なければフィールドコードを表示
+            const fieldValue = sampleRecord[part.fieldCode]?.value;
+            return {
+              type: 'field' as const,
+              value: fieldValue !== undefined ? String(fieldValue) : `[${part.fieldCode}]`,
+            };
+          }
+          if (part.type === 'date') {
+            // sourceまたはformatが未設定の場合はスキップ
+            if (!part.source || !part.format) return null;
+            // 現在日時または固定日時でプレビュー
+            const dateContext = createDateContext();
+            const formattedDate = formatDate(dateContext, part.format);
+            return { type: 'date' as const, value: formattedDate };
+          }
+          return null;
+        })
+        .filter((part): part is NonNullable<typeof part> => part !== null);
 
       // フォーマット文字列を構築
       const formatString = buildFormatString(resolvedParts, setting.connector);

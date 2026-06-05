@@ -27,20 +27,20 @@ export const ResetTimingSchema = z.enum(Object.values(RESET_TIMING));
 /** フォーマット部品: テキスト */
 export const FormatTextSchema = z.object({
   type: z.literal('text'),
-  value: z.string(),
+  value: z.string().optional(),
 });
 
 /** フォーマット部品: フィールド */
 export const FormatFieldSchema = z.object({
   type: z.literal('field'),
-  fieldCode: z.string(),
+  fieldCode: z.string().optional(),
 });
 
 /** フォーマット部品: 日付 */
 export const FormatDateSchema = z.object({
   type: z.literal('date'),
-  source: DateSourceSchema,
-  format: DateFormatsSchema,
+  source: DateSourceSchema.optional(),
+  format: DateFormatsSchema.optional(),
 });
 
 /** フォーマット部品（Union型） */
@@ -54,7 +54,8 @@ export const FormatPartSchema = z.discriminatedUnion('type', [
 export const SerialConfigSchema = z.object({
   initialValue: z.number().int().min(1),
   digit: z.number().int().min(1),
-  position: z.enum(['prefix', 'suffix']),
+  /** 連番の位置（フォーマットパーツがある場合のみ必要） */
+  position: z.enum(['prefix', 'suffix']).optional(),
   resetTiming: ResetTimingSchema,
   /** resetTiming が 'none' の場合のみ必要。連番を保存するフィールドコード */
   serialFieldCode: z.string().optional(),
@@ -70,8 +71,8 @@ export const NumberingSettingsSchema = z.object({
   enabled: z.boolean(),
   /** 結果を格納するフィールドコード */
   resultFieldCode: z.string().min(1, '採番結果フィールドを選択してください'),
-  /** 採番形式 */
-  formatParts: z.array(FormatPartSchema).min(1, 'フォーマットパーツを1つ以上追加してください'),
+  /** 採番形式（0個以上、最大3個） */
+  formatParts: z.array(FormatPartSchema).max(3, 'フォーマットパーツは最大3つまでです'),
   connector: ConnectorsSchema,
   /** 連番設定 */
   serialConfig: SerialConfigSchema,

@@ -1,4 +1,4 @@
-import { type FC } from 'react';
+import { type FC, useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import {
   Box,
@@ -11,12 +11,14 @@ import {
   IconButton,
   Tooltip,
   TextField,
+  Collapse,
 } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import { type PluginConfig } from '@/shared/config';
 import { ResultFieldSelector } from './ResultFieldSelector';
-import { ConnectorSelector } from './ConnectorSelector';
 import { SerialConfigEditor } from './SerialConfigEditor';
 import { FormatPartsList } from './FormatPartsList';
 import { PreviewDisplay } from './PreviewDisplay';
@@ -43,6 +45,8 @@ export const NumberingSettingCard: FC<Props> = ({
 
   const enabled = useWatch({ control, name: enabledPath }) as unknown as boolean;
   const label = useWatch({ control, name: labelPath }) as unknown as string | undefined;
+
+  const [isExpanded, setIsExpanded] = useState(true);
 
   const handleEnabledChange = (checked: boolean) => {
     setValue(enabledPath, checked as never, { shouldDirty: true });
@@ -73,7 +77,33 @@ export const NumberingSettingCard: FC<Props> = ({
           borderColor: 'divider',
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
+          <Tooltip title={isExpanded ? '閉じる' : '開く'}>
+            <IconButton size='small' onClick={() => setIsExpanded(!isExpanded)}>
+              {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+            </IconButton>
+          </Tooltip>
+          <TextField
+            {...register(labelPath)}
+            size='small'
+            placeholder={`設定 ${settingIndex + 1}`}
+            variant='standard'
+            sx={{
+              flex: 1,
+              maxWidth: 300,
+              '& .MuiInput-underline:before': {
+                borderBottom: 'none',
+              },
+              '& .MuiInput-underline:hover:not(.Mui-disabled):before': {
+                borderBottom: '1px solid rgba(0, 0, 0, 0.42)',
+              },
+              '& .MuiInput-underline:after': {
+                borderBottom: '1px solid rgba(0, 0, 0, 0.42)',
+              },
+            }}
+          />
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <FormControlLabel
             control={
               <Switch
@@ -89,11 +119,6 @@ export const NumberingSettingCard: FC<Props> = ({
               </Typography>
             }
           />
-          <Typography variant='body2' color='text.secondary'>
-            {displayLabel}
-          </Typography>
-        </Box>
-        <Box>
           <Tooltip title='この設定を複製'>
             <IconButton size='small' onClick={onDuplicate}>
               <ContentCopyIcon fontSize='small' />
@@ -109,68 +134,52 @@ export const NumberingSettingCard: FC<Props> = ({
         </Box>
       </Box>
 
-      <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-        {/* 表示名 */}
-        <Box>
-          <Typography variant='subtitle2' gutterBottom>
-            表示名（オプション）
-          </Typography>
-          <TextField
-            {...register(labelPath)}
-            fullWidth
-            size='small'
-            placeholder={`設定 ${settingIndex + 1}`}
-            helperText='この設定を識別するための名前を入力できます（例: 営業部採番）'
-          />
-        </Box>
+      <Collapse in={isExpanded}>
+        <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, py: 2 }}>
+          {/* プレビュー */}
+          <Box>
+            <Typography variant='subtitle2' sx={{ mb: 0.5, fontSize: '0.875rem' }}>
+              プレビュー
+            </Typography>
+            <PreviewDisplay settingIndex={settingIndex} />
+          </Box>
 
-        <Divider />
+          <Divider textAlign='left' sx={{ mt: 1.5 }} />
 
-        {/* 採番結果フィールド */}
-        <Box>
-          <Typography variant='subtitle2' gutterBottom>
-            採番結果フィールド
-          </Typography>
-          <ResultFieldSelector name={`numberingSettings.${settingIndex}.resultFieldCode`} />
-        </Box>
+          {/* 基本設定 */}
+          <Box sx={{ mt: 1 }}>
+            <Typography variant='subtitle2' sx={{ mb: 0.5, fontSize: '0.875rem' }}>
+              基本設定
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, maxWidth: 300 }}>
+              <Typography variant='body2' sx={{ fontSize: '0.875rem' }}>
+                採番結果フィールド
+              </Typography>
+              <ResultFieldSelector name={`numberingSettings.${settingIndex}.resultFieldCode`} />
+            </Box>
+          </Box>
 
-        <Divider />
+          <Divider textAlign='left' sx={{ mt: 1.5 }} />
 
-        {/* フォーマットパーツ */}
-        <Box>
-          <Typography variant='subtitle2' gutterBottom>
-            フォーマットパーツ
-          </Typography>
-          <FormatPartsList basePath={`numberingSettings.${settingIndex}`} />
-        </Box>
+          {/* フォーマットパーツ */}
+          <Box sx={{ mt: 1 }}>
+            <Typography variant='subtitle2' sx={{ mb: 0.5, fontSize: '0.875rem' }}>
+              フォーマットパーツ（最大3つ）
+            </Typography>
+            <FormatPartsList basePath={`numberingSettings.${settingIndex}`} />
+          </Box>
 
-        <Divider />
+          <Divider textAlign='left' sx={{ mt: 1.5 }} />
 
-        {/* 区切り文字 */}
-        <Box>
-          <ConnectorSelector name={`numberingSettings.${settingIndex}.connector`} />
-        </Box>
-
-        <Divider />
-
-        {/* 連番設定 */}
-        <Box>
-          <Typography variant='subtitle2' gutterBottom>
-            連番設定
-          </Typography>
-          <SerialConfigEditor basePath={`numberingSettings.${settingIndex}.serialConfig`} />
-        </Box>
-
-        <Divider />
-
-        {/* プレビュー */}
-        <Box>
-          <Typography variant='subtitle2' gutterBottom>
-            プレビュー
-          </Typography>
-          <PreviewDisplay settingIndex={settingIndex} />
-        </Box>
-      </CardContent>
+          {/* 連番設定 */}
+          <Box sx={{ mt: 1 }}>
+            <Typography variant='subtitle2' sx={{ mb: 0.5, fontSize: '0.875rem' }}>
+              連番設定
+            </Typography>
+            <SerialConfigEditor basePath={`numberingSettings.${settingIndex}.serialConfig`} />
+          </Box>
+        </CardContent>
+      </Collapse>
     </Card>
   );
 };

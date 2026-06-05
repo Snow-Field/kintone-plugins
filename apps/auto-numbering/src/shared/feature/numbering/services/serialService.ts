@@ -77,6 +77,13 @@ export async function resolveNextSerial(
     case RESET_TIMING.YEARLY:
     case RESET_TIMING.MONTHLY:
     case RESET_TIMING.DAILY: {
+      // formatStringが空の場合は期間リセットが機能しないため、エラー
+      if (!formatString || formatString.trim() === '') {
+        throw new Error(
+          `リセットタイミング "${resetTiming}" を使用する場合、フォーマットパーツに適切な日付を含める必要があります`
+        );
+      }
+
       const condition = `${resultFieldCode} like "${formatString}"`;
       const orderBy = `order by $id desc limit ${FETCH_LIMIT_FOR_RESET}`;
       const fields = [resultFieldCode];

@@ -1,7 +1,38 @@
 import { type ZodType } from 'zod';
 import { type KintoneFormFieldProperty } from '@kintone/rest-api-client';
 import { PluginConfigSchema, type PluginConfig } from '@/shared/config/staticSchema';
-import { RESET_TIMING } from '@/shared/constant/numbering';
+import { RESET_TIMING, DATE_FORMATS } from '@/shared/constant/numbering';
+
+/**
+ * リセットタイミングに必要な最小日付フォーマットを判定
+ */
+const getRequiredDateFormatsForResetTiming = (
+  resetTiming: string
+): (typeof DATE_FORMATS)[keyof typeof DATE_FORMATS][] | null => {
+  switch (resetTiming) {
+    case RESET_TIMING.YEARLY:
+      // 年次リセット: 年を含むフォーマットが必要
+      return [
+        DATE_FORMATS.YYYY,
+        DATE_FORMATS.YY,
+        DATE_FORMATS.YYYYMM,
+        DATE_FORMATS.YYMM,
+        DATE_FORMATS.YYYYMMDD,
+        DATE_FORMATS.YYMMDD,
+      ];
+    case RESET_TIMING.MONTHLY:
+      // 月次リセット: 年月を含むフォーマットが必要
+      return [DATE_FORMATS.YYYYMM, DATE_FORMATS.YYMM, DATE_FORMATS.YYYYMMDD, DATE_FORMATS.YYMMDD];
+    case RESET_TIMING.DAILY:
+      // 日次リセット: 年月日を含むフォーマットが必要
+      return [DATE_FORMATS.YYYYMMDD, DATE_FORMATS.YYMMDD];
+    case RESET_TIMING.NONE:
+      // リセットなし: 日付フォーマット不要
+      return null;
+    default:
+      return null;
+  }
+};
 
 /** フィールド情報の型（usePluginForm と互換） */
 type FieldInfo = {
@@ -30,9 +61,9 @@ export const createConfigSchema = (fields: FieldInfo[]): ZodType<PluginConfig> =
         });
       }
 
-      // 2. formatParts 内の fieldCode の存在チェック
+      // 2. formatParts 内の fieldCode の存在チェック（値が設定されている場合のみ）
       setting.formatParts.forEach((part, partIndex) => {
-        if (part.type === 'field' && !fieldCodeSet.has(part.fieldCode)) {
+        if (part.type === 'field' && part.fieldCode && !fieldCodeSet.has(part.fieldCode)) {
           ctx.addIssue({
             code: 'custom',
             message: `フィールドコード "${part.fieldCode}" がアプリ内に見つかりません`,
@@ -96,6 +127,45 @@ export const createConfigSchema = (fields: FieldInfo[]): ZodType<PluginConfig> =
           message: `フィールドコード "${setting.resultFieldCode}" は既に他の採番設定で使用されています`,
           path: [...basePath, 'resultFieldCode'],
         });
+      }
+
+      // 6. リセットタイミングと日付フォーマットの整合性チェック
+      const { resetTiming } = serialConfig;
+      const requiredFormats = getRequiredDateFormatsForResetTiming(resetTiming);
+
+      if (requiredFormats !== null) {
+        // リセットタイミングが設定されている場合、適切な日付フォーマットが必要
+        const hasValidDateFormat = setting.formatParts.some((part) => {
+          if (part.type !== 'date') return false;
+          if (!part.format) return false;
+          return requiredFormats.includes(part.format);
+        });
+
+        if (!hasValidDateFormat) {
+          const resetTimingLabel =
+            resetTiming === RESET_TIMING.YEARLY
+              ? '年次リセット'
+              : resetTiming === RESET_TIMING.MONTHLY
+                ? '月次リセット'
+                : resetTiming === RESET_TIMING.DAILY
+                  ? '日次リセット'
+                  : resetTiming;
+
+          const requiredFormatLabel =
+            resetTiming === RESET_TIMING.YEARLY
+              ? 'YYYY, YY, YYYYMM, YYMM, YYYYMMDD, YYMMDD のいずれか'
+              : resetTiming === RESET_TIMING.MONTHLY
+                ? 'YYYYMM, YYMM, YYYYMMDD, YYMMDD のいずれか'
+                : resetTiming === RESET_TIMING.DAILY
+                  ? 'YYYYMMDD, YYMMDD のいずれか'
+                  : '';
+
+          ctx.addIssue({
+            code: 'custom',
+            message: `${resetTimingLabel}を使用する場合、フォーマットパーツに日付（${requiredFormatLabel}）を含める必要があります`,
+            path: [...basePath, 'serialConfig', 'resetTiming'],
+          });
+        }
       }
     });
   });

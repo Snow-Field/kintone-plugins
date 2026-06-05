@@ -14,7 +14,7 @@ type Props = {
 
 /**
  * フォーマットパーツ一覧コンポーネント
- * 上下ボタンで並び替え可能
+ * インライン形式で1行ずつ表示
  */
 export const FormatPartsList: FC<Props> = ({ basePath }) => {
   const { control } = useFormContext<PluginConfig>();
@@ -41,14 +41,17 @@ export const FormatPartsList: FC<Props> = ({ basePath }) => {
     }
   };
 
+  const isMaxReached = fields.length >= 3;
+
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
       {fields.length === 0 && (
-        <Typography variant='body2' color='text.secondary'>
+        <Typography variant='caption' color='text.secondary'>
           フォーマットパーツが設定されていません。パーツを追加してください。
         </Typography>
       )}
 
+      {/* パーツを縦に並べて表示 */}
       {fields.map((field, index) => (
         <Box
           key={field.id}
@@ -56,15 +59,33 @@ export const FormatPartsList: FC<Props> = ({ basePath }) => {
             display: 'flex',
             alignItems: 'flex-start',
             gap: 1,
-            p: 2,
+            p: 1,
             border: '1px solid',
             borderColor: 'divider',
             borderRadius: 1,
             bgcolor: 'background.paper',
           }}
         >
-          {/* 並び替えボタン */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, pt: 1 }}>
+          {/* パーツ番号 */}
+          <Typography
+            variant='body2'
+            sx={{
+              minWidth: 20,
+              fontWeight: 500,
+              color: 'text.secondary',
+              pt: 1,
+            }}
+          >
+            {index + 1}.
+          </Typography>
+
+          {/* パーツ編集エリア */}
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <FormatPartItem basePath={`${basePath}.formatParts.${index}`} partIndex={index} />
+          </Box>
+
+          {/* 操作ボタン */}
+          <Box sx={{ display: 'flex', gap: 0.5, pt: 0.5 }}>
             <Tooltip title='上に移動'>
               <span>
                 <IconButton size='small' onClick={() => handleMoveUp(index)} disabled={index === 0}>
@@ -83,19 +104,12 @@ export const FormatPartsList: FC<Props> = ({ basePath }) => {
                 </IconButton>
               </span>
             </Tooltip>
+            <Tooltip title='削除'>
+              <IconButton size='small' color='error' onClick={() => remove(index)}>
+                <DeleteIcon fontSize='small' />
+              </IconButton>
+            </Tooltip>
           </Box>
-
-          {/* パーツ編集エリア */}
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <FormatPartItem basePath={`${basePath}.formatParts.${index}`} partIndex={index} />
-          </Box>
-
-          {/* 削除ボタン */}
-          <Tooltip title='このパーツを削除'>
-            <IconButton size='small' color='error' onClick={() => remove(index)} sx={{ mt: 1 }}>
-              <DeleteIcon fontSize='small' />
-            </IconButton>
-          </Tooltip>
         </Box>
       ))}
 
@@ -104,9 +118,11 @@ export const FormatPartsList: FC<Props> = ({ basePath }) => {
         variant='outlined'
         startIcon={<AddIcon />}
         onClick={handleAddPart}
-        sx={{ borderStyle: 'dashed' }}
+        disabled={isMaxReached}
+        sx={{ borderStyle: 'dashed', alignSelf: 'flex-start' }}
+        size='small'
       >
-        パーツを追加
+        {isMaxReached ? 'パーツは最大3つまでです' : 'パーツを追加'}
       </Button>
     </Box>
   );

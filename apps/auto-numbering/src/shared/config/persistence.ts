@@ -19,12 +19,7 @@ export const createConfig = (): PluginConfig => ({
       label: '',
       enabled: true,
       resultFieldCode: '',
-      formatParts: [
-        {
-          type: 'text',
-          value: '',
-        },
-      ],
+      formatParts: [], // 空配列（連番のみ）
       connector: CONNECTORS.HYPHEN,
       serialConfig: {
         initialValue: 1,

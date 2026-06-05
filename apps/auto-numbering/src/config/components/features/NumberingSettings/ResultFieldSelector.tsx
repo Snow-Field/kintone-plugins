@@ -79,11 +79,10 @@ export const ResultFieldSelector: FC<Props> = ({ name }) => {
             renderInput={(params) => (
               <TextField
                 {...params}
-                label='採番結果フィールド'
-                placeholder='採番結果を書き込むフィールドを選択'
+                placeholder='フィールドを選択'
                 size='small'
                 error={!!error}
-                helperText={error?.message || '文字列（1行）フィールドのみ選択可能です'}
+                helperText={error?.message}
               />
             )}
           />
