@@ -54,6 +54,7 @@ const VisibilityRuleBlockSchemaV1 = RuleBlockBaseSchemaV1.extend({
 /** 非表示制御の1ルール単位 */
 const VisibilityRuleSchemaV1 = z.object({
   id: z.string(),
+  label: z.string().optional(),
   enabled: z.boolean(),
   block: VisibilityRuleBlockSchemaV1,
   targetFields: z.array(z.string()),
@@ -80,6 +81,7 @@ const DisableRuleBlockSchemaV1 = RuleBlockBaseSchemaV1.extend({
 /** 非活性制御の1ルール単位 */
 const DisableRuleSchemaV1 = z.object({
   id: z.string(),
+  label: z.string().optional(),
   enabled: z.boolean(),
   block: DisableRuleBlockSchemaV1,
   targetFields: z.array(z.string()),

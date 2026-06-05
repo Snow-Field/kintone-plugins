@@ -8,13 +8,13 @@ import { convertNumber } from './convertNumber';
  */
 export type KintoneEventField = {
   type?: string;
-  value: string | string[] | null | undefined;
+  value: unknown;
   disabled?: boolean;
   error?: string | null;
 };
 
 /** kintone イベントのレコード型 */
-export type KintoneEventRecord = Record<string, KintoneEventField>;
+export type KintoneEventRecord = Record<string, KintoneEventField | undefined>;
 
 /** kintone イベントオブジェクトの型 */
 export type KintoneEvent = {
@@ -30,9 +30,11 @@ export type KintoneEvent = {
  * フィールド値を単一文字列として取得する。
  * 配列の場合は最初の要素を返す（単一値比較用）。
  */
-function toStringValue(value: KintoneEventField['value']): string {
-  if (Array.isArray(value)) return value[0] ?? '';
-  return value ?? '';
+function toStringValue(value: unknown): string {
+  if (Array.isArray(value)) return String(value[0] ?? '');
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'string') return value;
+  return String(value);
 }
 
 /**
@@ -46,10 +48,7 @@ function toConditionString(conditionValue: string | string[]): string {
 // 演算子別評価関数
 // =============================================================================
 
-function evaluateEquals(
-  fieldValue: KintoneEventField['value'],
-  conditionValue: string | string[]
-): boolean {
+function evaluateEquals(fieldValue: unknown, conditionValue: string | string[]): boolean {
   const fv = toStringValue(fieldValue);
   const cv = toConditionString(conditionValue);
 
@@ -66,10 +65,7 @@ function evaluateEquals(
   return fv === cv;
 }
 
-function evaluateNotEquals(
-  fieldValue: KintoneEventField['value'],
-  conditionValue: string | string[]
-): boolean {
+function evaluateNotEquals(fieldValue: unknown, conditionValue: string | string[]): boolean {
   const fv = toStringValue(fieldValue);
   const cv = toConditionString(conditionValue);
 
@@ -84,10 +80,7 @@ function evaluateNotEquals(
   return fv !== cv;
 }
 
-function evaluateGreaterThan(
-  fieldValue: KintoneEventField['value'],
-  conditionValue: string | string[]
-): boolean {
+function evaluateGreaterThan(fieldValue: unknown, conditionValue: string | string[]): boolean {
   const fv = toStringValue(fieldValue);
   const cv = toConditionString(conditionValue);
 
@@ -102,10 +95,7 @@ function evaluateGreaterThan(
   return false;
 }
 
-function evaluateLessThan(
-  fieldValue: KintoneEventField['value'],
-  conditionValue: string | string[]
-): boolean {
+function evaluateLessThan(fieldValue: unknown, conditionValue: string | string[]): boolean {
   const fv = toStringValue(fieldValue);
   const cv = toConditionString(conditionValue);
 
@@ -121,7 +111,7 @@ function evaluateLessThan(
 }
 
 function evaluateGreaterThanOrEqual(
-  fieldValue: KintoneEventField['value'],
+  fieldValue: unknown,
   conditionValue: string | string[]
 ): boolean {
   const fv = toStringValue(fieldValue);
@@ -138,10 +128,7 @@ function evaluateGreaterThanOrEqual(
   return false;
 }
 
-function evaluateLessThanOrEqual(
-  fieldValue: KintoneEventField['value'],
-  conditionValue: string | string[]
-): boolean {
+function evaluateLessThanOrEqual(fieldValue: unknown, conditionValue: string | string[]): boolean {
   const fv = toStringValue(fieldValue);
   const cv = toConditionString(conditionValue);
 
@@ -165,17 +152,14 @@ function evaluateLessThanOrEqual(
  * - 文字列フィールド（SINGLE_LINE_TEXT, MULTI_LINE_TEXT, RADIO_BUTTON, DROP_DOWN 等）:
  *   フィールド値が conditionValue を部分文字列として含むか
  */
-function evaluateIncludes(
-  fieldValue: KintoneEventField['value'],
-  conditionValue: string | string[]
-): boolean {
+function evaluateIncludes(fieldValue: unknown, conditionValue: string | string[]): boolean {
   if (Array.isArray(fieldValue)) {
     // 配列フィールド: conditionValue の全要素が含まれるか
     const cvArray = Array.isArray(conditionValue) ? conditionValue : [conditionValue];
-    return cvArray.every((cv) => fieldValue.includes(cv));
+    return cvArray.every((cv) => fieldValue.some((fv) => String(fv) === cv));
   }
   // 文字列フィールド: 部分一致
-  const fv = fieldValue ?? '';
+  const fv = toStringValue(fieldValue);
   const cv = toConditionString(conditionValue);
   return fv.includes(cv);
 }
@@ -190,17 +174,14 @@ function evaluateIncludes(
  * - 文字列フィールド（SINGLE_LINE_TEXT, MULTI_LINE_TEXT, RADIO_BUTTON, DROP_DOWN 等）:
  *   フィールド値が conditionValue を部分文字列として含まないか
  */
-function evaluateNotIncludes(
-  fieldValue: KintoneEventField['value'],
-  conditionValue: string | string[]
-): boolean {
+function evaluateNotIncludes(fieldValue: unknown, conditionValue: string | string[]): boolean {
   if (Array.isArray(fieldValue)) {
     // 配列フィールド: conditionValue の要素が1つも含まれていないか
     const cvArray = Array.isArray(conditionValue) ? conditionValue : [conditionValue];
-    return cvArray.every((cv) => !fieldValue.includes(cv));
+    return cvArray.every((cv) => !fieldValue.some((fv) => String(fv) === cv));
   }
   // 文字列フィールド: 部分一致しない
-  const fv = fieldValue ?? '';
+  const fv = toStringValue(fieldValue);
   const cv = toConditionString(conditionValue);
   return !fv.includes(cv);
 }
@@ -211,7 +192,7 @@ function evaluateNotIncludes(
 
 const OPERATOR_EVALUATORS: Record<
   OPERATOR_TYPES,
-  (fieldValue: KintoneEventField['value'], conditionValue: string | string[]) => boolean
+  (fieldValue: unknown, conditionValue: string | string[]) => boolean
 > = {
   [OPERATOR_TYPES.EQUALS]: evaluateEquals,
   [OPERATOR_TYPES.NOT_EQUALS]: evaluateNotEquals,
