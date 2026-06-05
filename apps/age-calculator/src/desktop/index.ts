@@ -62,14 +62,14 @@ kintone.events.on(
       if (isInvalid) return;
       if (destField.value && !isUpdateOnSave) return;
 
-      const age = calculateAge(srcField.value);
+      const age = calculateAge(srcField.value as string);
       logger.log(`条件[${index}] 計算結果:`, { 入力: srcField.value, 年齢: age });
 
       // 単位(unit)が設定されており、出力先が文字列一行フィールドの場合は単位を付与する
       if (unit && destField.type === 'SINGLE_LINE_TEXT') {
         destField.value = `${age}${unit}`;
       } else {
-        destField.value = age;
+        destField.value = age as never;
       }
     });
 
