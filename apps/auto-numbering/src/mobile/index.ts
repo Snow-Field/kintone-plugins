@@ -1,7 +1,8 @@
+import { onRecordEvents } from '@kintone-plugin/kintone-utils';
 import { restoreConfig } from '@/shared/config';
 import { executeNumbering } from '@/shared/feature/numbering';
 
-kintone.events.on(['mobile.app.record.create.show', 'mobile.app.record.edit.show'], (event) => {
+onRecordEvents(['mobile.app.record.create.show', 'mobile.app.record.edit.show'], (event) => {
   const record = event.record;
   const pluginConfig = restoreConfig();
 
@@ -21,7 +22,7 @@ kintone.events.on(['mobile.app.record.create.show', 'mobile.app.record.edit.show
   return event;
 });
 
-kintone.events.on(
+onRecordEvents(
   ['mobile.app.record.create.submit.success', 'mobile.app.record.edit.submit.success'],
   async (event) => {
     const pluginConfig = restoreConfig();

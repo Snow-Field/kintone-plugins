@@ -7,6 +7,7 @@ export * from './hooks/useResetConfig';
 export * from './hooks/useSubmitConfig';
 export * from './hooks/useSyncConfig';
 export * from './hooks/useUnsavedChanges';
+export * from './lib/events';
 export * from './lib/kintone';
 export * from './lib/pluginConfig';
 export * from './lib/environment';
