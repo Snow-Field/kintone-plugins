@@ -1,4 +1,4 @@
-import { type ZodType } from 'zod';
+import type { ZodType } from 'zod';
 import type { FieldInfo } from '@kintone-plugin/kintone-utils';
 import { PluginConfigSchema, type PluginConfig } from '@/shared/config/staticSchema';
 

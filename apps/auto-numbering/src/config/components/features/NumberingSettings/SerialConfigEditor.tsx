@@ -12,7 +12,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useAppFields } from '@kintone-plugin/kintone-utils';
-import { type PluginConfig, type FormatPart } from '@/shared/config';
+import type { PluginConfig, FormatPart } from '@/shared/config';
 import { RESET_TIMING } from '@/shared/constant/numbering';
 import type { KintoneFormFieldProperty } from '@kintone/rest-api-client';
 

@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { InvisibleSettings } from './InvisibleSettings';
 import { DisableSettings } from './DisableSettings';
 

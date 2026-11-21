@@ -1,4 +1,4 @@
-import { type FC } from 'react';
+import type { FC } from 'react';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import {
   DndContext,
@@ -13,7 +13,7 @@ import { Box, Button, IconButton, Tooltip } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import { nanoid } from 'nanoid';
-import { type PluginConfig } from '@/shared/config';
+import type { PluginConfig } from '@/shared/config';
 import { createDefaultRule } from '@/config/hooks/useRuleActions';
 import { RuleCard } from './RuleCard';
 

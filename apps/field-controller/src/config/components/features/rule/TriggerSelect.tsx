@@ -1,9 +1,9 @@
-import { type FC } from 'react';
+import type { FC } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 import { Autocomplete, TextField, Chip, Checkbox } from '@mui/material';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
-import { type PluginConfig } from '@/shared/config';
+import type { PluginConfig } from '@/shared/config';
 
 type TriggerOption = {
   label: string;

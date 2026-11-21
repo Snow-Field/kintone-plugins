@@ -1,4 +1,4 @@
-import { type DisableRule } from '../config';
+import type { DisableRule } from '../config';
 import { evaluateBlock, type KintoneEvent } from './ruleEvaluator';
 
 export function executeDisable(rules: DisableRule[], event: KintoneEvent) {

@@ -1,4 +1,4 @@
-import { type NumberingSetting } from '@/shared/config';
+import type { NumberingSetting } from '@/shared/config';
 import type { KintoneEvent } from '@/shared/types/kintone';
 import { DEFAULT_RETRY_COUNT } from '@/shared/constant/numbering';
 import { fetchRecord, updateRecord, checkDuplicate } from '../services/recordService';

@@ -18,8 +18,7 @@ function createClient(apiToken?: string): KintoneRestAPIClient {
  */
 export function getRecordCreatedAt(record: KintoneEvent['record']) {
   const createdTime =
-    record['作成日時']?.value ??
-    Object.values(record).find((f) => f?.type === 'CREATED_TIME')?.value;
+    record.作成日時?.value ?? Object.values(record).find((f) => f?.type === 'CREATED_TIME')?.value;
 
   if (typeof createdTime === 'string') {
     return createdTime;

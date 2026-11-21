@@ -4,7 +4,7 @@ import { Autocomplete, TextField, Chip, Checkbox, Box, Typography } from '@mui/m
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import { useAppFields } from '@kintone-plugin/kintone-utils';
-import { type PluginConfig } from '@/shared/config';
+import type { PluginConfig } from '@/shared/config';
 import type { KintoneFormFieldProperty } from '@kintone/rest-api-client';
 
 /** 対象フィールドとして選択可能なフィールドタイプ */

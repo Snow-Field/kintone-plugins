@@ -1,8 +1,8 @@
-import { type FC } from 'react';
+import type { FC } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { Box, Paper, Typography, Alert } from '@mui/material';
 import PreviewIcon from '@mui/icons-material/Preview';
-import { type PluginConfig, type NumberingSetting } from '@/shared/config';
+import type { PluginConfig, NumberingSetting } from '@/shared/config';
 import { useNumberingPreview } from '@/config/hooks/useNumberingPreview';
 
 type Props = {

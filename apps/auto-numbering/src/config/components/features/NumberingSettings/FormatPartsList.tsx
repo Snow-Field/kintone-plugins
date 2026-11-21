@@ -1,11 +1,11 @@
-import { type FC } from 'react';
+import type { FC } from 'react';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import { Box, Button, IconButton, Tooltip, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { type PluginConfig } from '@/shared/config';
+import type { PluginConfig } from '@/shared/config';
 import { FormatPartItem } from './FormatPartItem';
 
 type Props = {

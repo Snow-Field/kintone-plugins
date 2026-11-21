@@ -1,7 +1,7 @@
 import * as prompts from '@clack/prompts';
 import fs from 'fs-extra';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,7 +11,14 @@ const rootDir = path.resolve(__dirname, '..');
  * template から複製しないもの
  * template は workspace に入っているため、依存関係やビルドの生成物、認証情報が置かれることがある
  */
-const EXCLUDED_NAMES = new Set(['node_modules', 'dist', 'artifacts', '.turbo', '.env', 'private.ppk']);
+const EXCLUDED_NAMES = new Set([
+  'node_modules',
+  'dist',
+  'artifacts',
+  '.turbo',
+  '.env',
+  'private.ppk',
+]);
 
 async function main() {
   prompts.intro('🚀 Create a new kintone plugin');

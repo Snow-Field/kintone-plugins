@@ -1,4 +1,4 @@
-import { type FC } from 'react';
+import type { FC } from 'react';
 import { FormSection, Text } from '@kintone-plugin/ui';
 import { RuleList } from './rule/RuleList';
 
