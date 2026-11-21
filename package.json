@@ -6,8 +6,8 @@
   "license": "ISC",
   "type": "module",
   "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
+    "build": "turbo run build --filter=!plugin-starter",
+    "dev": "turbo run dev --filter=!plugin-starter",
     "lint": "turbo run lint",
     "test": "turbo run test",
     "fix": "turbo run fix",

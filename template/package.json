@@ -22,6 +22,7 @@
     "fix:eslint": "eslint --fix src",
     "fix:prettier": "prettier --write src",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run --passWithNoTests",
     "clean": "rimraf dist artifacts .turbo"
   },
   "dependencies": {
@@ -62,6 +63,7 @@
     "fs-extra": "catalog:",
     "node-rsa": "catalog:",
     "npm-run-all": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }
