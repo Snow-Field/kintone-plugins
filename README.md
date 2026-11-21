@@ -68,6 +68,7 @@ pnpm gen
 | `pnpm dev --filter <name>` | 指定したプラグインをビルドし、`.env` の kintone 環境へアップロードします。 |
 | `pnpm lint` | 全パッケージのコード品質をチェックします。 |
 | `pnpm turbo run typecheck` | 全パッケージの型チェックを実行します。 |
+| `pnpm test` | 全パッケージのテスト（Vitest）を実行します。 |
 | `pnpm fix` | コードの自動整形と Lint エラーの修正を実行します。 |
 | `pnpm clean` | すべての `dist` やビルドキャッシュを削除してクリーンアップします。 |
 

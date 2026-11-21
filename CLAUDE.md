@@ -33,7 +33,7 @@ React 19 / TypeScript 5.9 / Rsbuild / MUI 7 / Jotai / React Hook Form / Zod 4、
 
 ## 開発コマンド
 
-- テスト: 無し（フェーズ0 で Vitest を導入予定）
+- テスト: `pnpm test`（Vitest。`src/**/*.test.ts` が対象。1パッケージだけ: `pnpm --filter auto-numbering test`）
 - lint: `pnpm lint`
 - 型チェック: `pnpm turbo run typecheck`（ルートに script は無い）
 - バンドル: `pnpm -r --filter './apps/*' bundle`（kintone へのアップロードを含まない）
