@@ -3,10 +3,11 @@ packages:
   - packages/*
   - template
 
-onlyBuiltDependencies:
-  - core-js
-  - puppeteer
-  - unrs-resolver
+# インストール時のスクリプトの実行を許可する依存（pnpm 11 以降は、ここに無いものはエラーになる）
+allowBuilds:
+  core-js: true
+  puppeteer: true
+  unrs-resolver: true
 
 catalog:
   # React関連
