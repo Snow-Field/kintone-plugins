@@ -29,15 +29,28 @@
 
 React の共通コンポーネント（`packages/ui`）と共通ロジック（`packages/kintone-utils`）を使い回して開発効率を上げることが、このリポジトリの目的の一つ。そのために各プラグインの構成を揃える。
 
-進め方（予定）:
+目標の構成は [architecture.md](./architecture.md)。
 
-1. 3プラグインと `template/` の構成の差分を洗い出す（例: 設定スキーマが age-calculator では `schema.ts` の1ファイル、auto-numbering と `template/` では `staticSchema` / `dynamicSchema` / `persistence` に分かれている）
-2. 目標の構成を `docs/architecture.md` にまとめる
-3. `template/` を目標の構成に合わせ、基準の実装にする
-4. 既存のプラグインを1本ずつ移行する（1プラグイン1PR）
+1. [x] 3プラグインと `template/` の構成の差分を洗い出す
+2. [ ] 目標の構成を `architecture.md` にまとめ、合意する
+3. [ ] `template/` を lint・型チェック・CI の対象にし、壊れている箇所を直す（`mobile/index.ts` が `restoreConfig` を import していない）
+4. [ ] 設定画面の骨組みを共有パッケージに移し、`template/` を最初の利用者にする
+5. [ ] フィールドを選ぶ部品を共有パッケージに移す
+6. [ ] 既存のプラグインを1本ずつ移行する（1プラグイン1PR）。小さい順に age-calculator → field-controller → auto-numbering
+
+手順4以降は設定画面の動作を kintone の実機で確かめるので、着手前に各プラグインの `.env` と `private.ppk` が必要。
+
+### 調査で分かった現状（2026-11-21）
+
+- 設定画面の骨組み（`App.tsx`・`index.tsx`・`states/`・`hooks/` の6ファイルなど）が、`template/` と3プラグインに同じ中身でコピーされている。`template/` は検査の対象外のため、プラグイン側の修正（書式・型の注釈）が反映されていない
+- `packages/ui` の `FormSingleAutocomplete`・`FormTextField`・`DynamicSortableList`・`SortableRowContainer` はどのプラグインからも使われていない。フィールドを選ぶ部品は3プラグインで6か所以上個別に書かれ、同じ型の回避（`as unknown as`）を繰り返している
+- `desktop/index.ts` と `mobile/index.ts` は、イベント名以外ほぼ同じ処理を二重に持っている
+- ロジックの置き場所が `shared/lib/`（age-calculator・field-controller）と `shared/feature/<機能>/`（auto-numbering）に分かれている
+- auto-numbering は API トークンをプラグイン設定に平文で保存している。プラグイン設定はアプリを使う全員がブラウザから読めるため、トークンが漏れる。フェーズ3 のトークン秘匿プラグイン（プロキシ設定を使う）で解消する
 
 ## 未確定事項
 
-| 事項                             | 決める時期         |
-| -------------------------------- | ------------------ |
-| API トークン秘匿プラグインの要件 | フェーズ3 の着手前 |
+| 事項                                              | 決める時期         |
+| ------------------------------------------------- | ------------------ |
+| API トークン秘匿プラグインの要件                  | フェーズ3 の着手前 |
+| [architecture.md](./architecture.md) の未確定事項 | フェーズ1 の手順2  |

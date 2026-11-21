@@ -5,8 +5,9 @@
 ## 作業開始時に読むもの
 
 1. [docs/roadmap.md](./docs/roadmap.md) — フェーズの順番・進捗・未確定事項
-2. 対象プラグインの `docs/DESIGN.md`・`docs/TASKS.md` — 仕様と残タスク（age-calculator には docs が無く `README.md` のみ）
-3. [docs/decisions/](./docs/decisions/) — 判断の理由。現況と食い違う場合は現況のドキュメントが正
+2. [docs/architecture.md](./docs/architecture.md) — プラグイン共通の構成と共有パッケージの責務。新しいコードはこれに従う
+3. 対象プラグインの `docs/DESIGN.md`・`docs/TASKS.md` — 仕様と残タスク（age-calculator には docs が無く `README.md` のみ）
+4. [docs/decisions/](./docs/decisions/) — 判断の理由。現況と食い違う場合は現況のドキュメントが正
 
 ## 対象システム
 
