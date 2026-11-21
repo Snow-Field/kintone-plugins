@@ -1,4 +1,5 @@
-import { PLUGIN_ID, storePluginConfig, restorePluginConfig } from '@kintone-plugin/kintone-utils';
+import { definePluginConfig } from '@kintone-plugin/kintone-utils';
+import { createConfigSchema } from '@/shared/config/dynamicSchema';
 import {
   LATEST_PLUGIN_VERSION,
   PluginConfigSchema,
@@ -13,13 +14,6 @@ export const createConfig = (): PluginConfig => ({
   version: LATEST_PLUGIN_VERSION,
   message: 'Hello kintone!',
 });
-
-/**
- * 保存: 設定情報をkintoneに保存
- */
-export const storeConfig = (config: PluginConfig, callback?: () => void): void => {
-  storePluginConfig(config, callback);
-};
 
 /**
  * 変換: 古い設定情報を新しい設定情報に変換
@@ -42,13 +36,18 @@ const migrateConfig = (parsedConfig: AnyPluginConfig): PluginConfig => {
 };
 
 /**
- * 復元: kintoneから取得し、Zodで検証・補完して返す
+ * プラグイン設定の定義
+ * 設定画面（config）と実行画面（desktop・mobile）の両方から使う
  */
-export const restoreConfig = (): PluginConfig => {
-  return restorePluginConfig({
-    schema: PluginConfigSchema,
-    pluginId: PLUGIN_ID,
-    defaultConfig: createConfig(),
-    migrate: (parsed) => migrateConfig(parsed as AnyPluginConfig),
-  });
-};
+export const pluginConfig = definePluginConfig<PluginConfig>({
+  name: 'プラグイン',
+  schema: PluginConfigSchema,
+  createDefault: createConfig,
+  migrate: migrateConfig,
+  createValidationSchema: createConfigSchema,
+});
+
+/**
+ * 復元: 実行画面用。読み込みに失敗したら既定値で動く（エラーはコンソールに出す）
+ */
+export const restoreConfig = (): PluginConfig => pluginConfig.restore();

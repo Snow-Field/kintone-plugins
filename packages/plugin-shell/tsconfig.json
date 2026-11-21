@@ -1,0 +1,5 @@
+{
+  "extends": "@kintone-plugin/tsconfig/base.json",
+  "files": ["node_modules/@kintone/dts-gen/kintone.d.ts"],
+  "include": ["src/**/*"]
+}

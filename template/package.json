@@ -26,6 +26,7 @@
     "clean": "rimraf dist artifacts .turbo"
   },
   "dependencies": {
+    "@kintone-plugin/plugin-shell": "workspace:*",
     "@kintone-plugin/ui": "workspace:*",
     "@dnd-kit/core": "catalog:",
     "@dnd-kit/sortable": "catalog:",
