@@ -8,16 +8,16 @@
   "scripts": {
     "build": "turbo run build --filter=!plugin-starter",
     "dev": "turbo run dev --filter=!plugin-starter",
-    "lint": "turbo run lint",
+    "lint": "biome check .",
+    "fix": "biome check --write .",
     "test": "turbo run test",
-    "fix": "turbo run fix",
     "clean": "turbo run clean",
     "gen": "node scripts/create-plugin.js"
   },
   "devDependencies": {
+    "@biomejs/biome": "catalog:",
     "@clack/prompts": "^0.11.0",
     "fs-extra": "^11.3.3",
-    "prettier": "^3.8.1",
     "rimraf": "^6.1.2",
     "turbo": "^2.11.13"
   },

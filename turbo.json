@@ -9,10 +9,8 @@
       "cache": false,
       "persistent": true
     },
-    "lint": {},
     "typecheck": {},
     "test": {},
-    "fix": {},
     "clean": {
       "cache": false
     }
