@@ -32,13 +32,14 @@ React の共通コンポーネント（`packages/ui`）と共通ロジック（`
 目標の構成は [architecture.md](./architecture.md)。
 
 1. [x] 3プラグインと `template/` の構成の差分を洗い出す
-2. [ ] 目標の構成を `architecture.md` にまとめ、合意する
-3. [ ] `template/` を lint・型チェック・CI の対象にし、壊れている箇所を直す（`mobile/index.ts` が `restoreConfig` を import していない）
-4. [ ] 設定画面の骨組みを共有パッケージに移し、`template/` を最初の利用者にする
-5. [ ] フィールドを選ぶ部品を共有パッケージに移す
-6. [ ] 既存のプラグインを1本ずつ移行する（1プラグイン1PR）。小さい順に age-calculator → field-controller → auto-numbering
+2. [x] 目標の構成を `architecture.md` にまとめ、合意する
+3. [ ] kintone の型を、公式の型とイベントの外枠に置き換える（`kintone-utils/src/types/kintone/` を廃止）
+4. [ ] `template/` を lint・型チェック・CI の対象にし、壊れている箇所を直す（`mobile/index.ts` が `restoreConfig` を import していない）
+5. [ ] 設定画面の骨組みを共有パッケージに移し、`template/` を最初の利用者にする
+6. [ ] フィールドを選ぶ部品を共有パッケージに移す
+7. [ ] 既存のプラグインを1本ずつ移行する（1プラグイン1PR）。小さい順に age-calculator → field-controller → auto-numbering
 
-手順4以降は設定画面の動作を kintone の実機で確かめるので、着手前に各プラグインの `.env` と `private.ppk` が必要。
+手順5以降は設定画面の動作を kintone の実機で確かめるので、着手前に各プラグインの `.env` と `private.ppk` が必要。
 
 ### 調査で分かった現状（2026-11-21）
 
@@ -50,7 +51,7 @@ React の共通コンポーネント（`packages/ui`）と共通ロジック（`
 
 ## 未確定事項
 
-| 事項                                              | 決める時期         |
-| ------------------------------------------------- | ------------------ |
-| API トークン秘匿プラグインの要件                  | フェーズ3 の着手前 |
-| [architecture.md](./architecture.md) の未確定事項 | フェーズ1 の手順2  |
+| 事項                                              | 決める時期                                  |
+| ------------------------------------------------- | ------------------------------------------- |
+| API トークン秘匿プラグインの要件                  | フェーズ3 の着手前                          |
+| [architecture.md](./architecture.md) の未確定事項 | plugin-shell の実装時・各プラグインの移行時 |

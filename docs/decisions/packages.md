@@ -1,0 +1,32 @@
+# 共有パッケージ
+
+## 現行の方針
+
+- 設定画面の骨組みは新しいパッケージ `@kintone-plugin/plugin-shell` に置く。依存の向きは `ui` ← `kintone-utils` ← `plugin-shell` ← 各プラグイン
+- `template/` は workspace に入れ、lint・型チェック・CI の対象にする
+- kintone の型は公式（`@kintone/dts-gen`・`@kintone/rest-api-client`）を正とし、`kintone-utils` が自前で持つのはレコード画面のイベントの外枠だけにする
+
+詳細は [architecture.md](../architecture.md)。
+
+## 判断履歴
+
+### 2026-11-21 kintone の型の網羅的な自前定義をやめ、イベントの外枠だけを持つ
+
+- 背景: `kintone-utils/src/types/kintone/` に JavaScript API の型を独自に網羅していた（約1,750行）。kintone の仕様変更に追従し続けることはできない。一方、プラグインが使っていたのは `KintoneRecord` とレコード画面のイベント型18種だけだった
+- 検討した選択肢: (1) 現状維持 (2) 全廃して公式の型だけにする (3) 公式の型を正とし、イベントの外枠だけ自前で持つ
+- 決定: (3)。公式の `@kintone/dts-gen`（最新の 10.0.0 でも）はイベントハンドラの引数が `any` で、全廃するとプラグインの実行処理で型の検査が効かなくなる。イベントの外枠は kintone の仕様でほとんど変わらず、数十行で済むため、追従の負担は小さい
+- 却下した理由: (1) は追従の負担が大きい。(2) は実行処理の型の安全性を失う
+
+### 2026-11-21 設定画面の骨組みを新しいパッケージ plugin-shell に置く
+
+- 背景: 設定画面の骨組み（約13ファイル）が `template/` と3プラグインにコピーされ、版ずれが起きていた
+- 検討した選択肢: (A) 新しいパッケージ `plugin-shell` (B) `ui` に入れて `kintone-utils` に依存させる
+- 決定: (A)。`ui` を kintone に依存しない見た目だけの部品に保てる
+- 却下した理由: (B) は `ui` が kintone に依存し、責務の境界が崩れる
+
+### 2026-11-21 template を workspace に入れて検査の対象にする
+
+- 背景: `template/` が workspace の外にあり、型の誤り（`mobile/index.ts` の import 漏れ）が検出されていなかった
+- 検討した選択肢: (A) workspace に入れ、`pnpm gen` で `node_modules` を複製しないようにする (B) CI で template からプラグインを生成して検査する
+- 決定: (A)。手元の `pnpm lint` でも検出できる
+- 却下した理由: (B) は CI でしか検出できず、手元での確認が遅れる
