@@ -1,4 +1,4 @@
-import React, { type FC, useState } from 'react';
+import { type FC, type ReactNode, useState } from 'react';
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
 import { Alert, AlertTitle, Button, Typography, Box, Stack, Paper } from '@mui/material';
 import { GeometryLoader } from '@kintone-plugin/ui';
@@ -56,6 +56,6 @@ const ErrorFallback: FC<FallbackProps> = ({ error, resetErrorBoundary }) => {
   );
 };
 
-export const PluginErrorBoundary: FC<{ children: React.ReactNode }> = ({ children }) => {
+export const PluginErrorBoundary: FC<{ children: ReactNode }> = ({ children }) => {
   return <ErrorBoundary FallbackComponent={ErrorFallback}>{children}</ErrorBoundary>;
 };
