@@ -34,4 +34,4 @@ jobs:
       - run: pnpm turbo run typecheck
       - run: pnpm test
       # build は秘密鍵（private.ppk）が必要なため、バンドルまでを確認する
-      - run: pnpm -r --filter './apps/*' bundle
+      - run: pnpm -r --filter './apps/*' --filter './template' bundle

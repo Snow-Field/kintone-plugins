@@ -7,6 +7,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 
+/**
+ * template から複製しないもの
+ * template は workspace に入っているため、依存関係やビルドの生成物、認証情報が置かれることがある
+ */
+const EXCLUDED_NAMES = new Set(['node_modules', 'dist', 'artifacts', '.turbo', '.env', 'private.ppk']);
+
 async function main() {
   prompts.intro('🚀 Create a new kintone plugin');
 
@@ -37,7 +43,9 @@ async function main() {
   try {
     // Copy template
     const templateDir = path.resolve(rootDir, 'template');
-    await fs.copy(templateDir, targetDir);
+    await fs.copy(templateDir, targetDir, {
+      filter: (src) => !EXCLUDED_NAMES.has(path.basename(src)),
+    });
 
     // Update package.json name
     const pkgPath = path.join(targetDir, 'package.json');
@@ -59,6 +67,7 @@ async function main() {
   } catch (error) {
     s.stop('Failed to create plugin');
     console.error(error);
+    process.exitCode = 1;
   }
 }
 

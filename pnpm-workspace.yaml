@@ -1,6 +1,7 @@
 packages:
   - apps/*
   - packages/*
+  - template
 
 onlyBuiltDependencies:
   - core-js
