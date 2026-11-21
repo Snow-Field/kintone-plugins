@@ -222,18 +222,18 @@ type BuildSubtableOnCreatePage<Internal> = SubtableOnCreatePage<
   }>
 >;
 
-type BuildField<FieldProperty> = FieldProperty extends { type: AnyFieldType }
-  ? FieldProperty extends { type: 'STATUS' | 'STATUS_ASSIGNEE' | 'CATEGORY'; enabled: boolean }
-    ? true extends FieldProperty['enabled']
-      ? FieldMap[FieldProperty['type']]['get']
+type BuildField<Property> = Property extends { type: AnyFieldType }
+  ? Property extends { type: 'STATUS' | 'STATUS_ASSIGNEE' | 'CATEGORY'; enabled: boolean }
+    ? true extends Property['enabled']
+      ? FieldMap[Property['type']]['get']
       : never
-    : FieldMap[FieldProperty['type']]['get']
+    : FieldMap[Property['type']]['get']
   : never;
 
-type BuildFieldForSet<FieldProperty> = FieldProperty extends { type: AnyFieldType }
-  ? FieldMap[FieldProperty['type']]['set']
+type BuildFieldForSet<Property> = Property extends { type: AnyFieldType }
+  ? FieldMap[Property['type']]['set']
   : never;
 
-type BuildFieldOnCreatePage<FieldProperty> = FieldProperty extends { type: CreatePageFieldType }
-  ? FieldMap[FieldProperty['type']]['get']
+type BuildFieldOnCreatePage<Property> = Property extends { type: CreatePageFieldType }
+  ? FieldMap[Property['type']]['get']
   : never;

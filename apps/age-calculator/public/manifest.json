@@ -13,8 +13,8 @@
     "ja": "誕生日フィールドから現在の年齢を自動計算し、指定したフィールドに自動入力するプラグインです。"
   },
   "homepage_url": {
-    "en": "https://github.com/HaruCraftz/kintone-plugins/tree/main/apps/age-calculator",
-    "ja": "https://github.com/HaruCraftz/kintone-plugins/tree/main/apps/age-calculator"
+    "en": "https://github.com/Snow-Field/kintone-plugins/tree/main/apps/age-calculator",
+    "ja": "https://github.com/Snow-Field/kintone-plugins/tree/main/apps/age-calculator"
   },
   "desktop": {
     "js": ["js/desktop.js"],

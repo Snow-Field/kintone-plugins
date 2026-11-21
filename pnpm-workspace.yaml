@@ -51,6 +51,7 @@ catalog:
 
   # 開発ツール
   typescript: 5.9.3
+  vitest: 5.1.1
   eslint: 9.39.2
   'cross-env': 10.1.0
   dotenv: 17.2.3

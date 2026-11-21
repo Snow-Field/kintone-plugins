@@ -37,8 +37,8 @@ kintone.events.on(['app.record.create.show'], (event) => {
 // tsconfig.json
 {
   "compilerOptions": {
-    "types": ["@kintone-plugin/kintone-utils"]
-  }
+    "types": ["@kintone-plugin/kintone-utils"],
+  },
 }
 ```
 
@@ -118,6 +118,7 @@ kintone.events.on(['app.record.create.show'], (event) => {
 ```
 
 **対応フィールド**：
+
 - テキスト系: `SINGLE_LINE_TEXT`, `LINK`, `MULTI_LINE_TEXT`, `RICH_TEXT`
 - 数値: `NUMBER`
 - 日時: `DATE`, `TIME`, `DATETIME`
@@ -126,6 +127,7 @@ kintone.events.on(['app.record.create.show'], (event) => {
 - その他: `FILE`, `CATEGORY`
 
 **非対応フィールド**（型システムで制限）：
+
 - システムフィールド: `__ID__`, `__REVISION__`, `RECORD_NUMBER`, `CREATOR`, `CREATED_TIME`, `MODIFIER`, `UPDATED_TIME`
 - ステータス関連: `STATUS`, `STATUS_ASSIGNEE`
 - 計算: `CALC`
@@ -133,6 +135,7 @@ kintone.events.on(['app.record.create.show'], (event) => {
 ## 📝 型定義の特徴
 
 ### 1. **フィールド型（field.ts）**
+
 - レコードフィールドの値の型定義
 - `get`（取得）と `set`（設定）の2つのモードをサポート
 - システムフィールドからユーザー定義フィールドまで網羅
@@ -140,23 +143,27 @@ kintone.events.on(['app.record.create.show'], (event) => {
 - `WithFieldProperty<T, FieldType>`ヘルパー型で対応フィールドのみに適用
 
 ### 2. **レコード型（record.ts）**
+
 - `KintoneRecord`: 汎用レコード型
 - `KintoneRecordForSet`: レコード設定用
 - `KintoneRecordOnCreatePage`: 作成画面用
 - `BuildRecord<AppSchema>`: スキーマベースの型生成
 
 ### 3. **ユーティリティ型（utils.ts）**
+
 - `RemoveNeverProperties`: never型プロパティの除外
 - `InSubtableFieldType`: サブテーブル内で使用可能なフィールドタイプ
 - `ChangeEventSupportedFieldType`: 変更イベント対応フィールドタイプ
 - `CreatePageFieldType`: 作成画面で使用可能なフィールドタイプ
 
 ### 4. **イベント型（events.ts）**
+
 - 詳細なイベント型定義（`declare global`内）
 - `kintone.events.EventMap`インターフェース
 - 各イベントの詳細な型定義
 
 ### 5. **グローバルAPI型（global.ts）**
+
 - `kintone.*` 名前空間の型定義
 - `kintone.app.*` 名前空間の型定義
 - `kintone.plugin.*` 名前空間の型定義

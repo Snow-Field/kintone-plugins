@@ -13,8 +13,8 @@
     "ja": ""
   },
   "homepage_url": {
-    "en": "https://github.com/HaruCraftz/kintone-plugins/tree/main/apps/",
-    "ja": "https://github.com/HaruCraftz/kintone-plugins/tree/main/apps/"
+    "en": "https://github.com/Snow-Field/kintone-plugins/tree/main/apps/",
+    "ja": "https://github.com/Snow-Field/kintone-plugins/tree/main/apps/"
   },
   "desktop": {
     "js": ["js/desktop.js"],

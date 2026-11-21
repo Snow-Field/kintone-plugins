@@ -11,6 +11,7 @@
     },
     "lint": {},
     "typecheck": {},
+    "test": {},
     "fix": {},
     "clean": {
       "cache": false
