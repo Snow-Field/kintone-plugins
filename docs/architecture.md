@@ -8,12 +8,12 @@
 
 依存の向きは `ui` ← `kintone-utils` ← `plugin-shell` ← 各プラグイン。逆向きの依存は作らない。
 
-| パッケージ                                  | 責務                                                                                                                        | 置かないもの                                         |
-| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| `@kintone-plugin/ui`                        | 見た目だけの部品（ボタン・レイアウト・ローディング・テーマ）。kintone に依存しない                                          | kintone API の呼び出し、プラグイン設定の知識         |
-| `@kintone-plugin/kintone-utils`             | kintone の API・プラグイン設定の保存と復元・ロガー・レコード画面のイベントの型。画面を持たない                              | React の画面部品、kintone の型の網羅的な定義（下記） |
-| `@kintone-plugin/plugin-shell`（新設予定）  | 設定画面の骨組み（Provider・エラー境界・ヘッダー・保存/リセット/インポート/エクスポート）と、kintone のフィールドを選ぶ部品 | プラグイン固有の設定項目                             |
-| `@kintone-plugin/tsconfig`・`eslint-config` | 共通の設定                                                                                                                  | —                                                    |
+| パッケージ                                  | 責務                                                                                                                                                     | 置かないもの                                                          |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `@kintone-plugin/ui`                        | 見た目だけの部品（ボタン・レイアウト・ローディング・テーマ）。kintone に依存しない                                                                       | kintone API の呼び出し、プラグイン設定の知識                          |
+| `@kintone-plugin/kintone-utils`             | kintone の API・プラグイン設定の定義と保存・復元（`definePluginConfig`）・ロガー・レコード画面のイベントの型。画面を持たない                             | React の画面部品、kintone の型の網羅的な定義（下記）                  |
+| `@kintone-plugin/plugin-shell`              | 設定画面の骨組み（Provider・エラー境界・ヘッダー・保存/リセット/インポート/エクスポート）。kintone のフィールドを選ぶ部品も置く予定（フェーズ1 の手順6） | プラグイン固有の設定項目。実行画面（`desktop`・`mobile`）から使うもの |
+| `@kintone-plugin/tsconfig`・`eslint-config` | 共通の設定                                                                                                                                               | —                                                                     |
 
 プラグイン固有のコードで2つ以上のプラグインに同じものが現れたら、上の表に従って共有パッケージへ移す。
 
@@ -62,18 +62,29 @@ apps/<プラグイン名>/
 | 4   | 設定の形を変えるときは版を上げ、`persistence.ts` に旧版からの移行を書く                                                                  | 保存済みの設定を壊さないため                    |
 | 5   | 型の回避（`as unknown as`・`any`）は共有パッケージの型を直して解消する                                                                   | 同じ回避が各プラグインに広がるため              |
 
-## 設定画面の起動（案）
+## 設定画面の起動
 
 ```tsx
 // apps/<プラグイン名>/src/config/index.tsx
 import { renderPluginConfig } from '@kintone-plugin/plugin-shell';
-import { pluginDefinition } from '@/shared/config';
+import { pluginConfig } from '@/shared/config';
 import { tabs } from './tabs';
 
-renderPluginConfig({ definition: pluginDefinition, tabs });
+renderPluginConfig({ definition: pluginConfig, tabs });
 ```
 
-`pluginDefinition` はプラグイン名・最新のスキーマ・既定値・移行・動的な検証をまとめたもので、`desktop`・`mobile` からも設定の復元に使う。細かい API は plugin-shell の実装時に決める。
+`pluginConfig` は `shared/config/persistence.ts` で `definePluginConfig`（kintone-utils）を使って作る。プラグイン名・最新のスキーマ・既定値・旧版からの移行・動的な検証をまとめたもので、`desktop`・`mobile` からも `restore()` で設定を復元する。実装例は [template/src/shared/config/persistence.ts](../template/src/shared/config/persistence.ts)。
+
+`definePluginConfig` はモジュールの最上位で呼ぶ（関数やイベントハンドラの中で呼ばない）。`kintone.$PLUGIN_ID` はプラグインのスクリプトの読み込み時にしか正しい値が保証されないため、定義を作った時点で読んで保持している。
+
+定義を plugin-shell ではなく kintone-utils に置くのは、実行画面から plugin-shell（React・MUI）を読み込まないため。
+
+### 保存済みの設定を読み込めなかったとき
+
+| 画面     | 扱い                                                                                                                     |
+| -------- | ------------------------------------------------------------------------------------------------------------------------ |
+| 設定画面 | 既定値を表示し、警告を出す。変更しなくても保存できる（保存し直さないと壊れた設定を直せないため）。原因はコンソールに出す |
+| 実行画面 | 既定値で動き、原因をコンソールに出す                                                                                     |
 
 ## template
 
@@ -81,7 +92,6 @@ renderPluginConfig({ definition: pluginDefinition, tabs });
 
 ## 未確定事項
 
-| 事項                                                                                                          | 選択肢                                                                        | 推奨                                           |
-| ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------- |
-| 設定の復元に失敗したときの扱い                                                                                | 現在は `restorePluginConfig` が既定値で黙って動く。利用者に知らせるかを決める | plugin-shell の実装時に決める                  |
-| `ui` の未使用部品（`FormSingleAutocomplete`・`FormTextField`・`DynamicSortableList`・`SortableRowContainer`） | 各プラグインで使う / 削除する                                                 | 移行時に、各プラグインの独自実装と比べて決める |
+| 事項                                                                                                          | 選択肢                        | 推奨                                           |
+| ------------------------------------------------------------------------------------------------------------- | ----------------------------- | ---------------------------------------------- |
+| `ui` の未使用部品（`FormSingleAutocomplete`・`FormTextField`・`DynamicSortableList`・`SortableRowContainer`） | 各プラグインで使う / 削除する | 移行時に、各プラグインの独自実装と比べて決める |
