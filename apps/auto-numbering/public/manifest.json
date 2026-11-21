@@ -13,8 +13,8 @@
     "ja": "テキスト、フィールド値、日付、連番を組み合わせたカスタマイズ可能な形式で、自動的に連番を生成するプラグインです。"
   },
   "homepage_url": {
-    "en": "https://github.com/HaruCraftz/kintone-plugins/tree/main/apps/auto-numbering",
-    "ja": "https://github.com/HaruCraftz/kintone-plugins/tree/main/apps/auto-numbering"
+    "en": "https://github.com/Snow-Field/kintone-plugins/tree/main/apps/auto-numbering",
+    "ja": "https://github.com/Snow-Field/kintone-plugins/tree/main/apps/auto-numbering"
   },
   "desktop": {
     "js": ["js/desktop.js"],
