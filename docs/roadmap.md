@@ -50,7 +50,7 @@ React の共通コンポーネント（`packages/ui`）と共通ロジック（`
 2. [x] 検査と整形: ESLint・Prettier・`packages/eslint-config` を Biome に置き換える
 3. [x] TypeScript 7（Rsbuild の型チェックのプラグインも、TypeScript 7 に対応した 1.6 系に上げた）
 4. [x] ビルド: Rsbuild 2 とそのプラグイン
-5. [ ] 小さい更新: React・react-hook-form・Zod・react-error-boundary・型定義など
+5. [x] 小さい更新: React・react-hook-form・Zod・react-error-boundary・型定義など
 6. [ ] MUI 9
 7. [ ] jotai 3
 8. [ ] `@hookform/resolvers` 7
