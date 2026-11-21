@@ -50,7 +50,7 @@ export const ConditionList: FC<Props> = ({ rulesPath, ruleIndex }) => {
       {/* ヘッダー行 */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography variant='body2' color='text.secondary' fontWeight={500}>
+          <Typography variant='body2' color='text.secondary' sx={{ fontWeight: 500 }}>
             条件
           </Typography>
           {fields.length > 1 && (

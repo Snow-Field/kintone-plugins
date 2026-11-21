@@ -119,7 +119,7 @@ export const RuleCard: FC<Props> = ({
               />
             }
             label={
-              <Typography variant='body2' fontWeight={500}>
+              <Typography variant='body2' sx={{ fontWeight: 500 }}>
                 {enabled ? '有効' : '無効'}
               </Typography>
             }

@@ -84,7 +84,7 @@ export const Header: FC<Props> = ({
       </Tabs>
 
       {/* 右側コンテンツ：アクションボタン群 */}
-      <Stack direction='row' alignItems='center' spacing={3} sx={{ mb: 1 }}>
+      <Stack direction='row' spacing={3} sx={{ alignItems: 'center', mb: 1 }}>
         <SaveButton loading={isSaveLoading} disabled={isSaveDisabled} />
         <CancelButton onClick={onCancel} loading={isSaveLoading} />
         <MenuButton disabled={isSaveLoading}>

@@ -57,9 +57,8 @@ const FieldMappingRow: FC<{
   return (
     <Stack
       direction={{ xs: 'column', sm: 'row' }}
-      alignItems={{ xs: 'stretch', sm: 'center' }}
       spacing={2}
-      sx={{ width: '100%' }}
+      sx={{ alignItems: { xs: 'stretch', sm: 'center' }, width: '100%' }}
     >
       <FormSingleAutocomplete
         name={`conditions.${index}.srcFieldCode`}

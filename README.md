@@ -82,7 +82,7 @@ pnpm gen
 | **Frontend** | React 19, TypeScript 7 |
 | **Build Tool** | Rsbuild (Rspack) |
 | **Lint / Format** | Biome |
-| **UI Library** | Material UI (MUI) v7, Emotion |
+| **UI Library** | Material UI (MUI) v9, Emotion |
 | **State/Form** | Jotai, React Hook Form, Zod |
 | **API Client** | @kintone/rest-api-client |
 

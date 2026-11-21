@@ -63,7 +63,7 @@ kintone アプリでユニークキーを自動採番するプラグイン。
 
 | レイヤー | 技術 |
 |----------|------|
-| UI フレームワーク | React 19 + MUI 7 |
+| UI フレームワーク | React 19 + MUI 9 |
 | 状態管理 | Jotai |
 | フォーム管理 | React Hook Form + Zod Resolver |
 | バリデーション | Zod 4（静的 + 動的） |
