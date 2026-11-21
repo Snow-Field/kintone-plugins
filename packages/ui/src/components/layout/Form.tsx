@@ -1,6 +1,6 @@
-import { type FC } from 'react';
+import type { FC } from 'react';
 import { Box } from '@mui/material';
-import { type TabItem } from '../../types';
+import type { TabItem } from '../../types';
 
 type Props = {
   tabs: TabItem[];
@@ -16,7 +16,7 @@ export const Form: FC<Props> = ({ tabs, activeTab }) => {
           hidden={activeTab !== index}
           id={`scrollable-auto-tabpanel-${index}`}
           aria-labelledby={`scrollable-auto-tab-${index}`}
-          key={index}
+          key={tab.label}
         >
           {activeTab === index && tab.content}
         </div>

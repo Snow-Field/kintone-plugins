@@ -1,6 +1,6 @@
-import { type FC } from 'react';
+import type { FC } from 'react';
 import { Box, Tabs, Tab, Stack, Divider } from '@mui/material';
-import { type TabItem } from '../../types';
+import type { TabItem } from '../../types';
 import { SaveButton } from '../button/SaveButton';
 import { CancelButton } from '../button/CancelButton';
 import { MenuButton } from '../button/MenuButton';
@@ -79,7 +79,7 @@ export const Header: FC<Props> = ({
         aria-label='scrollable-auto-tabs'
       >
         {tabs.map((tab, index) => (
-          <Tab label={tab.label} key={index} {...getTabA11yProps(index)} />
+          <Tab label={tab.label} key={tab.label} {...getTabA11yProps(index)} />
         ))}
       </Tabs>
 
