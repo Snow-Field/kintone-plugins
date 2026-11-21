@@ -6,6 +6,8 @@
 - 検査（lint）と整形（format）は Biome で行う。ESLint・Prettier は使わない
 - Biome の実験段階（nursery）のルールは採用しない
 - Markdown のドキュメントは整形の対象にしない
+- TypeScript は 7 系（ネイティブ版）を使う。TypeScript の JavaScript API に依存する道具は使えないため、道具を選ぶときは TypeScript 7 への対応を確かめる
+  - `@kintone/dts-gen` は、型を生成するコマンドのために `typescript-eslint` に依存しており、TypeScript 7 では依存の食い違いの警告が出る。このリポジトリは型定義ファイル（`kintone.d.ts`）だけを使い、生成のコマンドは使わないため、影響はない
 
 ## 判断履歴
 

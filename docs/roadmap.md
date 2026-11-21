@@ -48,7 +48,7 @@ React の共通コンポーネント（`packages/ui`）と共通ロジック（`
 
 1. [ ] 開発ツールの土台: pnpm 12・turbo
 2. [x] 検査と整形: ESLint・Prettier・`packages/eslint-config` を Biome に置き換える
-3. [ ] TypeScript 7（Rsbuild の型チェックと Vitest が動かなければ 6 系の最新にとどめる）
+3. [x] TypeScript 7（Rsbuild の型チェックのプラグインも、TypeScript 7 に対応した 1.6 系に上げた）
 4. [ ] ビルド: Rsbuild 2 とそのプラグイン
 5. [ ] 小さい更新: React・react-hook-form・Zod・react-error-boundary・型定義など
 6. [ ] MUI 9
