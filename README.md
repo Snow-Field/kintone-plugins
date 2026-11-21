@@ -79,7 +79,7 @@ pnpm gen
 | カテゴリ | 採用技術 |
 | :--- | :--- |
 | **Monorepo** | Turborepo, pnpm Workspaces |
-| **Frontend** | React 19, TypeScript 5.9 |
+| **Frontend** | React 19, TypeScript 7 |
 | **Build Tool** | Rsbuild (Rspack) |
 | **Lint / Format** | Biome |
 | **UI Library** | Material UI (MUI) v7, Emotion |
