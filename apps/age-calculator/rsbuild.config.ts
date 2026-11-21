@@ -12,9 +12,8 @@ export default defineConfig({
     },
     tsconfigPath: './tsconfig.json',
   },
-  performance: {
-    chunkSplit: { strategy: 'all-in-one' }, // Disable chunk splitting
-  },
+  // kintone は1画面につき1つの JS ファイルを読み込むため、チャンクに分割しない
+  splitChunks: false,
   output: {
     sourceMap: {
       js: process.env.NODE_ENV === 'development' ? 'eval-source-map' : false,

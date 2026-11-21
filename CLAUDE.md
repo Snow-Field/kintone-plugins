@@ -38,7 +38,7 @@ React 19 / TypeScript 7（Go で書き直されたネイティブ版。型チェ
 - lint・整形の確認: `pnpm lint`（ルートで Biome を実行。直すときは `pnpm fix`）
 - 型チェック: `pnpm turbo run typecheck`（ルートに script は無い）
 - バンドル: `pnpm -r --filter './apps/*' --filter './template' bundle`（kintone へのアップロードを含まない）
-- build: `pnpm build`（未実行。`private.ppk` が無いと package 段で失敗する）
+- build: `pnpm build`（バンドルと `artifacts/plugin.zip` の作成まで。アップロードはしない。`private.ppk` が無いと zip の作成で失敗する）
 
 ## 実装ルール
 
