@@ -5,6 +5,8 @@ import { GeometryLoader } from '@kintone-plugin/ui';
 
 const ErrorFallback: FC<FallbackProps> = ({ error, resetErrorBoundary }) => {
   const [isRetrying, setIsRetrying] = useState(false);
+  // Error 以外の値が投げられることもある
+  const message = error instanceof Error ? error.message : String(error);
 
   const handleRetry = () => {
     setIsRetrying(true);
@@ -21,7 +23,7 @@ const ErrorFallback: FC<FallbackProps> = ({ error, resetErrorBoundary }) => {
   return (
     <Box sx={{ p: 2 }}>
       <Alert severity='error' variant='outlined'>
-        <AlertTitle sx={{ fontWeight: 'bold' }}>エラーが発生しました: {error.message}</AlertTitle>
+        <AlertTitle sx={{ fontWeight: 'bold' }}>エラーが発生しました: {message}</AlertTitle>
 
         <Paper elevation={0} sx={{ mt: 2, p: 2, bgcolor: 'rgba(211, 47, 47, 0.04)' }}>
           <Typography variant='subtitle1' sx={{ fontWeight: 'bold', mb: 1 }}>
