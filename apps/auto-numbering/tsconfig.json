@@ -1,8 +1,7 @@
 {
   "extends": "@kintone-plugin/tsconfig/base.json",
   "compilerOptions": {
-    "paths": { "@/*": ["./src/*"] },
-    "types": ["@kintone-plugin/kintone-utils"]
+    "paths": { "@/*": ["./src/*"] }
   },
   "files": ["node_modules/@kintone/dts-gen/kintone.d.ts"],
   "include": ["src/**/*.ts", "src/**/*.tsx"],

@@ -1,13 +1,13 @@
 import { restoreConfig } from '@/shared/config';
 import { calculateAge } from '@/shared/lib/calculateAge';
-import { PluginLogger } from '@kintone-plugin/kintone-utils';
+import { PluginLogger, onRecordEvents } from '@kintone-plugin/kintone-utils';
 
 const logger = new PluginLogger('Mobile');
 
 /**
  * レコード画面表示時
  */
-kintone.events.on(['mobile.app.record.create.show', 'mobile.app.record.edit.show'], (event) => {
+onRecordEvents(['mobile.app.record.create.show', 'mobile.app.record.edit.show'], (event) => {
   const { record } = event;
   const pluginConfig = restoreConfig();
 
@@ -30,7 +30,7 @@ kintone.events.on(['mobile.app.record.create.show', 'mobile.app.record.edit.show
 /**
  * レコード保存時
  */
-kintone.events.on(['mobile.app.record.create.submit', 'mobile.app.record.edit.submit'], (event) => {
+onRecordEvents(['mobile.app.record.create.submit', 'mobile.app.record.edit.submit'], (event) => {
   const { record } = event;
 
   const pluginConfig = restoreConfig();

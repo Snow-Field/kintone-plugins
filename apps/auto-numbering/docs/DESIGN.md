@@ -285,14 +285,11 @@ staticSchema.ts (型の源泉)
 └── ConnectorsSchema ──────→ types/numbering.ts (SerialContext)
                            → feature/numbering/services/formatService.ts
 
-types/kintone.ts
-│
-├── KintoneRecord ─────────→ feature/numbering/services/recordService.ts
-│                          → feature/numbering/services/serialService.ts
-│                          → feature/numbering/services/formatService.ts
+types/kintone.ts（kintone-utils の RecordEvent を保存成功イベントに絞った型）
 │
 └── KintoneEvent ──────────→ feature/numbering/core/numberingEngine.ts
-                           → desktop/index.ts, mobile/index.ts
+                           → feature/numbering/services/recordService.ts
+                           → feature/numbering/services/formatService.ts
 
 types/numbering.ts
 │
