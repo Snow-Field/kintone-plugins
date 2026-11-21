@@ -9,6 +9,7 @@
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
+    "test": "turbo run test",
     "fix": "turbo run fix",
     "clean": "turbo run clean",
     "gen": "node scripts/create-plugin.js"

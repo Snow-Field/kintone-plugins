@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # kintone-plugin-uploader が依存する puppeteer の Chrome ダウンロードを省く（CI ではアップロードしない）
+      PUPPETEER_SKIP_DOWNLOAD: 'true'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Node は mise.toml、pnpm は package.json の packageManager に従う
+      - uses: jdx/mise-action@90f833d396d0cc3674b631d2d225e306476c303a # v5.2.10
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm turbo run typecheck
+      - run: pnpm test
+      # build は秘密鍵（private.ppk）が必要なため、バンドルまでを確認する
+      - run: pnpm -r --filter './apps/*' bundle

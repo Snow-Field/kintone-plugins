@@ -16,13 +16,14 @@
 ## フェーズ0: 開発環境の再整備
 
 - [x] `develop` ブランチの作成
-- [ ] Node のバージョン固定（`mise.toml`）
-- [ ] lint エラーの解消
-- [ ] README・CLAUDE.md・docs の整備
-- [ ] `manifest.json` の `homepage_url` を現在の GitHub アカウントに合わせる
-- [ ] テスト（Vitest）と CI（GitHub Actions）の導入
+- [x] Node のバージョン固定（`mise.toml`）
+- [x] lint エラーの解消
+- [x] README・CLAUDE.md・docs の整備
+- [x] `manifest.json` の `homepage_url` を現在の GitHub アカウントに合わせる
+- [x] テスト（Vitest）の導入
+- [x] CI（GitHub Actions）の導入
 - [ ] 各プラグインの `.env` と `private.ppk` の作り直し（利用者が `pnpm run init` を実行する）
-- [ ] GitHub での `main`・`develop` のブランチ保護（未確定。設定するか利用者が判断する）
+- [x] GitHub での `main`・`develop` のブランチ保護
 
 ## フェーズ1: アーキテクチャの統一
 
@@ -37,7 +38,6 @@ React の共通コンポーネント（`packages/ui`）と共通ロジック（`
 
 ## 未確定事項
 
-| 事項                              | 決める時期           |
-| --------------------------------- | -------------------- |
-| API トークン秘匿プラグインの要件  | フェーズ3 の着手前   |
-| GitHub のブランチ保護を設定するか | フェーズ0 の完了まで |
+| 事項                             | 決める時期         |
+| -------------------------------- | ------------------ |
+| API トークン秘匿プラグインの要件 | フェーズ3 の着手前 |
