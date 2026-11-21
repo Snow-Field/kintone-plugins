@@ -13,8 +13,8 @@
     "ja": "フィールドの編集不可や非表示を制御するプラグインです。"
   },
   "homepage_url": {
-    "en": "https://github.com/HaruCraftz/kintone-plugins/tree/main/apps/field-controller",
-    "ja": "https://github.com/HaruCraftz/kintone-plugins/tree/main/apps/field-controller"
+    "en": "https://github.com/Snow-Field/kintone-plugins/tree/main/apps/field-controller",
+    "ja": "https://github.com/Snow-Field/kintone-plugins/tree/main/apps/field-controller"
   },
   "desktop": {
     "js": ["js/desktop.js"],
