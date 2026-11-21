@@ -1,7 +1,7 @@
 # Field Controller プラグイン — 実装タスクリスト
 
 > **最終更新**: 2026-04-14
-> **参照**: [DESIGN.md](./DESIGN.md)
+> **参照**: [design.md](./design.md)
 
 ---
 
