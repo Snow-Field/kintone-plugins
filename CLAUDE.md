@@ -20,11 +20,11 @@
 
 ## ファイル構成
 
-| パス                           | 注意                                                                           |
-| ------------------------------ | ------------------------------------------------------------------------------ |
-| `template/`                    | `pnpm gen` の複製元。workspace 外なので lint・typecheck の対象にならない       |
-| `packages/ui`・`kintone-utils` | ビルドせず TS ソースのまま各プラグインから参照される（`main: src/index.ts`）   |
-| `apps/*/private.ppk`           | プラグイン ID の元になる秘密鍵（git 管理外）。作り直すと別プラグイン扱いになる |
+| パス                           | 注意                                                                                                                            |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| `template/`                    | `pnpm gen` の複製元（パッケージ名 `plugin-starter`）。lint・型チェック・テストの対象だが、`dev`・`build` の対象からは外している |
+| `packages/ui`・`kintone-utils` | ビルドせず TS ソースのまま各プラグインから参照される（`main: src/index.ts`）                                                    |
+| `apps/*/private.ppk`           | プラグイン ID の元になる秘密鍵（git 管理外）。作り直すと別プラグイン扱いになる                                                  |
 
 - **変更してはいけないファイル**: `apps/*/dist/`・`apps/*/artifacts/`（生成物）、`apps/*/private.ppk`、`apps/*/.env`
 
@@ -37,7 +37,7 @@ React 19 / TypeScript 5.9 / Rsbuild / MUI 7 / Jotai / React Hook Form / Zod 4、
 - テスト: `pnpm test`（Vitest。`src/**/*.test.ts` が対象。1パッケージだけ: `pnpm --filter auto-numbering test`）
 - lint: `pnpm lint`
 - 型チェック: `pnpm turbo run typecheck`（ルートに script は無い）
-- バンドル: `pnpm -r --filter './apps/*' bundle`（kintone へのアップロードを含まない）
+- バンドル: `pnpm -r --filter './apps/*' --filter './template' bundle`（kintone へのアップロードを含まない）
 - build: `pnpm build`（未実行。`private.ppk` が無いと package 段で失敗する）
 
 ## 実装ルール

@@ -33,8 +33,8 @@ React の共通コンポーネント（`packages/ui`）と共通ロジック（`
 
 1. [x] 3プラグインと `template/` の構成の差分を洗い出す
 2. [x] 目標の構成を `architecture.md` にまとめ、合意する
-3. [ ] kintone の型を、公式の型とイベントの外枠に置き換える（`kintone-utils/src/types/kintone/` を廃止）
-4. [ ] `template/` を lint・型チェック・CI の対象にし、壊れている箇所を直す（`mobile/index.ts` が `restoreConfig` を import していない）
+3. [x] kintone の型を、公式の型とイベントの外枠に置き換える（`kintone-utils/src/types/kintone/` を廃止）
+4. [x] `template/` を lint・型チェック・CI の対象にし、壊れている箇所を直す
 5. [ ] 設定画面の骨組みを共有パッケージに移し、`template/` を最初の利用者にする
 6. [ ] フィールドを選ぶ部品を共有パッケージに移す
 7. [ ] 既存のプラグインを1本ずつ移行する（1プラグイン1PR）。小さい順に age-calculator → field-controller → auto-numbering
