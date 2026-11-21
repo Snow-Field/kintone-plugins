@@ -36,15 +36,34 @@ React の共通コンポーネント（`packages/ui`）と共通ロジック（`
 3. [x] kintone の型を、公式の型とイベントの外枠に置き換える（`kintone-utils/src/types/kintone/` を廃止）
 4. [x] `template/` を lint・型チェック・CI の対象にし、壊れている箇所を直す
 5. [x] 設定画面の骨組みを共有パッケージ（`plugin-shell`）に移し、`template/` を最初の利用者にする
-6. [ ] フィールドを選ぶ部品を共有パッケージに移す
-7. [ ] 既存のプラグインを1本ずつ移行する（1プラグイン1PR）。小さい順に age-calculator → field-controller → auto-numbering
+6. [ ] 依存関係を最新にする（下記）。新しい部品を最初から最新の版で書くため、手順7 より前に行う
+7. [ ] フィールドを選ぶ部品を共有パッケージに移す（`ui` の `FormAutocomplete`、`plugin-shell` の `FieldSelect`）。既存の6か所は手順8 で置き換える
+8. [ ] 既存のプラグインを1本ずつ移行する（1プラグイン1PR）。小さい順に age-calculator → field-controller → auto-numbering
 
-手順5以降は設定画面の動作を kintone の実機で確かめるので、着手前に各プラグインの `.env` と `private.ppk` が必要。
+手順6 以降で設定画面の動作を kintone の実機で確かめるので、各プラグインの `.env` と `private.ppk` が必要。
+
+### 手順6: 依存関係の最新化
+
+目的ごとに PR を分け、互いに影響する順に上げる。判断の理由は [decisions/tooling.md](./decisions/tooling.md)。実機での確認は、すべての PR を入れた後に1回まとめて行う。
+
+1. [ ] 開発ツールの土台: pnpm 12・turbo
+2. [ ] 検査と整形: ESLint・Prettier・`packages/eslint-config` を Biome に置き換える
+3. [ ] TypeScript 7（Rsbuild の型チェックと Vitest が動かなければ 6 系の最新にとどめる）
+4. [ ] ビルド: Rsbuild 2 とそのプラグイン
+5. [ ] 小さい更新: React・react-hook-form・Zod・react-error-boundary・型定義など
+6. [ ] MUI 9
+7. [ ] jotai 3
+8. [ ] `@hookform/resolvers` 7
+9. [ ] kintone 関連: `@kintone/rest-api-client` 7・`dts-gen` 10・packer・uploader
+10. [ ] スクリプト用: `@clack/prompts`・dotenv・node-rsa・nanoid など
+11. [ ] 3プラグインの設定画面と実行画面を、kintone の実機で確認する
+
+手順6 以降は設定画面の動作を kintone の実機で確かめるので、着手前に各プラグインの `.env` と `private.ppk` が必要。
 
 ### 調査で分かった現状（2026-11-21）
 
 - 設定画面の骨組み（`App.tsx`・`index.tsx`・`states/`・`hooks/` の6ファイルなど）が、`template/` と3プラグインに同じ中身でコピーされている。`template/` は検査の対象外のため、プラグイン側の修正（書式・型の注釈）が反映されていない
-- `packages/ui` の `FormSingleAutocomplete`・`FormTextField`・`DynamicSortableList`・`SortableRowContainer` はどのプラグインからも使われていない。フィールドを選ぶ部品は3プラグインで6か所以上個別に書かれ、同じ型の回避（`as unknown as`）を繰り返している
+- `packages/ui` の入力部品（`FormSingleAutocomplete`・`FormTextField`・`FormSwitch`）と `DynamicSortableList` は age-calculator だけが使い、field-controller と auto-numbering は同じものを個別に作っている。フィールドを選ぶ部品は3プラグインで6か所以上個別に書かれ、同じ型の回避（`as unknown as`）を繰り返している
 - `desktop/index.ts` と `mobile/index.ts` は、イベント名以外ほぼ同じ処理を二重に持っている
 - ロジックの置き場所が `shared/lib/`（age-calculator・field-controller）と `shared/feature/<機能>/`（auto-numbering）に分かれている
 - auto-numbering は API トークンをプラグイン設定に平文で保存している。プラグイン設定はアプリを使う全員がブラウザから読めるため、トークンが漏れる。フェーズ3 のトークン秘匿プラグイン（プロキシ設定を使う）で解消する
@@ -56,3 +75,5 @@ React の共通コンポーネント（`packages/ui`）と共通ロジック（`
 | API トークン秘匿プラグインの要件                                                                                                                                    | フェーズ3 の着手前                          |
 | 実行画面のバンドルが約270KB ある。kintone-utils を1つの入口から読むため、実行画面で使わない REST API クライアントや通知の部品まで入っている。入口を分けるかを決める | 手順7 の後                                  |
 | [architecture.md](./architecture.md) の未確定事項                                                                                                                   | plugin-shell の実装時・各プラグインの移行時 |
+| Biome の実験段階（nursery）のルールを採用するか。今は採用しない                                                                                                     | 必要になったとき                            |
+| Markdown のドキュメントを Biome の整形の対象にするか。今は対象にしない                                                                                              | 必要になったとき                            |
