@@ -19,9 +19,9 @@
     "fs-extra": "^11.3.3",
     "prettier": "^3.8.1",
     "rimraf": "^6.1.2",
-    "turbo": "^2.7.5"
+    "turbo": "^2.11.13"
   },
-  "packageManager": "pnpm@10.28.2",
+  "packageManager": "pnpm@12.21.0",
   "engines": {
     "node": ">=26"
   }

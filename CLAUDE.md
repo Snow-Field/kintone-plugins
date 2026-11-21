@@ -30,7 +30,7 @@
 
 ## 技術スタック
 
-React 19 / TypeScript 5.9 / Rsbuild / MUI 7 / Jotai / React Hook Form / Zod 4、Turborepo + pnpm 10.28.2（`packageManager` で固定）。Node 26（`mise.toml` で固定）。
+React 19 / TypeScript 5.9 / Rsbuild / MUI 7 / Jotai / React Hook Form / Zod 4、Turborepo + pnpm 12（`packageManager` で固定。インストール時のスクリプトは `pnpm-workspace.yaml` の `allowBuilds` に書いたものだけ許可）。Node 26（`mise.toml` で固定）。
 
 ## 開発コマンド
 
