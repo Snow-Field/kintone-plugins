@@ -21,7 +21,7 @@
 - [x] README・CLAUDE.md・docs の整備
 - [x] `manifest.json` の `homepage_url` を現在の GitHub アカウントに合わせる
 - [x] テスト（Vitest）の導入
-- [ ] CI（GitHub Actions）の導入
+- [x] CI（GitHub Actions）の導入
 - [ ] 各プラグインの `.env` と `private.ppk` の作り直し（利用者が `pnpm run init` を実行する）
 - [ ] GitHub での `main`・`develop` のブランチ保護（CI の導入後に、CI の通過を条件に含めて設定する）
 
