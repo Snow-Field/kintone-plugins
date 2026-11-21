@@ -1,0 +1,9 @@
+# Claude Code の worktree（claude -w など）を作るとき、メインのチェックアウトからコピーする gitignore 済みファイル。
+# 書き方は .gitignore と同じ。.gitignore で無視されているファイルだけがコピーされる。
+
+# 環境変数
+.env
+.envrc
+
+# kintone プラグインの秘密鍵（同じプラグイン ID でパッケージングするため）
+*.ppk
