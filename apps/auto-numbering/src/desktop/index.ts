@@ -1,7 +1,8 @@
+import { onRecordEvents } from '@kintone-plugin/kintone-utils';
 import { restoreConfig } from '@/shared/config';
 import { executeNumbering } from '@/shared/feature/numbering';
 
-kintone.events.on(
+onRecordEvents(
   ['app.record.create.show', 'app.record.edit.show', 'app.record.index.edit.show'],
   (event) => {
     const record = event.record;
@@ -24,7 +25,7 @@ kintone.events.on(
   }
 );
 
-kintone.events.on(
+onRecordEvents(
   [
     'app.record.create.submit.success',
     'app.record.edit.submit.success',

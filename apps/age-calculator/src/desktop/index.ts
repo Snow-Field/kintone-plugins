@@ -1,13 +1,13 @@
 import { restoreConfig } from '@/shared/config';
 import { calculateAge } from '@/shared/lib/calculateAge';
-import { PluginLogger } from '@kintone-plugin/kintone-utils';
+import { PluginLogger, onRecordEvents } from '@kintone-plugin/kintone-utils';
 
 const logger = new PluginLogger('Desktop');
 
 /**
  * レコード画面表示時
  */
-kintone.events.on(
+onRecordEvents(
   ['app.record.index.edit.show', 'app.record.create.show', 'app.record.edit.show'],
   (event) => {
     const { record } = event;
@@ -33,7 +33,7 @@ kintone.events.on(
 /**
  * レコード保存時
  */
-kintone.events.on(
+onRecordEvents(
   ['app.record.index.edit.submit', 'app.record.create.submit', 'app.record.edit.submit'],
   (event) => {
     const { record } = event;

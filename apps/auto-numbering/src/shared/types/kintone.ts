@@ -1,14 +1,4 @@
-/**
- * Kintone型定義
- */
+import type { RecordEvent, RecordSubmitSuccessEventType } from '@kintone-plugin/kintone-utils';
 
-import type { KintoneRecord as UtilsKintoneRecord } from '@kintone-plugin/kintone-utils';
-
-export type KintoneRecord = UtilsKintoneRecord;
-
-export type KintoneEvent =
-  | kintone.events.AppRecordCreateSubmitSuccessEvent
-  | kintone.events.AppRecordEditSubmitSuccessEvent
-  | kintone.events.AppRecordIndexEditSubmitSuccessEvent
-  | kintone.events.MobileAppRecordCreateSubmitSuccessEvent
-  | kintone.events.MobileAppRecordEditSubmitSuccessEvent;
+/** 採番処理を実行する保存成功イベント */
+export type KintoneEvent = RecordEvent<RecordSubmitSuccessEventType>;

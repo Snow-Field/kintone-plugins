@@ -1,11 +1,11 @@
 import { restoreConfig } from '@/shared/config';
 import { executeDisable } from '@/shared/lib/disableExecutor';
 import { executeVisibility } from '@/shared/lib/visibilityExecutor';
-import { PluginLogger } from '@kintone-plugin/kintone-utils';
+import { PluginLogger, onRecordEvents } from '@kintone-plugin/kintone-utils';
 
 const logger = new PluginLogger('Desktop');
 
-kintone.events.on(
+onRecordEvents(
   [
     'app.record.index.edit.show',
     'app.record.detail.show',
