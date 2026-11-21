@@ -1,4 +1,4 @@
-import { type FC } from 'react';
+import type { FC } from 'react';
 import { MenuItem, ListItemIcon, ListItemText } from '@mui/material';
 import { FileDownload } from '@mui/icons-material';
 

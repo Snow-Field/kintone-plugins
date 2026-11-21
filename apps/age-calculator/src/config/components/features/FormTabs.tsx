@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { AdvancedSettings } from '@/config/components/features/AdvancedSettings';
 import { FieldMappingSection } from '@/config/components/features/FieldMappingSection';
 

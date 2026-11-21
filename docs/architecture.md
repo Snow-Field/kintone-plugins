@@ -13,7 +13,7 @@
 | `@kintone-plugin/ui`                        | 見た目だけの部品（ボタン・レイアウト・ローディング・テーマ）。kintone に依存しない                                                                       | kintone API の呼び出し、プラグイン設定の知識                          |
 | `@kintone-plugin/kintone-utils`             | kintone の API・プラグイン設定の定義と保存・復元（`definePluginConfig`）・ロガー・レコード画面のイベントの型。画面を持たない                             | React の画面部品、kintone の型の網羅的な定義（下記）                  |
 | `@kintone-plugin/plugin-shell`              | 設定画面の骨組み（Provider・エラー境界・ヘッダー・保存/リセット/インポート/エクスポート）。kintone のフィールドを選ぶ部品も置く予定（フェーズ1 の手順6） | プラグイン固有の設定項目。実行画面（`desktop`・`mobile`）から使うもの |
-| `@kintone-plugin/tsconfig`・`eslint-config` | 共通の設定                                                                                                                                               | —                                                                     |
+| `@kintone-plugin/tsconfig` | TypeScript の共通の設定。検査と整形の設定はルートの `biome.json` | — |
 
 プラグイン固有のコードで2つ以上のプラグインに同じものが現れたら、上の表に従って共有パッケージへ移す。
 

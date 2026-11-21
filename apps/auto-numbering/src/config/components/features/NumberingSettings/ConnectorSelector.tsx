@@ -1,4 +1,4 @@
-import { type FC } from 'react';
+import type { FC } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 import {
   FormControl,
@@ -8,7 +8,7 @@ import {
   Radio,
   FormHelperText,
 } from '@mui/material';
-import { type PluginConfig } from '@/shared/config';
+import type { PluginConfig } from '@/shared/config';
 import { CONNECTORS } from '@/shared/constant/numbering';
 
 type Props = {

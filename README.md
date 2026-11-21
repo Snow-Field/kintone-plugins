@@ -28,7 +28,7 @@ kintone プラグイン開発の効率化と品質向上を目的とした、モ
 - **[@kintone-plugin/ui](./packages/ui)**: MUI ベースのプラグイン共通 UI コンポーネント集。
 - **[@kintone-plugin/kintone-utils](./packages/kintone-utils)**: kintone API クライアント、共通カスタムフック、ロガー等の共有ロジック。
 - **[@kintone-plugin/tsconfig](./packages/tsconfig)**: プロジェクト全体で共有する TypeScript 設定。
-- **[@kintone-plugin/eslint-config](./packages/eslint-config)**: 静的解析とフォーマット（ESLint / Prettier）の一括設定。
+- **[@kintone-plugin/plugin-shell](./packages/plugin-shell)**: プラグイン設定画面の骨組み（保存・リセット・インポート・エクスポートなど）。
 
 ---
 
@@ -66,10 +66,10 @@ pnpm gen
 | :--- | :--- |
 | `pnpm build` | 全パッケージをビルドします（Turborepo によるキャッシュ対応）。 |
 | `pnpm dev --filter <name>` | 指定したプラグインをビルドし、`.env` の kintone 環境へアップロードします。 |
-| `pnpm lint` | 全パッケージのコード品質をチェックします。 |
+| `pnpm lint` | 全パッケージの検査と整形の確認を Biome で行います。 |
 | `pnpm turbo run typecheck` | 全パッケージの型チェックを実行します。 |
 | `pnpm test` | 全パッケージのテスト（Vitest）を実行します。 |
-| `pnpm fix` | コードの自動整形と Lint エラーの修正を実行します。 |
+| `pnpm fix` | Biome で整形と、自動で直せる指摘の修正を行います。 |
 | `pnpm clean` | すべての `dist` やビルドキャッシュを削除してクリーンアップします。 |
 
 ---
@@ -81,6 +81,7 @@ pnpm gen
 | **Monorepo** | Turborepo, pnpm Workspaces |
 | **Frontend** | React 19, TypeScript 5.9 |
 | **Build Tool** | Rsbuild (Rspack) |
+| **Lint / Format** | Biome |
 | **UI Library** | Material UI (MUI) v7, Emotion |
 | **State/Form** | Jotai, React Hook Form, Zod |
 | **API Client** | @kintone/rest-api-client |

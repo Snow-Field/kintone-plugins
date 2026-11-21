@@ -4,18 +4,14 @@ import {
   Box,
   TextField,
   FormControl,
-  FormLabel,
   Select,
   MenuItem,
   FormHelperText,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
   Autocomplete,
   Typography,
 } from '@mui/material';
 import { useAppFields } from '@kintone-plugin/kintone-utils';
-import { type PluginConfig } from '@/shared/config';
+import type { PluginConfig } from '@/shared/config';
 import { DATE_SOURCE, DATE_FORMATS } from '@/shared/constant/numbering';
 import type { KintoneFormFieldProperty } from '@kintone/rest-api-client';
 

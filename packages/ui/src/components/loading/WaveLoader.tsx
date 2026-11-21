@@ -1,4 +1,4 @@
-import { type FC } from 'react';
+import type { FC } from 'react';
 import { type SxProps, type Theme, Box, keyframes, Typography } from '@mui/material';
 
 type Props = {

@@ -91,7 +91,7 @@ describe('definePluginConfig', () => {
         { version: '1', text: '"旧版"' },
         {
           migrate: () => {
-            // eslint-disable-next-line no-throw-literal -- Error 以外が投げられた場合の確認
+            // Error 以外が投げられた場合の確認
             throw undefined;
           },
         }

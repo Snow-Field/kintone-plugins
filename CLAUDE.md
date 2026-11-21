@@ -35,7 +35,7 @@ React 19 / TypeScript 5.9 / Rsbuild / MUI 7 / Jotai / React Hook Form / Zod 4、
 ## 開発コマンド
 
 - テスト: `pnpm test`（Vitest。`src/**/*.test.ts` が対象。1パッケージだけ: `pnpm --filter auto-numbering test`）
-- lint: `pnpm lint`
+- lint・整形の確認: `pnpm lint`（ルートで Biome を実行。直すときは `pnpm fix`）
 - 型チェック: `pnpm turbo run typecheck`（ルートに script は無い）
 - バンドル: `pnpm -r --filter './apps/*' --filter './template' bundle`（kintone へのアップロードを含まない）
 - build: `pnpm build`（未実行。`private.ppk` が無いと package 段で失敗する）

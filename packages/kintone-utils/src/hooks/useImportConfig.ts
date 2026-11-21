@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { type FieldValues, type KeepStateOptions } from 'react-hook-form';
+import type { FieldValues, KeepStateOptions } from 'react-hook-form';
 import { useSnackbar } from 'notistack';
 import { logger } from '../lib/logger';
 

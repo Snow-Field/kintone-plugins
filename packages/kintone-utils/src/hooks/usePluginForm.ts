@@ -1,6 +1,6 @@
 import { useMemo, useEffect } from 'react';
 import { useForm, type FieldValues, type DefaultValues } from 'react-hook-form';
-import { type KintoneFormFieldProperty } from '@kintone/rest-api-client';
+import type { KintoneFormFieldProperty } from '@kintone/rest-api-client';
 import type { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useAppFields } from './useAppFields';

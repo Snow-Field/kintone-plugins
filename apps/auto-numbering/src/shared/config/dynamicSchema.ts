@@ -1,5 +1,5 @@
-import { type ZodType } from 'zod';
-import { type KintoneFormFieldProperty } from '@kintone/rest-api-client';
+import type { ZodType } from 'zod';
+import type { KintoneFormFieldProperty } from '@kintone/rest-api-client';
 import { PluginConfigSchema, type PluginConfig } from '@/shared/config/staticSchema';
 import { RESET_TIMING, DATE_FORMATS } from '@/shared/constant/numbering';
 

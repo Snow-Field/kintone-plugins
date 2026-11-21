@@ -9,7 +9,7 @@ import { useResetConfig } from '@/config/hooks/useResetConfig';
 import { useImportConfig } from '@/config/hooks/useImportConfig';
 import { useExportConfig } from '@/config/hooks/useExportConfig';
 import { Header, Form } from '@kintone-plugin/ui';
-import { type PluginConfig } from '@/shared/config';
+import type { PluginConfig } from '@/shared/config';
 import { FormTabs } from '@/config/components/features/FormTabs';
 
 /**

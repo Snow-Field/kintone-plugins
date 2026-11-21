@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { GeneralSettings } from './GeneralSettings';
 import { NumberingSettings } from './NumberingSettings';
 

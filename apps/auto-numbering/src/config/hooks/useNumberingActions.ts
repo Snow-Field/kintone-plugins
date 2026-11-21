@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid';
-import { type NumberingSetting } from '@/shared/config';
+import type { NumberingSetting } from '@/shared/config';
 import { RESET_TIMING, CONNECTORS } from '@/shared/constant/numbering';
 
 /** 新しい採番設定のデフォルト値を生成 */

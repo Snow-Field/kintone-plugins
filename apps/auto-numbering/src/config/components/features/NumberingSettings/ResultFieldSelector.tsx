@@ -2,7 +2,7 @@ import { type FC, useMemo } from 'react';
 import { Controller, useFormContext } from 'react-hook-form';
 import { Autocomplete, TextField, Box, Typography } from '@mui/material';
 import { useAppFields } from '@kintone-plugin/kintone-utils';
-import { type PluginConfig } from '@/shared/config';
+import type { PluginConfig } from '@/shared/config';
 import type { KintoneFormFieldProperty } from '@kintone/rest-api-client';
 
 /** 採番結果フィールドとして選択可能なフィールドタイプ（文字列1行のみ） */

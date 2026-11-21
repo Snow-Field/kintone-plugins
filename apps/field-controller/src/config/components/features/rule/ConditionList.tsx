@@ -1,4 +1,4 @@
-import { type FC } from 'react';
+import type { FC } from 'react';
 import { useFormContext, useFieldArray, useWatch } from 'react-hook-form';
 import {
   Box,
@@ -10,7 +10,7 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import ClearAllIcon from '@mui/icons-material/ClearAll';
-import { type PluginConfig } from '@/shared/config';
+import type { PluginConfig } from '@/shared/config';
 import { createDefaultCondition } from '@/config/hooks/useConditionActions';
 import { ConditionRow } from './ConditionRow';
 

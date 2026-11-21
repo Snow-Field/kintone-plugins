@@ -86,10 +86,12 @@ export const Text = styled('p', { shouldForwardProp })<TextProps>(
     ${maxLines && lineClamp(maxLines)}
 
     /* 最後の要素としてのマージン調整 */
-    ${last &&
-    css`
+    ${
+      last &&
+      css`
       margin-bottom: 24px;
-    `}
+    `
+    }
 
     /* 共通アニメーション */
     transition: color 0.2s ease, opacity 0.2s ease;

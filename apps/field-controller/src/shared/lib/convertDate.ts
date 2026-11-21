@@ -19,9 +19,9 @@ export function convertDate(value: unknown): Date | null {
   const timeRegex = /^\d{2}:\d{2}$/;
   if (timeRegex.test(value)) {
     const d = new Date(`1970-01-01T${value}:00`);
-    return isNaN(d.getTime()) ? null : d;
+    return Number.isNaN(d.getTime()) ? null : d;
   }
 
   const d = new Date(value);
-  return isNaN(d.getTime()) ? null : d;
+  return Number.isNaN(d.getTime()) ? null : d;
 }

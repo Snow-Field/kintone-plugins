@@ -1,7 +1,7 @@
 // TODO: 対象フィールドの重複チェックについて検討
 
 import type { z, ZodType } from 'zod';
-import { type KintoneFormFieldProperty } from '@kintone/rest-api-client';
+import type { KintoneFormFieldProperty } from '@kintone/rest-api-client';
 import {
   PluginConfigSchema,
   OPERATOR_TYPES,

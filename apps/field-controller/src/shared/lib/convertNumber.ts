@@ -8,5 +8,5 @@
 export function convertNumber(value: unknown): number | null {
   if (value === null || value === undefined || value === '') return null;
   const n = Number(value);
-  return isNaN(n) ? null : n;
+  return Number.isNaN(n) ? null : n;
 }

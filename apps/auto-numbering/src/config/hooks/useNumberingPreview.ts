@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { type NumberingSetting } from '@/shared/config';
+import type { NumberingSetting } from '@/shared/config';
 import {
   buildFormatString,
   buildNumberingValue,

@@ -15,12 +15,6 @@
     "package": "kintone-plugin-packer dist --ppk private.ppk --out artifacts/plugin.zip",
     "upload": "node scripts/upload.js",
     "deploy": "run-s build upload",
-    "lint": "run-p lint:*",
-    "lint:eslint": "eslint src",
-    "lint:prettier": "prettier --check src",
-    "fix": "run-p fix:*",
-    "fix:eslint": "eslint --fix src",
-    "fix:prettier": "prettier --write src",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "clean": "rimraf dist artifacts .turbo"
@@ -46,7 +40,6 @@
   },
   "devDependencies": {
     "@clack/prompts": "catalog:",
-    "@kintone-plugin/eslint-config": "workspace:*",
     "@kintone-plugin/kintone-utils": "workspace:*",
     "@kintone-plugin/tsconfig": "workspace:*",
     "@kintone/dts-gen": "catalog:",
@@ -59,7 +52,6 @@
     "@types/react-dom": "catalog:",
     "cross-env": "catalog:",
     "dotenv": "catalog:",
-    "eslint": "catalog:",
     "fs-extra": "catalog:",
     "node-rsa": "catalog:",
     "npm-run-all": "catalog:",

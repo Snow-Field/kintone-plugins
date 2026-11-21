@@ -6,7 +6,7 @@ import {
   type PluginConfig,
   type AnyPluginConfig,
 } from '@/shared/config/staticSchema';
-import { RESET_TIMING, CONNECTORS, DATE_SOURCE, DATE_FORMATS } from '@/shared/constant/numbering';
+import { RESET_TIMING, CONNECTORS } from '@/shared/constant/numbering';
 
 /**
  * 初期化: デフォルトの設定情報を返す
