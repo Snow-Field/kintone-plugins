@@ -79,6 +79,10 @@ renderPluginConfig({ definition: pluginConfig, tabs });
 
 定義を plugin-shell ではなく kintone-utils に置くのは、実行画面から plugin-shell（React・MUI）を読み込まないため。
 
+### 設定ファイルのインポート
+
+旧版でエクスポートしたファイルも読めるよう、`migrate` を通してから最新版のスキーマで検証する。`version` が数値で入っていないファイルは拒否する（各プラグインの `migrate` は `version` の無い設定を既定値に戻すため、無関係なファイルが既定値として受け付けられてしまう）。そのため、プラグイン設定は必ず `version` を持つ。
+
 ### 保存済みの設定を読み込めなかったとき
 
 | 画面     | 扱い                                                                                                                     |

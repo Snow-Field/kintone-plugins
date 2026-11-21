@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { definePluginConfig } from './pluginConfig';
+import { definePluginConfig, waitForSave } from './pluginConfig';
 
 const schema = z.object({ version: z.literal(2), message: z.string() });
 type Config = z.infer<typeof schema>;
@@ -116,6 +116,42 @@ describe('definePluginConfig', () => {
     });
   });
 
+  describe('parse', () => {
+    it('最新版の設定はそのまま検証して返す', () => {
+      const pluginConfig = setup({});
+      expect(pluginConfig.parse({ version: 2, message: '最新' })).toEqual({
+        success: true,
+        data: { version: 2, message: '最新' },
+      });
+    });
+
+    it('旧版の設定は移行してから検証する', () => {
+      const pluginConfig = setup({});
+      expect(pluginConfig.parse({ version: 1, text: '旧版' })).toEqual({
+        success: true,
+        data: { version: 2, message: '旧版' },
+      });
+    });
+
+    it.each([
+      ['version が無い', { message: '既定値になってしまう' }],
+      ['version が数値でない', { version: '2', message: '文字列の版' }],
+      ['オブジェクトでない', ['配列']],
+      ['null', null],
+    ])('%s ものは拒否する', (_, data) => {
+      const pluginConfig = setup({});
+      const result = pluginConfig.parse(data);
+      expect(result.success).toBe(false);
+    });
+
+    it('スキーマに合わないものは拒否する', () => {
+      const pluginConfig = setup({});
+      const result = pluginConfig.parse({ version: 2, message: 123 });
+      expect(result).toMatchObject({ success: false });
+      expect(!result.success && result.error).toBeInstanceOf(z.ZodError);
+    });
+  });
+
   describe('store', () => {
     it('各キーの値を JSON 文字列にして保存する', () => {
       const pluginConfig = setup({});
@@ -123,5 +159,55 @@ describe('definePluginConfig', () => {
       pluginConfig.store({ version: 2, message: '保存' }, callback);
       expect(setConfig).toHaveBeenCalledWith({ version: '2', message: '"保存"' }, callback);
     });
+  });
+});
+
+describe('waitForSave', () => {
+  it('保存のコールバックが呼ばれてから完了する', async () => {
+    let complete: (() => void) | undefined;
+    const save = vi.fn((_: unknown, callback: () => void) => {
+      complete = callback;
+    });
+    let done = false;
+    const promise = waitForSave(save, { a: 1 }).then(() => {
+      done = true;
+    });
+
+    await Promise.resolve();
+    expect(done).toBe(false);
+
+    complete?.();
+    await promise;
+    expect(done).toBe(true);
+    expect(save).toHaveBeenCalledWith({ a: 1 }, expect.any(Function));
+  });
+
+  it('決められた時間までに完了しなければ失敗する（保存中のまま止まらない）', async () => {
+    vi.useFakeTimers();
+    try {
+      const promise = waitForSave(() => undefined, {}, 1000);
+      vi.advanceTimersByTime(1000);
+      await expect(promise).rejects.toThrow('1 秒以内に確認できませんでした');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('完了した後はタイムアウトしない', async () => {
+    vi.useFakeTimers();
+    try {
+      const promise = waitForSave((_, callback) => callback(), {}, 1000);
+      await expect(promise).resolves.toBeUndefined();
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('保存の処理が例外を投げたら失敗する', async () => {
+    const save = () => {
+      throw new Error('保存できません');
+    };
+    await expect(waitForSave(save, {})).rejects.toThrow('保存できません');
   });
 });

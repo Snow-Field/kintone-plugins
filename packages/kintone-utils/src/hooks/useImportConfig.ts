@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { type FieldValues, type KeepStateOptions } from 'react-hook-form';
 import { useSnackbar } from 'notistack';
+import { logger } from '../lib/logger';
 
 type Schema<T> = {
   safeParse: (data: unknown) => { success: true; data: T } | { success: false; error: any };
@@ -30,6 +31,7 @@ export const useImportConfig = <T extends FieldValues>({
       const result = schema.safeParse(data);
 
       if (!result.success) {
+        logger.error('Import failed: invalid config file.', result.error);
         enqueueSnackbar('設定ファイルの形式が正しくありません。', { variant: 'error' });
         return;
       }

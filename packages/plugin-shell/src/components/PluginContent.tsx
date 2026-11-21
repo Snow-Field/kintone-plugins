@@ -5,6 +5,7 @@ import {
   useFormContext,
   type DefaultValues,
   type FieldValues,
+  type KeepStateOptions,
 } from 'react-hook-form';
 import { Alert, Box, Button } from '@mui/material';
 import {
@@ -14,6 +15,7 @@ import {
   useResetConfig,
   useSubmitConfig,
   useSyncConfig,
+  logger,
   type DefinedPluginConfig,
 } from '@kintone-plugin/kintone-utils';
 import { Form, Header, type TabItem } from '@kintone-plugin/ui';
@@ -38,7 +40,7 @@ const PluginContentForm = <T extends FieldValues>({
   tabs,
   hasLoadError,
 }: PluginContentProps<T>) => {
-  const { handleSubmit, formState } = useFormContext<T>();
+  const { handleSubmit, formState, trigger } = useFormContext<T>();
   const { isDirty, isSubmitting } = formState;
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -47,12 +49,24 @@ const PluginContentForm = <T extends FieldValues>({
   const clearLoadError = useCallback(() => setShowLoadError(false), []);
 
   const { syncConfig } = useSyncConfig<T>(configAtom);
+  const syncAndValidate = useCallback(
+    (data: T, options?: KeepStateOptions) => {
+      syncConfig(data, options);
+      trigger().catch((e: unknown) => logger.error('Validation after import failed:', e));
+    },
+    [syncConfig, trigger]
+  );
   const defaultConfig = useMemo(() => definition.createDefault(), [definition]);
 
   const menuActions = {
     reset: useResetConfig<T>({ defaultConfig, onSync: syncConfig }),
     export: useExportConfig<T>({ pluginName: definition.name }),
-    import: useImportConfig<T>({ schema: definition.schema, onSync: syncConfig }),
+    // 旧版でエクスポートしたファイルも読めるよう、移行を通してから検証する。
+    // アプリのフィールドに依存する検証（存在しないフィールドなど）は、反映した直後に流して表示する
+    import: useImportConfig<T>({
+      schema: { safeParse: definition.parse },
+      onSync: syncAndValidate,
+    }),
   };
 
   const { onSubmit } = useSubmitConfig<T>({
