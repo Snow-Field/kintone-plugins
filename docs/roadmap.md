@@ -47,7 +47,7 @@ React の共通コンポーネント（`packages/ui`）と共通ロジック（`
 目的ごとに PR を分け、互いに影響する順に上げる。判断の理由は [decisions/tooling.md](./decisions/tooling.md)。実機での確認は、すべての PR を入れた後に1回まとめて行う。
 
 1. [ ] 開発ツールの土台: pnpm 12・turbo
-2. [ ] 検査と整形: ESLint・Prettier・`packages/eslint-config` を Biome に置き換える
+2. [x] 検査と整形: ESLint・Prettier・`packages/eslint-config` を Biome に置き換える
 3. [ ] TypeScript 7（Rsbuild の型チェックと Vitest が動かなければ 6 系の最新にとどめる）
 4. [ ] ビルド: Rsbuild 2 とそのプラグイン
 5. [ ] 小さい更新: React・react-hook-form・Zod・react-error-boundary・型定義など
