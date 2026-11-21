@@ -8,7 +8,7 @@ import { RESET_TIMING, DATE_FORMATS } from '@/shared/constant/numbering';
  */
 const getRequiredDateFormatsForResetTiming = (
   resetTiming: string
-): (typeof DATE_FORMATS)[keyof typeof DATE_FORMATS][] | null => {
+): Array<(typeof DATE_FORMATS)[keyof typeof DATE_FORMATS]> | null => {
   switch (resetTiming) {
     case RESET_TIMING.YEARLY:
       // 年次リセット: 年を含むフォーマットが必要
