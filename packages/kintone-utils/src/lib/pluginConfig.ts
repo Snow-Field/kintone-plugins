@@ -15,6 +15,39 @@ export const storePluginConfig = <T extends Record<string, any>>(
   kintone.plugin.app.setConfig(rawConfig, callback);
 };
 
+/** 投げられた値を Error にそろえる（undefined などが投げられても失敗として扱えるように） */
+const toError = (error: unknown): Error =>
+  error instanceof Error ? error : new Error(String(error));
+
+/** 保存の完了を待つ時間の既定値（ミリ秒） */
+export const SAVE_TIMEOUT_MS = 30_000;
+
+/**
+ * 保存の完了を待つ
+ * kintone.plugin.app.setConfig は成功したときだけコールバックを呼ぶため、それを待つ。
+ * 同期的に投げられた例外と、timeoutMs までに完了しなかった場合は失敗として扱う
+ * （失敗が後から知らされる場合に、保存中のまま止まらないようにするため）
+ */
+export const waitForSave = <T>(
+  save: (config: T, callback: () => void) => void,
+  config: T,
+  timeoutMs = SAVE_TIMEOUT_MS
+): Promise<void> =>
+  new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error(`保存の完了を ${timeoutMs / 1000} 秒以内に確認できませんでした`));
+    }, timeoutMs);
+    try {
+      save(config, () => {
+        clearTimeout(timer);
+        resolve();
+      });
+    } catch (error) {
+      clearTimeout(timer);
+      reject(toError(error));
+    }
+  });
+
 type LoadPluginConfigParams<T> = {
   schema: z.ZodType<T>;
   pluginId: string;
@@ -51,9 +84,7 @@ export const loadPluginConfig = <T>({
 
     return { config: schema.parse(migrated), error: null };
   } catch (error) {
-    // Error 以外（undefined など）が投げられても失敗として扱えるように包む
-    const cause = error instanceof Error ? error : new Error(String(error));
-    return { config: defaultConfig, error: cause };
+    return { config: defaultConfig, error: toError(error) };
   }
 };
 
@@ -85,9 +116,20 @@ export type PluginConfigDefinition<T> = {
   createValidationSchema: (fields: FieldInfo[]) => z.ZodType<T>;
 };
 
+/** 設定ファイルなどを検証した結果 */
+export type PluginConfigParseResult<T> =
+  | { success: true; data: T }
+  | { success: false; error: Error };
+
 export type DefinedPluginConfig<T> = PluginConfigDefinition<T> & {
   /** 設定画面用: 失敗したかどうかも返す */
   load: () => PluginConfigLoadResult<T>;
+  /**
+   * インポート用: 旧版からの移行を通してから検証する。
+   * version が数値で入っていないものは拒否する（移行処理が version の無い設定を既定値に戻すため、
+   * 無関係なファイルが既定値として受け付けられてしまう）
+   */
+  parse: (data: unknown) => PluginConfigParseResult<T>;
   /** 実行画面用: 失敗したら既定値で動く（エラーはコンソールに出す） */
   restore: () => T;
   /** 保存 */
@@ -99,7 +141,7 @@ export type DefinedPluginConfig<T> = PluginConfigDefinition<T> & {
  * プラグインのスクリプトの読み込み時（モジュールの最上位）に呼ぶこと。
  * kintone.$PLUGIN_ID は読み込み時にしか正しい値が保証されないため、ここで読んで保持する
  */
-export const definePluginConfig = <T extends Record<string, any>>(
+export const definePluginConfig = <T extends { version: number } & Record<string, any>>(
   definition: PluginConfigDefinition<T>
 ): DefinedPluginConfig<T> => {
   const pluginId = kintone.$PLUGIN_ID;
@@ -113,6 +155,21 @@ export const definePluginConfig = <T extends Record<string, any>>(
   return {
     ...definition,
     load: () => loadPluginConfig(params()),
+    parse: (data) => {
+      try {
+        if (typeof data !== 'object' || data === null || !('version' in data)) {
+          throw new Error('設定ファイルに版（version）がありません');
+        }
+        if (typeof data.version !== 'number') {
+          throw new Error('設定ファイルの版（version）が数値ではありません');
+        }
+        const record = data as Record<string, unknown>;
+        const migrated = definition.migrate ? definition.migrate(record) : record;
+        return { success: true, data: definition.schema.parse(migrated) };
+      } catch (error) {
+        return { success: false, error: toError(error) };
+      }
+    },
     restore: () => restorePluginConfig(params()),
     store: storePluginConfig,
   };
