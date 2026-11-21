@@ -6,7 +6,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useAppFields } from './useAppFields';
 import { useUnsavedChanges } from './useUnsavedChanges';
 
-type FieldInfo = {
+/** 動的なスキーマの生成に渡すフィールド情報 */
+export type FieldInfo = {
   code: string;
   type: KintoneFormFieldProperty.OneOf['type'];
 };

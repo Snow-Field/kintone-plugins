@@ -1,4 +1,5 @@
 import { PluginLogger } from '@kintone-plugin/kintone-utils';
+import { restoreConfig } from '@/shared/config';
 
 const logger = new PluginLogger('Mobile');
 
