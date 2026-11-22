@@ -1,71 +1,13 @@
+import { onRecordEvents, PluginLogger } from '@kintone-plugin/kintone-utils';
 import { restoreConfig } from '@/shared/config';
-import { calculateAge } from '@/shared/lib/calculateAge';
-import { PluginLogger, onRecordEvents } from '@kintone-plugin/kintone-utils';
+import { disableAgeFields, updateAges } from '@/shared/handlers/record';
 
 const logger = new PluginLogger('Mobile');
 
-/**
- * レコード画面表示時
- */
-onRecordEvents(['mobile.app.record.create.show', 'mobile.app.record.edit.show'], (event) => {
-  const { record } = event;
-  const pluginConfig = restoreConfig();
+onRecordEvents(['mobile.app.record.create.show', 'mobile.app.record.edit.show'], (event) =>
+  disableAgeFields(event, restoreConfig(), logger)
+);
 
-  // デバッグ用ログ（開発者ツールのConsoleで確認）
-  logger.group('レコード画面表示');
-  logger.log('設定情報:', pluginConfig);
-  logger.log('レコード:', record);
-  logger.groupEnd();
-
-  pluginConfig.conditions.forEach(({ srcFieldCode, destFieldCode }) => {
-    const srcField = record[srcFieldCode];
-    const destField = record[destFieldCode];
-    const isInvalid = !srcFieldCode || !destFieldCode || !srcField || !destField;
-    if (isInvalid) return;
-    destField.disabled = true;
-  });
-  return event;
-});
-
-/**
- * レコード保存時
- */
-onRecordEvents(['mobile.app.record.create.submit', 'mobile.app.record.edit.submit'], (event) => {
-  const { record } = event;
-
-  const pluginConfig = restoreConfig();
-  const isUpdateOnSave = pluginConfig.advanced.isUpdateOnSave;
-
-  logger.group('レコード保存');
-  logger.log('設定情報:', { pluginConfig, isUpdateOnSave });
-
-  pluginConfig.conditions.forEach(({ srcFieldCode, destFieldCode, unit }, index) => {
-    const srcField = record[srcFieldCode];
-    const destField = record[destFieldCode];
-    const isInvalid = !srcField || !destField;
-
-    logger.log(`条件[${index}]:`, {
-      srcFieldCode,
-      destFieldCode,
-      isInvalid,
-      willUpdate: !isInvalid && (!destField.value || isUpdateOnSave),
-    });
-
-    if (isInvalid) return;
-    if (destField.value && !isUpdateOnSave) return;
-
-    const age = calculateAge(srcField.value as string);
-    logger.log(`条件[${index}] 計算結果:`, { 入力: srcField.value, 年齢: age });
-
-    // 単位(unit)が設定されており、出力先が文字列一行フィールドの場合は単位を付与する
-    if (unit && destField.type === 'SINGLE_LINE_TEXT') {
-      destField.value = `${age}${unit}`;
-    } else {
-      destField.value = age as never;
-    }
-  });
-
-  logger.groupEnd();
-
-  return event;
-});
+onRecordEvents(['mobile.app.record.create.submit', 'mobile.app.record.edit.submit'], (event) =>
+  updateAges(event, restoreConfig(), logger)
+);
