@@ -46,7 +46,7 @@ export const FormatPartsList: FC<Props> = ({ settingIndex }) => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
       {fields.length === 0 && (
-        <Typography variant='caption' color='text.secondary'>
+        <Typography variant='caption' sx={{ color: 'text.secondary' }}>
           フォーマットパーツが設定されていません。パーツを追加してください。
         </Typography>
       )}

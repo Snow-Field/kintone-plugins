@@ -52,7 +52,7 @@ export const PreviewDisplay: FC<Props> = ({ settingIndex }) => {
         >
           <PreviewIcon color='action' />
           <Box>
-            <Typography variant='caption' color='text.secondary'>
+            <Typography variant='caption' sx={{ color: 'text.secondary' }}>
               採番例
             </Typography>
             <Typography

@@ -56,8 +56,11 @@ export const useNumberingPreview = (setting: NumberingSetting | undefined) => {
       // フォーマット文字列を構築
       const formatString = buildFormatString(resolvedParts, setting.connector);
 
-      // 連番をゼロパディング
+      // 連番をゼロパディング（初期値・桁数が空のあいだは、検証エラーに任せて出さない）
       const { serialConfig } = setting;
+      if (!Number.isInteger(serialConfig.initialValue) || !Number.isInteger(serialConfig.digit)) {
+        return { value: null, error: null };
+      }
       const serialString = padZero(serialConfig.initialValue, serialConfig.digit);
 
       // 最終的な採番値を構築

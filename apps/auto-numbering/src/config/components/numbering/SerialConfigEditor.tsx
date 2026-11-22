@@ -40,7 +40,8 @@ export const SerialConfigEditor: FC<Props> = ({ settingIndex }) => {
   const serialPath = `${settingPath}.serialConfig` as const;
 
   const resetTiming = useWatch({ control, name: `${serialPath}.resetTiming` });
-  const formatParts = useWatch({ control, name: `${settingPath}.formatParts` });
+  // 設定の削除やインポートの直後に、一瞬 undefined になることがある
+  const formatParts = useWatch({ control, name: `${settingPath}.formatParts` }) ?? [];
   const hasFormatParts = formatParts.length > 0;
 
   // 書式のパーツに含まれる日付の細かさで、選べるリセットのタイミングを決める
@@ -96,7 +97,7 @@ export const SerialConfigEditor: FC<Props> = ({ settingIndex }) => {
           name={`${serialPath}.resetTiming`}
           label='連番リセットタイミング'
           // 選べるのは、書式のパーツの日付に合うものだけ（保存済みの値が合わないときは未選択に見える）
-          options={isResetTimingAvailable ? availableResetTimings : RESET_TIMING_OPTIONS}
+          options={availableResetTimings}
           // リセットするときは連番のフィールドを使わないので、選んでいたら外す
           onValueChange={(value) => {
             if (value !== RESET_TIMING.NONE) {

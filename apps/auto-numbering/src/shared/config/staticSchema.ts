@@ -59,7 +59,8 @@ export const SerialConfigSchema = z.object({
   digit: z
     .number({ error: '桁数を数値で入力してください' })
     .int('桁数は整数で入力してください')
-    .min(1, '桁数は1以上にしてください'),
+    .min(1, '桁数は1以上にしてください')
+    .max(10, '桁数は10以下にしてください'),
   /** 連番の位置（フォーマットパーツがある場合のみ必要） */
   position: z.enum(['prefix', 'suffix']).optional(),
   resetTiming: ResetTimingSchema,
