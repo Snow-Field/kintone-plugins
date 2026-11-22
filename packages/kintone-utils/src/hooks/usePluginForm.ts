@@ -39,7 +39,7 @@ export const usePluginForm = <T extends FieldValues>({
   const schema = useMemo(() => createSchema(fieldInfoList), [createSchema, fieldInfoList]);
 
   const methods = useForm<T>({
-    resolver: zodResolver(schema) as any,
+    resolver: zodResolver(schema),
     defaultValues,
     mode: 'all', // 全ての変更を監視し、検証を行う
   });
