@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { DATE_SOURCE, DATE_FORMATS, CONNECTORS, RESET_TIMING } from '../constant/numbering';
+import { DATE_SOURCE, DATE_FORMATS, CONNECTORS, RESET_TIMING } from './constants';
 
 /** プラグインバージョン */
 export const LATEST_PLUGIN_VERSION = 1;
@@ -52,8 +52,15 @@ export const FormatPartSchema = z.discriminatedUnion('type', [
 
 /** 連番設定 */
 export const SerialConfigSchema = z.object({
-  initialValue: z.number().int().min(1),
-  digit: z.number().int().min(1),
+  initialValue: z
+    .number({ error: '初期値を数値で入力してください' })
+    .int('初期値は整数で入力してください')
+    .min(1, '初期値は1以上にしてください'),
+  digit: z
+    .number({ error: '桁数を数値で入力してください' })
+    .int('桁数は整数で入力してください')
+    .min(1, '桁数は1以上にしてください')
+    .max(10, '桁数は10以下にしてください'),
   /** 連番の位置（フォーマットパーツがある場合のみ必要） */
   position: z.enum(['prefix', 'suffix']).optional(),
   resetTiming: ResetTimingSchema,

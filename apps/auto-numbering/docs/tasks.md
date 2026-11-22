@@ -1,6 +1,8 @@
 # 自動採番プラグイン — 実装タスクリスト
 
-> **最終更新**: 2026-05-29
+> **最終更新**: 2026-11-23
+
+> Phase 3 に書いた設定画面の基盤・フック・状態管理（`App.tsx`・`PluginContent.tsx`・`hooks/` の保存などの処理・`states/`）と、`ResultFieldSelector.tsx`・`ConnectorSelector.tsx` は、共有パッケージへの移行（2026-11-23）で `plugin-shell` と共有部品に置き換えた。採番の処理（`shared/feature/numbering/`）は `shared/lib`・`api`・`handlers` に分け直した。今の構成は [design.md](./design.md) の3章
 > **参照**: [design.md](./design.md)
 
 ---

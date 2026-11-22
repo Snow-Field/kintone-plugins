@@ -1,9 +1,10 @@
 # 自動採番プラグイン 設計書
 
 > **バージョン**: 1.2
-> **最終更新**: 2026-05-29
+> **最終更新**: 2026-11-23
 > **タスク管理**: [tasks.md](./tasks.md)
 > **変更履歴**:
+> - v1.3: 共有パッケージ（plugin-shell）への移行に合わせ、構成と設定画面の部品の章を書き直し
 > - v1.2: Phase 1-2 完了に伴う実装状況の更新、Phase 3 の詳細化
 > - v1.1: プラグイン用に全面リファクタリング（kintone Proxy → RestAPIClient、型定義の整理）
 
@@ -21,16 +22,8 @@
   - [2.3 バリデーション戦略](#23-バリデーション戦略)
 - [3. アーキテクチャ](#3-アーキテクチャ)
   - [3.1 ディレクトリ構成](#31-ディレクトリ構成)
-  - [3.2 レイヤー構成図](#32-レイヤー構成図)
-  - [3.3 型定義の依存関係](#33-型定義の依存関係)
-- [4. モジュール設計](#4-モジュール設計)
-  - [4.1 shared/config — 設定基盤](#41-sharedconfig--設定基盤)
-  - [4.2 shared/lib — ビジネスロジック](#42-sharedlib--ビジネスロジック)
-  - [4.3 desktop / mobile — エントリポイント](#43-desktop--mobile--エントリポイント)
-- [5. 設定画面設計](#5-設定画面設計)
-  - [5.1 コンポーネント階層](#51-コンポーネント階層)
-  - [5.2 主要コンポーネント仕様](#52-主要コンポーネント仕様)
-  - [5.3 カスタムフック仕様](#53-カスタムフック仕様)
+  - [3.2 処理の分担](#32-処理の分担)
+- [4. モジュール設計（設定画面の部品）](#4-モジュール設計設定画面の部品)
 - [6. フロー設計](#6-フロー設計)
   - [6.1 kintone イベント定義](#61-kintone-イベント定義)
   - [6.2 設定保存フロー](#62-設定保存フロー)
@@ -105,14 +98,14 @@ PluginConfigSchemaV1
 
 ### 2.2 列挙値・定数定義
 
-#### 定数（`shared/constant/numbering.ts`）
+#### 定数（`shared/config/constants.ts`）
 
 | 定数名 | 値 | 用途 |
 |--------|-----|------|
 | `FETCH_LIMIT_FOR_RESET` | `500` | リセットあり時の検索上限件数 |
 | `DEFAULT_RETRY_COUNT` | `10` | 重複時の最大リトライ回数 |
 
-#### 列挙値（`shared/constant/numbering.ts`）
+#### 列挙値（`shared/config/constants.ts`）
 
 | 列挙値 | 値 | 用途 |
 |--------|-----|------|
@@ -175,580 +168,66 @@ export const RESET_TIMING = {
 
 ## 3. アーキテクチャ
 
+構成はリポジトリ共通の [docs/architecture.md](../../../docs/architecture.md) に従う。設定画面の骨組み（Provider・保存・リセット・インポート・エクスポート）は共有パッケージの `plugin-shell` が持ち、このプラグインはタブとフォームの部品だけを持つ。
+
 ### 3.1 ディレクトリ構成
 
 ```
 src/
-├── config/                          # 設定画面（React SPA）
-│   ├── index.tsx                    # エントリーポイント
-│   ├── App.tsx                      # ルートコンポーネント
+├── config/
+│   ├── index.tsx                  # plugin-shell に設定の定義とタブを渡して起動する
+│   ├── tabs.tsx                   # 採番設定・共通設定のタブ
 │   ├── components/
-│   │   ├── PluginContent.tsx        # メインフォームコンテナ
-│   │   ├── PluginErrorBoundary.tsx  # エラーバウンダリ
-│   │   └── features/
-│   │       └── {{機能別コンポーネント}}
-│   ├── hooks/
-│   │   ├── usePluginForm.ts         # フォーム初期化
-│   │   ├── useSubmitConfig.ts       # 保存処理
-│   │   ├── useResetConfig.ts        # リセット処理
-│   │   ├── useImportConfig.ts       # インポート処理
-│   │   ├── useExportConfig.ts       # エクスポート処理
-│   │   └── useSyncConfig.ts         # 状態同期
-│   └── states/
-│       ├── store.ts                 # Jotai ストア
-│       └── plugin.ts                # プラグイン状態 atom
-│
-├── desktop/                         # デスクトップ実行エントリ
-│   └── index.ts                     # イベントハンドラ登録
-│
-├── mobile/                          # モバイル実行エントリ
-│   └── index.ts                     # イベントハンドラ登録
-│
-└── shared/                          # 設定画面・実行の両方で共有
-    ├── config/
-    │   ├── index.ts                 # バレルエクスポート
-    │   ├── staticSchema.ts          # Zod 静的スキーマ定義
-    │   ├── dynamicSchema.ts         # 動的バリデーション生成
-    │   └── persistence.ts           # 設定の保存・復元・マイグレーション
-    ├── constant/
-    │   └── numbering.ts             # 定数・列挙値定義
-    ├── types/
-    │   ├── kintone.ts               # kintone 型定義
-    │   └── numbering.ts             # 採番処理用の型定義
-    └── feature/
-        └── numbering/               # 採番機能
-            ├── index.ts             # バレルエクスポート
-            ├── core/
-            │   └── numberingEngine.ts  # 採番処理のメインロジック
-            ├── services/
-            │   ├── formatService.ts    # フォーマット処理
-            │   ├── recordService.ts    # レコード操作（RestAPIClient）
-            │   └── serialService.ts    # 連番管理
-            └── utils/
-                ├── date.ts             # 日付処理
-                └── string.ts           # 文字列処理
+│   │   ├── GeneralSettings.tsx    # 共通設定タブ（API トークン）
+│   │   └── numbering/             # 採番設定の一覧・カード・書式パーツ・連番設定・プレビュー
+│   └── hooks/useNumberingPreview.ts # プレビューの採番値を作る
+├── desktop/index.ts               # PC 版のイベントの登録だけ
+├── mobile/index.ts                # モバイル版のイベントの登録だけ
+└── shared/
+    ├── config/                    # スキーマ・動的な検証・既定値と旧版からの移行・定数（constants.ts）
+    ├── handlers/
+    │   ├── record.ts              # 表示時の入力の制限と、保存成功時の採番の呼び出し
+    │   └── numbering.ts           # 1つの採番設定の採番の流れ（executeNumbering）
+    ├── api/                       # REST API（レコードの取得・更新・重複の確認・次の連番の取得）
+    ├── lib/                       # kintone に依存しない処理（日付・ゼロ埋め・書式・連番の計算・検索条件のエスケープ）
+    └── types/                     # 採番の処理で使う型
 ```
 
-### 3.2 レイヤー構成図
+### 3.2 処理の分担
 
-```
-┌──────────────────────────────────────────────────────────┐
-│                    設定画面 (config/)                      │
-│  ┌─────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  │
-│  │  React   │  │ React    │  │  Jotai   │  │  Zod     │  │
-│  │  UI      │→ │ Hook Form│→ │  State   │→ │ Validate │  │
-│  │Components│  │          │  │          │  │          │  │
-│  └─────────┘  └──────────┘  └──────────┘  └──────────┘  │
-│         ↓           ↓                           ↓        │
-│  ┌──────────────────────────────────────────────────┐    │
-│  │              shared/config/persistence.ts         │    │
-│  │         kintone.plugin.setConfig() で保存           │    │
-│  └──────────────────────────────────────────────────┘    │
-└──────────────────────────────────────────────────────────┘
-                            ↓ JSON
-┌──────────────────────────────────────────────────────────┐
-│              実行レイヤー (desktop/ | mobile/)              │
-│  ┌──────────┐  ┌──────────┐  ┌──────────────────────┐   │
-│  │ 設定復元  │→ │ ビジネス  │→ │ kintone API          │   │
-│  │ restore  │  │ ロジック  │  │ フィールド操作          │   │
-│  │ Config() │  │          │  │                      │   │
-│  └──────────┘  └──────────┘  └──────────────────────┘   │
-└──────────────────────────────────────────────────────────┘
-```
-
-### 3.3 型定義の依存関係
-
-```
-staticSchema.ts (型の源泉)
-│
-├── PluginConfig ─────────→ persistence.ts (createConfig, restoreConfig)
-│                          → config/states/plugin.ts (pluginConfigAtom)
-│                          → config/hooks/usePluginForm.ts
-│                          → config/hooks/useSubmitConfig.ts
-│                          → config/hooks/useExportConfig.ts
-│                          → desktop/index.ts, mobile/index.ts
-│
-├── PluginConfigSchema ────→ dynamicSchema.ts (superRefine)
-│                          → config/hooks/useImportConfig.ts
-│                          → persistence.ts (restoreConfig)
-│
-├── NumberingSetting ──────→ desktop/index.ts, mobile/index.ts
-│                          → feature/numbering/core/numberingEngine.ts
-│
-├── FormatPart ────────────→ types/numbering.ts (ResolvedPart)
-│                          → feature/numbering/services/formatService.ts
-│
-├── SerialConfig ──────────→ types/numbering.ts (SerialContext, UpdateRecordParams)
-│                          → feature/numbering/services/serialService.ts
-│                          → feature/numbering/services/recordService.ts
-│
-└── ConnectorsSchema ──────→ types/numbering.ts (SerialContext)
-                           → feature/numbering/services/formatService.ts
-
-types/kintone.ts（kintone-utils の RecordEvent を保存成功イベントに絞った型）
-│
-└── KintoneEvent ──────────→ feature/numbering/core/numberingEngine.ts
-                           → feature/numbering/services/recordService.ts
-                           → feature/numbering/services/formatService.ts
-
-types/numbering.ts
-│
-├── ResolvedPart ──────────→ feature/numbering/services/formatService.ts
-├── SerialContext ─────────→ feature/numbering/services/serialService.ts
-├── DateContext ───────────→ feature/numbering/utils/date.ts
-└── UpdateRecordParams ────→ feature/numbering/services/recordService.ts
-```
+| 場所 | 役割 |
+| --- | --- |
+| `shared/config/persistence.ts` | `definePluginConfig` で設定の定義を作る。新しい採番設定の既定値（`createDefaultNumberingSetting`）も持つ |
+| `shared/handlers/record.ts` | 有効な採番設定だけを対象に、表示時は採番結果のフィールドを編集不可にし（作成画面では値を消す）、保存成功時は順番に採番する |
+| `shared/handlers/numbering.ts` | 書式の解決 → 次の連番の取得 → 重複の確認と再試行 → レコードの更新 |
+| `shared/api/` | `KintoneRestAPIClient` の呼び出し。検索条件に入れる値は `lib/query.ts` の `quoteQueryValue` でエスケープする |
+| `shared/lib/` | 書式（`format.ts`）・日付（`date.ts`）・ゼロ埋め（`string.ts`）・保存済みの値からの連番の抽出（`serial.ts`） |
 
 ---
 
-## 4. モジュール設計
-
-### 4.1 shared/config — 設定基盤
-
-#### `staticSchema.ts`
-
-**責務**: プラグイン設定のデータ構造と型を StaticSchema として定義
-
-- `PluginConfigSchemaV1`: 全体設定の Zod スキーマ
-- 型エクスポート: `PluginConfig` 等
-
-#### `dynamicSchema.ts`
-
-**責務**: kintone アプリのフィールド情報を用いた動的バリデーション
-
-- `createConfigSchema(fields)`: フィールド情報から動的 Zod スキーマを生成
-
-#### `persistence.ts`
-
-**責務**: 設定の保存・復元・マイグレーション
-
-- `createConfig()`: デフォルト設定の生成
-- `storeConfig()`: kintone への保存
-- `restoreConfig()`: kintone からの復元（Zod 検証付き）
-- `migrateConfig()`: 旧バージョンからのマイグレーション
-
-### 4.2 shared/feature/numbering — 採番機能
-
-#### モジュール構成
-
-```
-feature/numbering/
-├── core/
-│   └── numberingEngine.ts      # 採番処理のオーケストレーション
-├── services/
-│   ├── formatService.ts        # フォーマット処理
-│   ├── recordService.ts        # レコード操作（RestAPIClient）
-│   └── serialService.ts        # 連番管理
-└── utils/
-    ├── date.ts                 # 日付処理
-    └── string.ts               # 文字列処理（ゼロパディング）
-```
-
-#### `core/numberingEngine.ts`
-
-**責務**: 採番処理全体のオーケストレーション
-
-**主要関数**:
-- `executeNumbering(event, numberingSetting, apiToken?)`: 採番処理のメインエントリーポイント
-
-**処理フロー**:
-```typescript
-1. 採番済みチェック（record[resultFieldCode].value が存在すればスキップ）
-2. リビジョン取得（fetchRecordWithRevision）
-3. フォーマットパーツの解決（resolveFormatParts）
-4. フォーマット文字列の構築（buildFormatString）
-5. 次の連番を取得（resolveNextSerial）
-6. 重複回避ループ（最大 DEFAULT_RETRY_COUNT 回）
-   - ゼロパディング（padZero）
-   - 採番値の構築（buildNumberingValue）
-   - 重複チェック（checkDuplicate）
-   - 重複あり → currentSerial++ して再試行
-   - 重複なし → レコード更新（updateRecord）
-7. エラーハンドリング
-```
-
-#### `services/formatService.ts`
-
-**責務**: フォーマット処理
-
-**主要関数**:
-
-| 関数 | 概要 |
-|------|------|
-| `resolveFormatParts(formatParts, record)` | 各フォーマットパーツ（text / field / date）をレコード情報から実値に解決する |
-| `buildFormatString(resolvedParts, connector)` | 解決済みパーツを connector で結合し、連番を除いたフォーマット文字列を生成する |
-| `buildNumberingValue(formatString, serialString, position, connector)` | 連番文字列とフォーマット文字列を position に応じて結合し最終採番値を生成する |
-
-#### `services/recordService.ts`
-
-**責務**: kintone レコード操作（RestAPIClient 使用）
-
-**主要関数**:
-
-| 関数 | 概要 |
-|------|------|
-| `createClient(apiToken?)` | RestAPIClient インスタンスを作成 |
-| `getRecordCreatedAt(record)` | レコードから作成日時を取得 |
-| `fetchRecords(appId, query, fields, apiToken?)` | レコードを取得 |
-| `fetchRecordWithRevision(appId, recordId, apiToken?)` | レコードをリビジョン付きで取得 |
-| `updateRecord(params)` | レコードを更新（リビジョン対応版） |
-| `checkDuplicate(appId, fieldCode, value, existingValues, apiToken?)` | 重複チェック（キャッシュ対応版） |
-
-**RestAPIClient の使用**:
-```typescript
-const client = new KintoneRestAPIClient({
-  baseUrl: location.origin,
-  auth: apiToken ? { apiToken } : undefined,
-});
-
-// レコード取得
-const response = await client.record.getRecords({ app, query, fields });
-
-// レコード更新
-await client.record.updateRecord({ app, id, record, revision });
-```
-
-#### `services/serialService.ts`
-
-**責務**: 連番管理
-
-**主要関数**:
-
-| 関数 | 概要 |
-|------|------|
-| `resolveNextSerial(ctx)` | リセットポリシーに応じて次の連番を決定する |
-| `extractSerialWithResets(ctx, records)` | リセットあり時に既存レコードから最大連番を抽出する |
-
-**連番取得ロジック**:
-```typescript
-switch (resetTiming) {
-  case RESET_TIMING.NONE:
-    // serialFieldCode で最大値取得 + 1
-    query = `${serialFieldCode} != "" order by ${serialFieldCode} desc limit 1`;
-
-  case RESET_TIMING.YEARLY:
-  case RESET_TIMING.MONTHLY:
-  case RESET_TIMING.DAILY:
-    // formatString で like 検索 → extractSerialWithResets() + 1
-    query = `${resultFieldCode} like "${formatString}" order by $id desc limit ${FETCH_LIMIT_FOR_RESET}`;
-}
-```
-
-#### `utils/date.ts`
-
-**責務**: 日付処理
-
-**主要関数**:
-
-| 関数 | 概要 |
-|------|------|
-| `createDateContext(dateString?)` | 日付コンテキストを作成 |
-| `formatDate(ctx, format)` | 日付フォーマット |
-
-#### `utils/string.ts`
-
-**責務**: 文字列処理
-
-**主要関数**:
-
-| 関数 | 概要 |
-|------|------|
-| `padZero(value, digit)` | ゼロ埋め |
-
-### 4.3 desktop / mobile — エントリポイント
-
-#### `desktop/index.ts`
-
-**責務**: PC 向けイベントハンドラの登録
-
-**実装内容**:
-```typescript
-import { restoreConfig } from '@/shared/config';
-import { executeNumbering } from '@/shared/feature/numbering';
-
-// 画面表示時: 採番フィールドを編集不可にする
-kintone.events.on(['app.record.create.show', 'app.record.edit.show'], (event) => {
-  const record = event.record;
-  const pluginConfig = restoreConfig();
-
-  pluginConfig.numberingSettings.forEach(({ resultFieldCode }) => {
-    const resultField = record[resultFieldCode];
-    // 型ガード: disabledプロパティが存在する型のみ処理
-    if (resultField && 'disabled' in resultField) {
-      resultField.disabled = true;
-
-      // 作成画面の場合は値をクリア
-      if (event.type === 'app.record.create.show' && 'value' in resultField) {
-        resultField.value = '';
-      }
-    }
-  });
-
-  return event;
-});
-
-// 保存成功時: 採番処理を実行
-kintone.events.on(
-  ['app.record.create.submit.success', 'app.record.edit.submit.success'],
-  async (event) => {
-    const pluginConfig = restoreConfig();
-    for (const numberingSetting of pluginConfig.numberingSettings) {
-      await executeNumbering(event, numberingSetting, pluginConfig.common.apiToken);
-    }
-    return event;
-  }
-);
-```
-
-#### `mobile/index.ts`
-
-**責務**: モバイル向けイベントハンドラの登録
-
-**実装内容**: `desktop/index.ts`と同構造で、イベント名を`mobile.`プレフィックス付きに変更
-
----
-
-## 5. 設定画面設計
-
-### 5.1 コンポーネント階層
-
-<!-- 設定画面の UI コンポーネントツリーを記載する -->
-
-```
-App
-└── JotaiProvider + PluginThemeProvider + SnackbarProvider
-    └── PluginErrorBoundary
-        └── Suspense
-            └── PluginContent
-                └── FormProvider (React Hook Form)
-                    └── PluginContentForm
-                        ├── Header (タブ / メニュー / 保存ボタン)
-                        └── Form
-                            └── {{機能別コンポーネント}}
-```
-
-### 5.2 主要コンポーネント仕様
-
-#### `features/NumberingSettings/NumberingSettingsList.tsx`
-
-**概要**: 採番設定の一覧管理コンポーネント（追加・削除・並び替え）
-
-**機能**:
-- 複数の採番設定を配列として管理
-- 新規設定の追加ボタン
-- 各設定の削除ボタン
-- 設定の並び替え（ドラッグ&ドロップまたは上下ボタン）
-
-**実装ポイント**:
-- `useFieldArray` を使用して配列フィールドを管理
-- 最低 1 件の設定を保持（全削除を防ぐ）
-- 削除時の確認ダイアログ
-
----
-
-#### `features/NumberingSettings/NumberingSettingItem.tsx`
-
-**概要**: 個別の採番設定フォーム
-
-| セクション | UI 要素 | データパス |
-|-----------|---------|-----------|
-| 採番結果フィールド | フィールドセレクター | `numberingSettings[index].resultFieldCode` |
-| フォーマットパーツ | パーツエディター | `numberingSettings[index].formatParts` |
-| 区切り文字 | セレクトボックス | `numberingSettings[index].connector` |
-| 連番設定 | 連番設定エディター | `numberingSettings[index].serialConfig` |
-| プレビュー | 採番例の表示 | （計算値） |
-
-**実装ポイント**:
-- Accordion または Card で折りたたみ可能に
-- 各設定に識別用のラベル（例: 設定 1、設定 2）
-- バリデーションエラーの表示
-
----
-
-#### `features/NumberingSettings/ResultFieldSelector.tsx`
-
-**概要**: 採番結果を書き込むフィールドの選択
-
-**機能**:
-- kintone アプリのフィールド一覧から選択
-- 対応フィールド型: 文字列（1行）のみ
-- 既に他の設定で使用中のフィールドは警告表示
-
-**実装ポイント**:
-- `useAppFields()` フックでフィールド情報を取得
-- フィールド型でフィルタリング
-- 重複使用の警告（エラーではなく警告）
-
----
-
-#### `features/NumberingSettings/FormatPartsEditor.tsx`
-
-**概要**: フォーマットパーツの配列編集
-
-**機能**:
-- パーツの追加（text / field / date）
-- パーツの削除
-- パーツの並び替え
-- 各パーツタイプに応じた設定 UI
-
-**実装ポイント**:
-- `useFieldArray` で動的配列管理
-- パーツタイプ選択後に対応する設定フォームを表示
-- ドラッグ&ドロップまたは上下ボタンで並び替え
-
----
-
-#### `features/NumberingSettings/FormatPartItem.tsx`
-
-**概要**: 個別フォーマットパーツの設定
-
-**パーツタイプ別の UI**:
-
-| type | 設定項目 | UI 要素 |
-|------|---------|---------|
-| `text` | `value` | テキスト入力 |
-| `field` | `fieldCode` | フィールドセレクター |
-| `date` | `source` | ラジオボタン（now / createdAt） |
-|  | `format` | セレクトボックス（YYYYMMDD / YYMMDD / ...） |
-
-**実装ポイント**:
-- パーツタイプに応じた条件付きレンダリング
-- field タイプは文字列・数値・日付フィールドのみ選択可能
-- date タイプのフォーマットプレビュー表示
-
----
-
-#### `features/NumberingSettings/ConnectorSelector.tsx`
-
-**概要**: パーツ間の区切り文字選択
-
-**機能**:
-- 定義済み区切り文字から選択（ハイフン、アンダースコア、なし、等）
-- カスタム区切り文字の入力（将来拡張）
-
-**実装ポイント**:
-- セレクトボックスまたはラジオボタン
-- プレビューに反映
-
----
-
-#### `features/NumberingSettings/SerialConfigEditor.tsx`
-
-**概要**: 連番設定の編集
-
-| 設定項目 | UI 要素 | データパス |
-|---------|---------|-----------|
-| 初期値 | 数値入力 | `serialConfig.initialValue` |
-| ゼロ埋め桁数 | 数値入力 | `serialConfig.digit` |
-| 連番位置 | ラジオボタン（prefix / suffix） | `serialConfig.position` |
-| リセットタイミング | セレクトボックス | `serialConfig.resetTiming` |
-| 連番管理フィールド | フィールドセレクター（resetTiming='none' の場合のみ） | `serialConfig.serialFieldCode` |
-
-**実装ポイント**:
-- `resetTiming` が 'none' の場合のみ `serialFieldCode` を表示
-- 数値フィールドのみ選択可能（serialFieldCode）
-- バリデーション: digit は 1-10 の範囲
-
----
-
-#### `features/NumberingSettings/PreviewDisplay.tsx`
-
-**概要**: 採番結果のプレビュー表示
-
-**機能**:
-- 現在の設定に基づいた採番例を表示
-- 例: `00001-営業部-26`、`営業部-26-00001`
-
-**実装ポイント**:
-- フォーム値の変更に応じてリアルタイム更新
-- エラーがある場合は「プレビュー不可」と表示
-- 実際の採番ロジック（formatService）を使用してプレビュー生成
-
----
-
-#### `features/GeneralSettings.tsx`
-
-**概要**: 共通設定（API トークン）
-
-| セクション | UI 要素 | データパス |
-|-----------|---------|-----------|
-| API トークン | パスワード入力 | `common.apiToken` |
-
-**実装ポイント**:
-- オプション項目（未入力でも可）
-- セキュリティ上、入力値はマスク表示
-- ヘルプテキストで用途を説明
-
-### 5.3 カスタムフック仕様
-
-#### `useAppFields.ts`
-
-**概要**: kintone アプリのフィールド情報を取得するフック
-
-```typescript
-type UseAppFieldsReturn = {
-  fields: kintone.FieldInfo[];
-  isLoading: boolean;
-  error: Error | null;
-  refetch: () => Promise<void>;
-};
-
-function useAppFields(): UseAppFieldsReturn;
-```
-
-**実装ポイント**:
-- `kintone.api()` でフィールド情報を取得
-- 取得結果を Jotai atom にキャッシュ
-- エラー時のリトライ機能
-
----
-
-#### `useNumberingPreview.ts`
-
-**概要**: 採番プレビューを生成するフック
-
-```typescript
-type UseNumberingPreviewParams = {
-  numberingSetting: NumberingSetting;
-};
-
-type UseNumberingPreviewReturn = {
-  preview: string | null;
-  error: string | null;
-};
-
-function useNumberingPreview(params: UseNumberingPreviewParams): UseNumberingPreviewReturn;
-```
-
-**実装ポイント**:
-- `formatService` を使用してプレビュー生成
-- サンプルレコードデータを使用
-- エラー時は null を返す
-
----
-
-#### `useFieldValidation.ts`
-
-**概要**: フィールド選択時の動的バリデーション
-
-```typescript
-type UseFieldValidationParams = {
-  fieldCode: string;
-  fieldType: 'string' | 'number' | 'date';
-};
-
-type UseFieldValidationReturn = {
-  isValid: boolean;
-  errorMessage: string | null;
-};
-
-function useFieldValidation(params: UseFieldValidationParams): UseFieldValidationReturn;
-```
-
-**実装ポイント**:
-- フィールドの存在チェック
-- フィールド型の整合性チェック
-- 他の設定との重複チェック
+## 4. モジュール設計（設定画面の部品）
+
+入力欄はすべて共有パッケージの部品を使う（プラグインの中で `Controller` と MUI を直接組み合わせない）。
+
+| 項目 | 部品 | データパス |
+| --- | --- | --- |
+| 設定名 | `FormTextField` | `numberingSettings[i].label` |
+| 有効/無効 | `FormSwitch` | `numberingSettings[i].enabled` |
+| 採番結果フィールド | `FieldSelect`（文字列（1行）） | `numberingSettings[i].resultFieldCode` |
+| パーツの種類 | `FormSelect` | `numberingSettings[i].formatParts[j].type` |
+| テキストのパーツ | `FormTextField` | `numberingSettings[i].formatParts[j].value` |
+| フィールドのパーツ | `FieldSelect` | `numberingSettings[i].formatParts[j].fieldCode` |
+| 日付のパーツ | `FormSelect`（書式・日付の元） | `numberingSettings[i].formatParts[j].format`・`.source` |
+| 連番の位置・リセットのタイミング | `FormSelect` | `numberingSettings[i].serialConfig.position`・`.resetTiming` |
+| 初期値・桁数 | `FormNumberField` | `numberingSettings[i].serialConfig.initialValue`・`.digit` |
+| 連番管理フィールド | `FieldSelect`（数値） | `numberingSettings[i].serialConfig.serialFieldCode` |
+| API トークン | `FormTextField`（パスワード） | `common.apiToken` |
+
+**動的な振る舞い**:
+- リセットのタイミングは、書式のパーツに含まれる日付の細かさに合うものだけを出す（年 → 年次、年月 → 月次まで、年月日 → 日次まで）
+- リセットのタイミングを「なし」以外にしたら、連番管理フィールドを空にする（リセットするときは使わないため）
+- 連番管理フィールドの欄は、リセットのタイミングが「なし」のときだけ出す
+- 採番設定の並べ替えは、カード単位のため独自の作り（dnd-kit）、書式のパーツは上下のボタンで並べ替える。共有の `DynamicSortableList` は使わない
 
 ---
 
@@ -773,9 +252,7 @@ Zod 静的バリデーション (staticSchema)
   ↓
 Zod 動的バリデーション (dynamicSchema + kintone フィールド情報)
   ↓
-kintone.plugin.setConfig() で JSON 保存
-  ↓
-Jotai atom に同期 (useSyncConfig)
+kintone.plugin.setConfig() で JSON 保存（plugin-shell が行う）
 ```
 
 ### 6.3 実行フロー（Desktop / Mobile）
@@ -787,7 +264,7 @@ kintone イベント発火（submit.success）
   ↓
 restoreConfig(): kintone から設定 JSON を復元 + Zod 検証
   ↓
-executeNumbering() 開始
+numberRecord(): 有効な採番設定ごとに順番に executeNumbering()
   ↓
 採番済みチェック: record[resultFieldCode].value が存在すればスキップ
   ↓
@@ -816,7 +293,7 @@ kintone イベント発火（create.show / edit.show）
   ↓
 restoreConfig(): 設定を復元
   ↓
-numberingSettings をループ
+lockResultFields(): 有効な numberingSettings をループ
   ↓
 resultField.disabled = true  # 採番フィールドを編集不可に
   ↓
