@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "clean": "rimraf .turbo dist"
   },
   "dependencies": {
@@ -29,11 +30,16 @@
     "@kintone-plugin/tsconfig": "workspace:*",
     "@kintone/dts-gen": "catalog:",
     "@mui/material": "catalog:",
+    "@testing-library/dom": "catalog:",
+    "@testing-library/react": "catalog:",
+    "@testing-library/user-event": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "jsdom": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
     "typescript": "catalog:",
+    "vitest": "catalog:",
     "zod": "catalog:"
   }
 }
