@@ -3,6 +3,16 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 /**
+ * .env に安全に書けない値を弾く
+ * 値はシングルクォートで囲んで書くため、シングルクォートと改行は使えない
+ * （囲まないと、process.loadEnvFile が `#` 以降をコメントとして捨ててしまう）
+ */
+const validateEnvValue = (value) => {
+  if (/['\r\n]/.test(value)) return "シングルクォート（'）と改行は使えません。";
+  return undefined;
+};
+
+/**
  * ユーザーによるキャンセルを処理する
  */
 const handleCancel = (input) => {
@@ -43,18 +53,18 @@ const main = async () => {
             validate: (value) => {
               if (!value) return 'URLは必須です。';
               if (!value.startsWith('http')) return '有効なURLを入力してください。';
-              return undefined;
+              return validateEnvValue(value);
             },
           }),
         username: () =>
           prompts.text({
             message: 'ユーザー名を入力してください',
-            validate: (value) => (value ? undefined : 'ユーザー名は必須です。'),
+            validate: (value) => (value ? validateEnvValue(value) : 'ユーザー名は必須です。'),
           }),
         password: () =>
           prompts.password({
             message: 'パスワードを入力してください',
-            validate: (value) => (value ? undefined : 'パスワードは必須です。'),
+            validate: (value) => (value ? validateEnvValue(value) : 'パスワードは必須です。'),
           }),
       },
       {
@@ -66,9 +76,9 @@ const main = async () => {
     );
 
     const envContent = [
-      `KINTONE_BASE_URL=${group.baseUrl}`,
-      `KINTONE_USERNAME=${group.username}`,
-      `KINTONE_PASSWORD=${group.password}`,
+      `KINTONE_BASE_URL='${group.baseUrl}'`,
+      `KINTONE_USERNAME='${group.username}'`,
+      `KINTONE_PASSWORD='${group.password}'`,
     ].join('\n');
 
     await fs.writeFile(envPath, envContent, 'utf8');
