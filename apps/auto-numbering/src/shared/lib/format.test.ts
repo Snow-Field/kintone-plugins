@@ -34,16 +34,16 @@ describe('resolveFormatParts', () => {
     expect(resolveFormatParts(parts, record)).toEqual([]);
   });
 
-  it('参照先フィールドの値が空ならエラーにする', () => {
+  it('参照先フィールドの値が空なら、空だと分かるエラーにする', () => {
     const parts: FormatPart[] = [{ type: 'field', fieldCode: '空欄' }];
-    expect(() => resolveFormatParts(parts, record)).toThrow(
-      'フィールド "空欄" の値が取得できません'
-    );
+    expect(() => resolveFormatParts(parts, record)).toThrow('フィールド "空欄" が空です');
   });
 
-  it('参照先フィールドが存在しなければエラーにする', () => {
+  it('参照先フィールドがレコードに無ければ、無いと分かるエラーにする', () => {
     const parts: FormatPart[] = [{ type: 'field', fieldCode: '存在しない' }];
-    expect(() => resolveFormatParts(parts, record)).toThrow('存在しない');
+    expect(() => resolveFormatParts(parts, record)).toThrow(
+      'フィールド "存在しない" がレコードにありません'
+    );
   });
 });
 

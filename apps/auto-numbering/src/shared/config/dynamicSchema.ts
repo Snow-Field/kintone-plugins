@@ -57,6 +57,15 @@ export const createConfigSchema = (fields: FieldInfo[]): ZodType<PluginConfig> =
 
       // 2. formatParts 内の fieldCode の存在チェック（値が設定されている場合のみ）
       setting.formatParts.forEach((part, partIndex) => {
+        // 採番結果のフィールドは、採番の時点ではまだ空なので書式に使えない
+        if (part.type === 'field' && part.fieldCode && part.fieldCode === setting.resultFieldCode) {
+          ctx.addIssue({
+            code: 'custom',
+            message: '採番結果のフィールドは、書式のパーツに使えません',
+            path: [...basePath, 'formatParts', partIndex, 'fieldCode'],
+          });
+          return;
+        }
         if (part.type === 'field' && part.fieldCode && !fieldCodeSet.has(part.fieldCode)) {
           ctx.addIssue({
             code: 'custom',

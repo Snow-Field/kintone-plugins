@@ -43,11 +43,23 @@ export function resolveFormatParts(
         case 'field': {
           // fieldCodeが未設定の場合はスキップ
           if (!part.fieldCode) return null;
-          const fieldValue = record[part.fieldCode]?.value;
-          if (!fieldValue || typeof fieldValue !== 'string') {
-            throw new Error(`フィールド "${part.fieldCode}" の値が取得できません`);
+          const field = record[part.fieldCode];
+          if (!field) {
+            throw new Error(
+              `フィールド "${part.fieldCode}" がレコードにありません（削除されたか、フィールドコードが変わった可能性があります）`
+            );
           }
-          return { type: 'field', value: fieldValue };
+          if (typeof field.value !== 'string') {
+            throw new Error(
+              `フィールド "${part.fieldCode}"（${field.type}）の値を文字として読めません`
+            );
+          }
+          if (field.value === '') {
+            throw new Error(
+              `フィールド "${part.fieldCode}" が空です。採番に使うフィールドに値を入れてから保存してください`
+            );
+          }
+          return { type: 'field', value: field.value };
         }
 
         case 'date': {
