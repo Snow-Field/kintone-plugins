@@ -4,6 +4,7 @@
 
 import type { SerialContext } from '@/shared/types/numbering';
 import { RESET_TIMING, FETCH_LIMIT_FOR_RESET } from '@/shared/config/constants';
+import { quoteQueryValue } from '@/shared/lib/query';
 import { extractSerialWithResets } from '@/shared/lib/serial';
 import { fetchRecords } from './records';
 
@@ -53,7 +54,7 @@ export async function resolveNextSerial(
         );
       }
 
-      const condition = `${resultFieldCode} like "${formatString}"`;
+      const condition = `${resultFieldCode} like ${quoteQueryValue(formatString)}`;
       const orderBy = `order by $id desc limit ${FETCH_LIMIT_FOR_RESET}`;
       const fields = [resultFieldCode];
 

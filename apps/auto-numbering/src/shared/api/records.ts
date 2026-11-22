@@ -1,6 +1,7 @@
 import { KintoneRestAPIClient } from '@kintone/rest-api-client';
 import type { UpdateRecordParams } from '@/shared/types/numbering';
 import { RESET_TIMING } from '@/shared/config/constants';
+import { quoteQueryValue } from '@/shared/lib/query';
 
 /**
  * RestAPIClientインスタンスを作成
@@ -108,7 +109,7 @@ export async function checkDuplicate(
   }
 
   // キャッシュがない場合はAPIで確認
-  const condition = `${fieldCode} = "${numberingValue}"`;
+  const condition = `${fieldCode} = ${quoteQueryValue(numberingValue)}`;
   const orderBy = `limit 1`;
   const records = await fetchRecords(appId, condition, orderBy, [fieldCode], apiToken);
   return records.length > 0;
