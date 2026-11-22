@@ -26,7 +26,7 @@
 | **UI Framework** | [Material UI (MUI)](https://mui.com/) |
 | **Form Library** | [React Hook Form](https://react-hook-form.com/) |
 | **Schema Validation** | [Zod](https://zod.dev/) |
-| **State Management** | [Jotai](https://jotai.org/) |
+| **State Management** | [Jotai](https://jotai.org/)（共有パッケージの plugin-shell が使う） |
 | **Language** | [TypeScript](https://www.typescriptlang.org/) |
 
 ---
@@ -35,15 +35,17 @@
 
 ```text
 src/
-├── config/          # 設定画面：MUI を使用したリッチな UI
-│   ├── components/  # セクションごとのコンポーネント
-│   ├── hooks/       # ビジネスロジック・カスタムフック
-│   └── states/      # Jotai による状態管理
-├── desktop/         # PC版：レコード一覧・編集・詳細画面のロジック
-├── mobile/          # モバイル版：スマホ用 UI / UX の最適化
-├── shared/          # 共有：Zod スキーマや共通の定数・関数
-└── types/           # 型定義：一貫性のある開発のための型定義
+├── config/          # 設定画面（骨組みは plugin-shell。ここにはタブとフォームの部品だけを置く）
+│   └── components/  # フィールドの設定・詳細設定のフォーム
+├── desktop/         # PC 版：イベントの登録だけ
+├── mobile/          # モバイル版：イベントの登録だけ
+└── shared/
+    ├── config/      # 設定の定義（スキーマ・動的な検証・既定値と旧版からの移行）
+    ├── handlers/    # イベントの処理（PC・モバイル共通）
+    └── lib/         # 年齢の計算と、書き込む値の判断（kintone に依存しない）
 ```
+
+構成の決まりはリポジトリの [docs/architecture.md](../../docs/architecture.md) に従う。
 
 ---
 

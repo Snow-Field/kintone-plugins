@@ -4,7 +4,6 @@ export * from './components/button/MenuButton';
 export * from './components/feedback/ResetConfirmDialog';
 export * from './components/fields/DynamicSortableList';
 export * from './components/fields/FormAutocomplete';
-export * from './components/fields/FormSingleAutocomplete';
 export * from './components/fields/FormSwitch';
 export * from './components/fields/SortableRowContainer';
 export * from './components/fields/FormTextField';

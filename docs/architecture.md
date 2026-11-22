@@ -46,8 +46,6 @@ MUI の部品を片端から包まない。共通部品にするのは、何か�
 
 選択肢から選ぶ部品（`FormAutocomplete`・`FieldSelect`）は、選択肢の `value`（`FieldSelect` はフィールドコード）を保存する。1つ選ぶときは `string`（未選択は `''`）、`multiple` のときは `string[]`。選んだ後にほかの項目をリセットするなどの処理は、`onValueChange` に書く。選択肢に無い値（削除されたフィールドなど）が保存されていると、未選択として表示する。`multiple` のときは、利用者が次に値を変えた時点で、その値は保存値から外れる（見えない値を残さないため）。その誤りを利用者に知らせるときは、動的な検証（`dynamicSchema.ts`）で行う。
 
-既存の `FormTextField`・`FormSwitch` は、まだこの約束事に合っていない（エラーを表示しないものがある）。age-calculator を移行するとき（[roadmap.md](./roadmap.md) の手順8）に合わせる。`FormSingleAutocomplete` は `FormAutocomplete` に置き換え、同じ移行で削除する。
-
 ### kintone の型
 
 公式の型を正とし、自前で持つのは公式に無い部分だけにする。
@@ -129,4 +127,4 @@ renderPluginConfig({ definition: pluginConfig, tabs });
 
 | 事項                                                                                                          | 選択肢                        | 推奨                                           |
 | ------------------------------------------------------------------------------------------------------------- | ----------------------------- | ---------------------------------------------- |
-| `ui` の未使用部品（`FormTextField`・`DynamicSortableList`・`SortableRowContainer`）                           | 各プラグインで使う / 削除する | 移行時に、各プラグインの独自実装と比べて決める |
+| `ui` の `DynamicSortableList`・`SortableRowContainer`（age-calculator だけが使う）を、field-controller・auto-numbering の独自の並べ替えの代わりに使うか | 使う / 各プラグインの独自実装を残す | 移行時に、各プラグインの独自実装と比べて決める |
