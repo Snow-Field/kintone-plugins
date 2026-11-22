@@ -34,8 +34,8 @@ catalog:
   '@dnd-kit/utilities': 3.2.2
 
   # Kintone関連
-  '@kintone/rest-api-client': 6.1.0
-  '@kintone/dts-gen': 9.0.0
+  '@kintone/rest-api-client': 7.0.1
+  '@kintone/dts-gen': 10.0.0
   '@kintone/plugin-packer': 9.0.0
   '@kintone/plugin-uploader': 10.0.0
 
