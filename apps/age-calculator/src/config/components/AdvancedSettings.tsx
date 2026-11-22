@@ -1,5 +1,6 @@
 import type { FC } from 'react';
 import { FormSection, Text, FormSwitch } from '@kintone-plugin/ui';
+import type { PluginConfig } from '@/shared/config';
 
 export const AdvancedSettings: FC = () => {
   return (
@@ -8,7 +9,10 @@ export const AdvancedSettings: FC = () => {
       <Text variant='description' last>
         レコード保存時に最新の年齢へ自動更新するか選択してください。
       </Text>
-      <FormSwitch name='advanced.isUpdateOnSave' label='レコード保存時に最新の年齢へ更新する' />
+      <FormSwitch<PluginConfig>
+        name='advanced.isUpdateOnSave'
+        label='レコード保存時に最新の年齢へ更新する'
+      />
     </FormSection>
   );
 };
