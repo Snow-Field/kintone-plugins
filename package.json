@@ -16,10 +16,10 @@
   },
   "devDependencies": {
     "@biomejs/biome": "catalog:",
-    "@clack/prompts": "^0.11.0",
-    "fs-extra": "^11.4.1",
-    "rimraf": "^6.1.4",
-    "turbo": "^2.11.13"
+    "@clack/prompts": "catalog:",
+    "fs-extra": "catalog:",
+    "rimraf": "catalog:",
+    "turbo": "catalog:"
   },
   "packageManager": "pnpm@12.21.0",
   "engines": {

@@ -1,41 +1,51 @@
+import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import NodeRSA from 'node-rsa';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const PRIVATE_KEY_PATH = path.resolve(__dirname, '../private.ppk');
+const ROOT_DIR = path.resolve(__dirname, '..');
+const PRIVATE_KEY_PATH = path.join(ROOT_DIR, 'private.ppk');
+
+/**
+ * 外部コマンドを実行する Promise ラッパー
+ */
+const runCommand = (command, args) =>
+  new Promise((resolve, reject) => {
+    const child = spawn(command, args, { cwd: ROOT_DIR, stdio: 'inherit' });
+    child.on('close', (code, signal) => {
+      // Ctrl+C などで止めた場合（監視モードの終了など）は、失敗として扱わない
+      if (code === 0 || signal === 'SIGINT' || signal === 'SIGTERM') resolve();
+      else reject(new Error(`${command} が終了コード ${code} で失敗しました。`));
+    });
+    child.on('error', reject);
+  });
 
 /**
  * 秘密鍵の初期化処理
+ * 秘密鍵はプラグイン ID の元になるため、既にある場合は作り直さない
  */
-const initializePrivateKey = async () => {
+const main = async () => {
   try {
-    // 既存の鍵を確認
-    await fs.access(PRIVATE_KEY_PATH);
-    const privateKey = await fs.readFile(PRIVATE_KEY_PATH, 'utf8');
-    new NodeRSA(privateKey);
-    console.log('🔑 private.ppk は既に存在します。');
-  } catch (error) {
-    // ファイルが存在しない場合のみ生成を続行
-    if (error.code !== 'ENOENT') {
-      throw error;
+    try {
+      const key = await fs.readFile(PRIVATE_KEY_PATH, 'utf8');
+      // 作成の途中で止まった空のファイルなどを、正しい鍵として扱わない
+      if (!key.trimStart().startsWith('-----BEGIN')) {
+        throw new Error(
+          `private.ppk が秘密鍵の形式ではありません: ${PRIVATE_KEY_PATH}\n作り直す場合は、削除してから実行してください（プラグイン ID が変わります）。`
+        );
+      }
+      console.log(
+        '🔑 private.ppk は既に存在します。作り直す場合は、削除してから実行してください。'
+      );
+      return;
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error;
     }
 
     console.log('🔐 新しい秘密鍵を生成中...');
-    const key = new NodeRSA({ b: 1024 });
-    const privateKey = key.exportKey('pkcs1-private');
-
-    // ディレクトリの存在を確認して保存
-    await fs.mkdir(path.dirname(PRIVATE_KEY_PATH), { recursive: true });
-    await fs.writeFile(PRIVATE_KEY_PATH, privateKey, 'utf8');
+    await runCommand('cli-kintone', ['plugin', 'keygen', '--output', PRIVATE_KEY_PATH]);
     console.log('✨ private.ppk が生成されました!');
-  }
-};
-
-const main = async () => {
-  try {
-    await initializePrivateKey();
   } catch (error) {
     console.error(`❌ Unexpected error: ${error.message}`);
     process.exit(1);
