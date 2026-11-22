@@ -1,6 +1,6 @@
 # Field Controller プラグイン — 実装タスクリスト
 
-> **最終更新**: 2026-04-14
+> **最終更新**: 2026-11-23
 > **参照**: [design.md](./design.md)
 
 ---
@@ -40,7 +40,9 @@
 
 ## Phase 4: テストと品質向上
 
-- [ ] 各演算子の評価ロジックの単体テスト
-- [ ] スキーマバリデーションの単体テスト
+- [x] 各演算子の評価ロジックの単体テスト（`shared/lib/ruleEvaluator.test.ts`）
+- [x] スキーマバリデーションの単体テスト（`shared/config/dynamicSchema.test.ts`）
 - [ ] 設定画面の E2E テスト
-- [ ] エッジケースの検証（空条件、未設定フィールド等）
+- [x] エッジケースの検証（空条件・未設定フィールド・空の値の大小比較）
+
+Phase 1〜3 に書いたファイルのうち、`disableExecutor.ts`・`visibilityExecutor.ts`・`TriggerSelect.tsx`・`FieldSelect.tsx`・`useRuleActions.ts`・`useConditionActions.ts` は、共有パッケージへの移行（2026-11-23）で `shared/handlers/record.ts`・共有部品・`shared/config/persistence.ts` に置き換えた。

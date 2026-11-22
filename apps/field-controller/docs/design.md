@@ -1,7 +1,7 @@
 # Field Controller プラグイン 設計書
 
 > **バージョン**: 1.0
-> **最終更新**: 2026-04-14
+> **最終更新**: 2026-11-23
 > **タスク管理**: [tasks.md](./tasks.md)
 
 ---
@@ -21,13 +21,9 @@
   - [2.6 バリデーション戦略](#26-バリデーション戦略)
 - [3. アーキテクチャ](#3-アーキテクチャ)
   - [3.1 ディレクトリ構成](#31-ディレクトリ構成)
-  - [3.2 レイヤー構成図](#32-レイヤー構成図)
-  - [3.3 型定義の依存関係](#33-型定義の依存関係)
+  - [3.2 処理の流れの分担](#32-処理の流れの分担)
 - [4. モジュール設計](#4-モジュール設計)
-  - [4.1 shared/config — 設定基盤](#41-sharedconfig--設定基盤)
-  - [4.2 shared/lib — 実行エンジン](#42-sharedlib--実行エンジン)
-  - [4.3 desktop / mobile — エントリポイント](#43-desktop--mobile--エントリポイント)
-  - [4.4 config/ — 設定画面](#44-config--設定画面)
+  - [4.1 設定画面の部品](#41-設定画面の部品)
 - [5. フロー設計](#5-フロー設計)
   - [5.1 設定保存フロー](#51-設定保存フロー)
   - [5.2 実行フロー（Desktop / Mobile）](#52-実行フローdesktop--mobile)
@@ -185,297 +181,66 @@ const OPERATOR_COMPATIBILITY: Record<FieldType, OPERATOR_TYPES[]> = {
 
 ## 3. アーキテクチャ
 
+構成はリポジトリ共通の [docs/architecture.md](../../../docs/architecture.md) に従う。設定画面の骨組み（Provider・保存・リセット・インポート・エクスポート）は共有パッケージの `plugin-shell` が持ち、このプラグインはタブとフォームの部品だけを持つ。
+
 ### 3.1 ディレクトリ構成
 
 ```
 src/
-├── config/                          # 設定画面（React SPA）
-│   ├── index.tsx                    # エントリーポイント
-│   ├── App.tsx                      # ルートコンポーネント
-│   ├── components/
-│   │   ├── PluginContent.tsx        # メインフォームコンテナ
-│   │   ├── PluginErrorBoundary.tsx  # エラーバウンダリ
-│   │   └── features/
-│   │       ├── FormTabs.tsx         # タブ定義
-│   │       ├── InvisibleSettings.tsx # 非表示設定タブ
-│   │       ├── DisableSettings.tsx   # 非活性設定タブ
-│   │       └── rule/                # ルール関連コンポーネント
-│   │           ├── RuleCard.tsx      #   ルールカード（1ルール単位）
-│   │           ├── RuleList.tsx      #   ルール一覧（並び替え対応）
-│   │           ├── ConditionRow.tsx  #   条件行（1条件単位）
-│   │           ├── ConditionList.tsx #   条件一覧
-│   │           ├── TriggerSelect.tsx #   トリガー選択
-│   │           └── FieldSelect.tsx   #   対象フィールド選択
-│   ├── hooks/
-│   │   ├── usePluginForm.ts         # フォーム初期化
-│   │   ├── useSubmitConfig.ts       # 保存処理
-│   │   ├── useResetConfig.ts        # リセット処理
-│   │   ├── useImportConfig.ts       # インポート処理
-│   │   ├── useExportConfig.ts       # エクスポート処理
-│   │   ├── useSyncConfig.ts         # 状態同期
-│   │   ├── useRuleActions.ts        # ルール CRUD 操作
-│   │   └── useConditionActions.ts   # 条件 CRUD 操作
-│   └── states/
-│       ├── store.ts                 # Jotai ストア
-│       └── plugin.ts               # プラグイン状態 atom
-│
-├── desktop/                         # デスクトップ実行エントリ
-│   └── index.ts                     # イベントハンドラ登録
-│
-├── mobile/                          # モバイル実行エントリ
-│   └── index.ts                     # イベントハンドラ登録
-│
-└── shared/                          # 設定画面・実行の両方で共有
-    ├── config/
-    │   ├── index.ts                 # バレルエクスポート
-    │   ├── staticSchema.ts          # Zod 静的スキーマ定義
-    │   ├── dynamicSchema.ts         # 動的バリデーション生成
-    │   └── persistence.ts           # 設定の保存・復元・マイグレーション
-    └── lib/
-        ├── convertNumber.ts         # テキストから数値変換
-        ├── convertDate.ts           # テキストから日付変換
-        ├── ruleEvaluator.ts         # ルール評価エンジン
-        ├── disableExecutor.ts       # 非活性制御の実行
-        └── visibilityExecutor.ts    # 非表示制御の実行
+├── config/
+│   ├── index.tsx                 # plugin-shell に設定の定義とタブを渡して起動する
+│   ├── tabs.tsx                  # 編集不可設定・非表示設定のタブ
+│   └── components/
+│       ├── DisableSettings.tsx   # 編集不可設定タブ
+│       ├── InvisibleSettings.tsx # 非表示設定タブ
+│       └── rule/                 # ルールの一覧・カード・条件の一覧・条件行
+├── desktop/index.ts              # PC 版のイベントの登録だけ
+├── mobile/index.ts               # モバイル版のイベントの登録だけ
+└── shared/
+    ├── config/                   # スキーマ・動的な検証・既定値と旧版からの移行
+    ├── handlers/record.ts        # 条件に合うルールを適用する（kintone の API を触る）
+    └── lib/                      # 条件の評価と値の変換（kintone に依存しない）
 ```
 
-### 3.2 レイヤー構成図
+### 3.2 処理の流れの分担
 
-```
-┌──────────────────────────────────────────────────────────┐
-│                    設定画面 (config/)                      │
-│  ┌─────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐  │
-│  │  React   │  │ React    │  │  Jotai   │  │  Zod     │  │
-│  │  UI      │→ │ Hook Form│→ │  State   │→ │ Validate │  │
-│  │Components│  │          │  │          │  │          │  │
-│  └─────────┘  └──────────┘  └──────────┘  └──────────┘  │
-│         ↓           ↓                           ↓        │
-│  ┌──────────────────────────────────────────────────┐    │
-│  │              shared/config/persistence.ts         │    │
-│  │         kintone.plugin.setConfig() で保存           │    │
-│  └──────────────────────────────────────────────────┘    │
-└──────────────────────────────────────────────────────────┘
-                            ↓ JSON
-┌──────────────────────────────────────────────────────────┐
-│              実行レイヤー (desktop/ | mobile/)              │
-│  ┌──────────┐  ┌──────────┐  ┌──────────────────────┐   │
-│  │ 設定復元  │→ │ ルール   │→ │ Executor             │   │
-│  │ restore  │  │ 評価     │  │ (Disable/Visibility) │   │
-│  │ Config() │  │ evaluate │  │ フィールド操作          │   │
-│  └──────────┘  └──────────┘  └──────────────────────┘   │
-└──────────────────────────────────────────────────────────┘
-```
-
-### 3.3 型定義の依存関係
-
-```
-staticSchema.ts (型の源泉)
-│
-├── PluginConfig ─────────→ persistence.ts (createConfig, restoreConfig)
-│                          → config/states/plugin.ts (pluginConfigAtom)
-│                          → config/hooks/usePluginForm.ts
-│                          → config/hooks/useSubmitConfig.ts
-│                          → config/hooks/useExportConfig.ts
-│
-├── VisibilityRule ────────→ visibilityExecutor.ts
-├── DisableRule ───────────→ disableExecutor.ts
-├── RuleBlock ─────────────→ ruleEvaluator.ts
-│
-├── PluginConfigSchema ────→ dynamicSchema.ts (superRefine)
-│                          → config/hooks/useImportConfig.ts
-│                          → persistence.ts (restoreConfig)
-│
-└── OPERATOR_TYPES ────────→ dynamicSchema.ts
-                           → ruleEvaluator.ts
-                           → config/components/ (UI)
-```
+| 場所 | 役割 |
+| --- | --- |
+| `shared/config/persistence.ts` | `definePluginConfig` で設定の定義を作る。新しいルール・条件の既定値（`createDefaultRule`・`createDefaultCondition`）も持つ |
+| `shared/config/dynamicSchema.ts` | アプリのフィールドに依存する検証。フィールドの種類で使える演算子（`getCompatibleOperators`）も持つ |
+| `shared/lib/ruleEvaluator.ts` | トリガーと条件（AND/OR）を評価する（`evaluateBlock`） |
+| `shared/handlers/record.ts` | 評価に合ったルールの対象フィールドを、編集不可（`disabled`）・非表示（`setFieldShown`）にする（`applyFieldControls`） |
 
 ---
 
 ## 4. モジュール設計
 
-### 4.1 shared/config — 設定基盤
+### 4.1 設定画面の部品
 
-#### `staticSchema.ts`
+入力欄はすべて共有パッケージの部品を使う（プラグインの中で `Controller` と MUI を直接組み合わせない）。
 
-**責務**: プラグイン設定のデータ構造と型を StaticSchema として定義
+| 項目 | 部品 | データパス |
+| --- | --- | --- |
+| ルール名 | `FormTextField` | `*Rules[i].label` |
+| 有効/無効 | `FormSwitch` | `*Rules[i].enabled` |
+| トリガー | `FormAutocomplete`（複数） | `*Rules[i].block.triggers` |
+| 対象フィールド | `FieldSelect`（複数） | `*Rules[i].targetFields` |
+| 条件のフィールド | `FieldSelect` | `*Rules[i].block.conditions[j].field` |
+| 演算子 | `FormSelect` | `*Rules[i].block.conditions[j].operator` |
+| 値 | 下記 | `*Rules[i].block.conditions[j].value` |
 
-- `PluginConfigSchemaV1`: 全体設定の Zod スキーマ
-- `OPERATOR_TYPES`: 演算子の列挙型
-- 型エクスポート: `PluginConfig`, `VisibilityRule`, `DisableRule`, `RuleBlock` 等
+値の入力欄は、フィールドの種類と演算子で切り替える（[付録A](#付録a-フィールドタイプ別-ui-マッピング)）。
 
-#### `dynamicSchema.ts`
-
-**責務**: kintone アプリのフィールド情報を用いた動的バリデーション
-
-- `createConfigSchema(fields)`: フィールド情報から動的 Zod スキーマを生成
-- `validateBlocks()`: ルールブロック内の条件を検証
-- `isOperatorCompatibleWithFieldType()`: 演算子とフィールドタイプの互換性チェック（[§2.3](#23-演算子フィールドタイプ互換性マップ) 参照）
-- `OPERATOR_COMPATIBILITY`: 演算子互換性マップ（`KintoneFormFieldProperty.OneOf['type']` → `OPERATOR_TYPES[]`）
-
-#### `persistence.ts`
-
-**責務**: 設定の保存・復元・マイグレーション
-
-- `createConfig()`: デフォルト設定の生成
-- `storeConfig()`: kintone への保存
-- `restoreConfig()`: kintone からの復元（Zod 検証付き）
-- `migrateConfig()`: 旧バージョンからのマイグレーション
-
-### 4.2 shared/lib — 実行エンジン
-
-#### `ruleEvaluator.ts`
-
-**責務**: 条件の評価ロジック
-
-```
-evaluateBlock(block, event)
-  ├── トリガーマッチ判定
-  ├── 条件なし → 無条件 true
-  └── 条件あり
-      ├── evaluateCondition() × N
-      └── AND/OR でまとめて判定
-```
-
-**拡張予定**:
-- `greaterThan`, `lessThan` 等の数値比較演算子の実装
-- `greaterThanOrEqual`, `lessThanOrEqual` の実装
-- `notIncludes` の実装
-- 配列値（複数選択フィールド）の `includes` / `notIncludes` 対応
-
-#### `disableExecutor.ts`
-
-**責務**: 条件一致時に `event.record[fieldCode].disabled = true` を設定
-
-- ルール単位の `enabled` チェックにより、個別ルールの有効/無効を制御
-
-#### `visibilityExecutor.ts`
-
-**責務**: 条件一致時に `kintone.app.record.setFieldShown(fieldCode, false)` を呼び出し
-
-- ルール単位の `enabled` チェックにより、個別ルールの有効/無効を制御
-
-### 4.3 desktop / mobile — エントリポイント
-
-#### `desktop/index.ts`
-
-**責務**: PC 向けイベントハンドラの登録
-
-```typescript
-const pluginConfig = restoreConfig();
-executeDisable(pluginConfig.disableRules, event);
-executeVisibility(pluginConfig.visibilityRules, event);
-```
-
-- ルール単位の `enabled` による有効/無効判定は Executor 側で実施
-
-#### `mobile/index.ts`
-
-**責務**: モバイル向けイベントハンドラの登録（`desktop/index.ts` と同構造）
-
-### 4.4 config/ — 設定画面
-
-#### コンポーネント階層
-
-```
-App
-└── JotaiProvider + PluginThemeProvider + SnackbarProvider
-    └── PluginErrorBoundary
-        └── Suspense
-            └── PluginContent
-                └── FormProvider (React Hook Form)
-                    └── PluginContentForm
-                        ├── Header (タブ / メニュー / 保存ボタン)
-                        └── Form
-                            ├── [Tab 0] InvisibleSettings
-                            │   └── RuleList (dnd-kit 並び替え)
-                            │       └── RuleCard × N
-                            │           ├── EnabledSwitch (ルール単位の有効/無効)
-                            │           ├── TriggerSelect
-                            │           ├── ConditionList
-                            │           │   └── ConditionRow × N
-                            │           │       ├── FieldSelect (field)
-                            │           │       ├── OperatorSelect (operator)
-                            │           │       └── ValueInput (value)
-                            │           ├── LogicToggle (AND/OR)
-                            │           └── TargetFieldSelect (targetFields)
-                            │
-                            └── [Tab 1] DisableSettings
-                                └── RuleList（同上の構造）
-```
-
-#### 主要コンポーネント仕様
-
-##### `InvisibleSettings.tsx` / `DisableSettings.tsx`
-
-両コンポーネントはほぼ同一の UI 構造を持つため、共通の `RuleSettingsBase` パターンを検討する。
-
-```typescript
-// 設計イメージ
-type RuleSettingsProps = {
-  rulesPath: 'visibilityRules' | 'disableRules';
-  triggerOptions: Array<{ label: string; value: string }>;
-};
-```
-
-**実装ポイント**:
-- `useFormContext<PluginConfig>()` でフォーム状態にアクセス
-- `useFieldArray()` でルールの追加・削除・並び替えを管理
-- ルール単位の `enabled` スイッチで個別ルールの有効/無効を切り替え
-- `enabled: false` のルールはカード全体を視覚的に無効化（グレーアウト・opacity 低下等）
-
-##### `RuleCard.tsx`
-
-1ルール単位の設定カード。
-
-| セクション | UI要素 | データパス |
-|-----------|--------|-----------|
-| 有効/無効 | スイッチ | `visibilityRules[i].enabled` |
-| トリガー | マルチセレクト | `visibilityRules[i].block.triggers` |
-| 条件 | 動的フォームリスト | `visibilityRules[i].block.conditions` |
-| ロジック | AND/OR トグル | `visibilityRules[i].block.logic` |
-| 対象フィールド | フィールドピッカー | `visibilityRules[i].targetFields` |
-
-##### `ConditionRow.tsx`
-
-1条件行の設定フォーム。
-
-```
-┌────────────┐ ┌──────────┐ ┌──────────────┐ ┌───┐
-│ フィールド   │ │ 演算子    │ │ 値           │ │ × │
-│ (Autocomplete)│ │(Select) │ │(Text/Select) │ │   │
-└────────────┘ └──────────┘ └──────────────┘ └───┘
-```
+| 条件 | 部品 |
+| --- | --- |
+| 選択肢を持つフィールドで、含む・含まない | `FormAutocomplete`（複数） |
+| 選択肢を持つフィールドで、それ以外 | `FormSelect` |
+| 選択肢を持たないフィールド | `FormTextField`（数値・日付・時刻・日時は入力の種類を合わせる） |
 
 **動的な振る舞い**:
-- フィールド選択時に、そのフィールドタイプに応じた演算子リストをフィルタリング（[§2.3](#23-演算子フィールドタイプ互換性マップ) 参照）
-- フィールドタイプに応じて値入力の UI を切り替え（[付録A](#付録a-フィールドタイプ別-ui-マッピング) 参照）
-
-#### カスタムフック仕様
-
-##### `useRuleActions.ts`
-
-ルールの CRUD 操作を管理するカスタムフック。
-
-```typescript
-type UseRuleActionsReturn = {
-  appendRule: () => void;           // ルール追加
-  removeRule: (index: number) => void; // ルール削除
-  moveRule: (from: number, to: number) => void; // ルール並び替え
-  duplicateRule: (index: number) => void; // ルール複製
-};
-```
-
-##### `useConditionActions.ts`
-
-条件の CRUD 操作を管理するカスタムフック。
-
-```typescript
-type UseConditionActionsReturn = {
-  appendCondition: (ruleIndex: number) => void;
-  removeCondition: (ruleIndex: number, condIndex: number) => void;
-};
-```
+- 条件のフィールドを変えたら、そのフィールドで使える最初の演算子にし、値を空にする
+- 演算子を変えたら、値を空にする
+- ルールの並べ替えは、カード単位のため独自の作り（dnd-kit）を使う。共有の `DynamicSortableList` は行の並べ替え向けで、見た目と操作が合わない
 
 ---
 
@@ -492,9 +257,7 @@ Zod 静的バリデーション (staticSchema)
   ↓
 Zod 動的バリデーション (dynamicSchema + kintone フィールド情報)
   ↓
-kintone.plugin.setConfig() で JSON 保存
-  ↓
-Jotai atom に同期 (useSyncConfig)
+kintone.plugin.setConfig() で JSON 保存（plugin-shell が行う）
 ```
 
 ### 5.2 実行フロー（Desktop / Mobile）
@@ -504,21 +267,13 @@ kintone イベント発火
   ↓
 restoreConfig(): kintone から設定 JSON を復元 + Zod 検証
   ↓
-executeDisable(disableRules, event)
-  └── ルールごとにループ
+applyFieldControls(event, config)
+  ├── 編集不可のルールごとに
+  │   ├── rule.enabled === false → スキップ
+  │   └── evaluateBlock() に合う → record[field].disabled = true
+  └── 非表示のルールごとに
       ├── rule.enabled === false → スキップ
-      └── rule.enabled === true
-          └── evaluateBlock()
-              ├── トリガーマッチ？
-              ├── 条件評価（AND/OR）
-              └── マッチ → record[field].disabled = true
-  ↓
-executeVisibility(visibilityRules, event)
-  └── ルールごとにループ
-      ├── rule.enabled === false → スキップ
-      └── rule.enabled === true
-          └── evaluateBlock()
-              └── マッチ → setFieldShown(field, false)
+      └── evaluateBlock() に合う → setFieldShown(field, false)（PC とモバイルで API を分ける）
   ↓
 return event
 ```
@@ -535,7 +290,7 @@ Setting ラッパー（`visibilitySetting` / `disableSetting`）を廃止し、�
 **背景・理由**:
 - 個別ルールの一時無効化が可能（デバッグ・段階的な設定展開に有用）
 - Setting ラッパーが不要になり、スキーマとアクセスパスがシンプル化
-- Executor 側の `rule.enabled` チェックとの整合性が確保
+- 適用する処理（`applyFieldControls`）の `rule.enabled` チェックとの整合性が確保
 
 **検討した代替案**:
 
