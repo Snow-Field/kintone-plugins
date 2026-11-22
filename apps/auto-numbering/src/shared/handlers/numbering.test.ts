@@ -1,14 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { NumberingSetting } from '@/shared/config';
 import type { KintoneEvent } from '@/shared/types/kintone';
-import { DEFAULT_RETRY_COUNT } from '@/shared/constant/numbering';
-import { checkDuplicate, fetchRecord, updateRecord } from '../services/recordService';
-import { resolveNextSerial } from '../services/serialService';
-import { executeNumbering } from './numberingEngine';
+import { DEFAULT_RETRY_COUNT } from '@/shared/config/constants';
+import { checkDuplicate, fetchRecord, updateRecord } from '@/shared/api/records';
+import { resolveNextSerial } from '@/shared/api/serial';
+import { executeNumbering } from './numbering';
 
 // kintone REST API を呼ぶ処理だけをモックし、フォーマット処理は実物を使う
-vi.mock('../services/recordService', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../services/recordService')>();
+vi.mock('@/shared/api/records', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/shared/api/records')>();
   return {
     ...actual,
     fetchRecord: vi.fn(),
@@ -16,7 +16,7 @@ vi.mock('../services/recordService', async (importOriginal) => {
     checkDuplicate: vi.fn(),
   };
 });
-vi.mock('../services/serialService', () => ({ resolveNextSerial: vi.fn() }));
+vi.mock('@/shared/api/serial', () => ({ resolveNextSerial: vi.fn() }));
 
 const setting: NumberingSetting = {
   id: 'setting-1',

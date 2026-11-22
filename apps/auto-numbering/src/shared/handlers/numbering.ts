@@ -1,14 +1,10 @@
 import type { NumberingSetting } from '@/shared/config';
 import type { KintoneEvent } from '@/shared/types/kintone';
-import { DEFAULT_RETRY_COUNT } from '@/shared/constant/numbering';
-import { fetchRecord, updateRecord, checkDuplicate } from '../services/recordService';
-import {
-  resolveFormatParts,
-  buildFormatString,
-  buildNumberingValue,
-} from '../services/formatService';
-import { resolveNextSerial } from '../services/serialService';
-import { padZero } from '../utils/string';
+import { DEFAULT_RETRY_COUNT } from '@/shared/config/constants';
+import { fetchRecord, updateRecord, checkDuplicate } from '@/shared/api/records';
+import { resolveFormatParts, buildFormatString, buildNumberingValue } from '@/shared/lib/format';
+import { resolveNextSerial } from '@/shared/api/serial';
+import { padZero } from '@/shared/lib/string';
 
 /**
  * 採番処理のメインロジック

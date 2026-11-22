@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { DATE_SOURCE, DATE_FORMATS, CONNECTORS, RESET_TIMING } from '../constant/numbering';
+import { DATE_SOURCE, DATE_FORMATS, CONNECTORS, RESET_TIMING } from './constants';
 
 /** プラグインバージョン */
 export const LATEST_PLUGIN_VERSION = 1;

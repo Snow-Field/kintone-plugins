@@ -1,5 +1,5 @@
 import type { DateContext } from '@/shared/types/numbering';
-import { DATE_FORMATS } from '@/shared/constant/numbering';
+import { DATE_FORMATS } from '@/shared/config/constants';
 import { padZero } from './string';
 
 /**

@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import { useAppFields } from '@kintone-plugin/kintone-utils';
 import type { PluginConfig } from '@/shared/config';
-import { DATE_SOURCE, DATE_FORMATS } from '@/shared/constant/numbering';
+import { DATE_SOURCE, DATE_FORMATS } from '@/shared/config/constants';
 import type { KintoneFormFieldProperty } from '@kintone/rest-api-client';
 
 /** フィールドパーツで選択可能なフィールドタイプ */

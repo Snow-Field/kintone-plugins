@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { KintoneEvent } from '@/shared/types/kintone';
 import type { FormatPart } from '@/shared/config/staticSchema';
-import { buildFormatString, buildNumberingValue, resolveFormatParts } from './formatService';
+import { buildFormatString, buildNumberingValue, resolveFormatParts } from './format';
 
 const record = {
   部署コード: { type: 'SINGLE_LINE_TEXT', value: 'XX' },

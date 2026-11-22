@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DATE_FORMATS } from '@/shared/constant/numbering';
+import { DATE_FORMATS } from '@/shared/config/constants';
 import { createDateContext, formatDate } from './date';
 
 describe('createDateContext', () => {

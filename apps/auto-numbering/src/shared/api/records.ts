@@ -1,7 +1,6 @@
 import { KintoneRestAPIClient } from '@kintone/rest-api-client';
-import type { KintoneEvent } from '@/shared/types/kintone';
 import type { UpdateRecordParams } from '@/shared/types/numbering';
-import { RESET_TIMING } from '@/shared/constant/numbering';
+import { RESET_TIMING } from '@/shared/config/constants';
 
 /**
  * RestAPIClientインスタンスを作成
@@ -11,21 +10,6 @@ function createClient(apiToken?: string): KintoneRestAPIClient {
     baseUrl: location.origin,
     auth: apiToken ? { apiToken } : undefined,
   });
-}
-
-/**
- * レコードから作成日時を取得する
- */
-export function getRecordCreatedAt(record: KintoneEvent['record']) {
-  const createdTime =
-    record.作成日時?.value ?? Object.values(record).find((f) => f?.type === 'CREATED_TIME')?.value;
-
-  if (typeof createdTime === 'string') {
-    return createdTime;
-  }
-
-  // 作成日時が見つからない場合は現在時刻を返す
-  return new Date().toISOString();
 }
 
 /**

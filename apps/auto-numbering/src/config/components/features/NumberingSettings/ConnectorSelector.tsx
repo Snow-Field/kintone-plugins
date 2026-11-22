@@ -9,7 +9,7 @@ import {
   FormHelperText,
 } from '@mui/material';
 import type { PluginConfig } from '@/shared/config';
-import { CONNECTORS } from '@/shared/constant/numbering';
+import { CONNECTORS } from '@/shared/config/constants';
 
 type Props = {
   name: string;

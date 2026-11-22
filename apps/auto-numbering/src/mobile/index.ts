@@ -1,6 +1,6 @@
 import { onRecordEvents } from '@kintone-plugin/kintone-utils';
 import { restoreConfig } from '@/shared/config';
-import { executeNumbering } from '@/shared/feature/numbering';
+import { executeNumbering } from '@/shared/handlers/numbering';
 
 onRecordEvents(['mobile.app.record.create.show', 'mobile.app.record.edit.show'], (event) => {
   const record = event.record;

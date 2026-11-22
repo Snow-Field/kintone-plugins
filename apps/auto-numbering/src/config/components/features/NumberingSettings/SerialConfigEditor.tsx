@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 import { useAppFields } from '@kintone-plugin/kintone-utils';
 import type { PluginConfig, FormatPart } from '@/shared/config';
-import { RESET_TIMING } from '@/shared/constant/numbering';
+import { RESET_TIMING } from '@/shared/config/constants';
 import type { KintoneFormFieldProperty } from '@kintone/rest-api-client';
 
 /** 連番管理フィールドとして選択可能なフィールドタイプ（数値のみ） */

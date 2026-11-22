@@ -6,9 +6,23 @@ import type { z } from 'zod';
 import type { KintoneEvent } from '@/shared/types/kintone';
 import type { ResolvedPart } from '@/shared/types/numbering';
 import type { FormatPart, SerialConfig, ConnectorsSchema } from '@/shared/config/staticSchema';
-import { DATE_SOURCE } from '@/shared/constant/numbering';
-import { createDateContext, formatDate } from '../utils/date';
-import { getRecordCreatedAt } from './recordService';
+import { DATE_SOURCE } from '@/shared/config/constants';
+import { createDateContext, formatDate } from './date';
+
+/**
+ * レコードから作成日時を取得する
+ */
+export function getRecordCreatedAt(record: KintoneEvent['record']) {
+  const createdTime =
+    record.作成日時?.value ?? Object.values(record).find((f) => f?.type === 'CREATED_TIME')?.value;
+
+  if (typeof createdTime === 'string') {
+    return createdTime;
+  }
+
+  // 作成日時が見つからない場合は現在時刻を返す
+  return new Date().toISOString();
+}
 
 /**
  * 各パーツの値を確定する

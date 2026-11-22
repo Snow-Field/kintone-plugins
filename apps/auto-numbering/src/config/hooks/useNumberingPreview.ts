@@ -1,11 +1,8 @@
 import { useMemo } from 'react';
 import type { NumberingSetting } from '@/shared/config';
-import {
-  buildFormatString,
-  buildNumberingValue,
-} from '@/shared/feature/numbering/services/formatService';
-import { padZero } from '@/shared/feature/numbering/utils/string';
-import { formatDate, createDateContext } from '@/shared/feature/numbering/utils/date';
+import { buildFormatString, buildNumberingValue } from '@/shared/lib/format';
+import { padZero } from '@/shared/lib/string';
+import { formatDate, createDateContext } from '@/shared/lib/date';
 
 /**
  * 採番プレビューを生成するカスタムフック
