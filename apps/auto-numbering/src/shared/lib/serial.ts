@@ -1,33 +1,36 @@
 import type { SerialContext } from '@/shared/types/numbering';
 
+type SerialFormat = Pick<SerialContext, 'serialConfig' | 'connector' | 'formatString'>;
+
 /**
- * レコードから連番を抽出する
+ * 採番値が、この書式（連番を除く部分）で作られたものか
+ * 連番が末尾なら「書式-連番」、先頭なら「連番-書式」の形で、連番の部分が数字だけのもの
  */
-export function extractSerialWithResets(
-  ctx: Pick<SerialContext, 'resultFieldCode' | 'serialConfig' | 'connector'>,
-  records: Array<Record<string, { type: string; value: unknown }>>
+export function matchesFormat(
+  { serialConfig, connector, formatString }: SerialFormat,
+  value: string
+): boolean {
+  const isPrefix = serialConfig.position === 'prefix';
+  const affix = isPrefix ? `${connector}${formatString}` : `${formatString}${connector}`;
+  if (isPrefix ? !value.endsWith(affix) : !value.startsWith(affix)) return false;
+  const serial = isPrefix ? value.slice(0, -affix.length) : value.slice(affix.length);
+  return /^\d+$/.test(serial);
+}
+
+/**
+ * 同じ書式の採番値から、最大の連番を返す
+ * 連番の部分が数字でないもの（手入力による異常値の可能性）は飛ばす
+ */
+export function extractMaxSerial(
+  { serialConfig, connector }: Pick<SerialContext, 'serialConfig' | 'connector'>,
+  values: string[]
 ): number {
-  const { resultFieldCode, serialConfig, connector } = ctx;
-  const { position } = serialConfig;
-
-  // 連番の開始位置
-  const isPrefix = position === 'prefix';
-
-  // リセットあり → resultFieldCodeの値を分割して最大連番を探す
+  const isPrefix = serialConfig.position === 'prefix';
   let maxSerial = 0;
-  for (const record of records) {
-    const fieldValue = record[resultFieldCode]?.value;
-    const fullValue = typeof fieldValue === 'string' ? fieldValue : String(fieldValue ?? '');
-    const segments = fullValue.split(connector);
-    // positionに応じて先頭or末尾から連番セグメントを特定
-    const serialSegment = isPrefix ? segments[0] : segments[segments.length - 1];
-    const serialNum = Number(serialSegment);
-    // 数値変換できないレコードはスキップ（手入力による異常値の可能性）
-    if (Number.isNaN(serialNum)) continue;
-    if (serialNum > maxSerial) {
-      maxSerial = serialNum;
-    }
+  for (const value of values) {
+    const segments = value.split(connector);
+    const serial = Number(isPrefix ? segments[0] : segments[segments.length - 1]);
+    if (!Number.isNaN(serial) && serial > maxSerial) maxSerial = serial;
   }
-
   return maxSerial;
 }

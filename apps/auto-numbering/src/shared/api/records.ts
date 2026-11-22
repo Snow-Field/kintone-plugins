@@ -13,22 +13,30 @@ function createClient(apiToken?: string): KintoneRestAPIClient {
   });
 }
 
+type FetchRecordsQuery = {
+  /** 絞り込みの条件（値は quoteQueryValue でエスケープしておく） */
+  condition: string;
+  /** 並べ方（`order by` は付けない。例: `$id desc`） */
+  orderBy: string;
+  /** 取得する件数（500 まで） */
+  limit: number;
+};
+
 /**
- * レコードを取得する（複数）
+ * 条件に合うレコードを、並べた順に先頭から limit 件取得する
+ * getAllRecords は orderBy の前に自分で `order by` を付け、limit も受け付けないので使わない
  */
 export async function fetchRecords(
   appId: string | number,
-  condition: string,
-  orderBy: string,
+  { condition, orderBy, limit }: FetchRecordsQuery,
   fields: string[],
   apiToken?: string
 ) {
   const client = createClient(apiToken);
 
-  const records = await client.record.getAllRecords({
+  const { records } = await client.record.getRecords({
     app: appId,
-    condition,
-    orderBy,
+    query: `${condition} order by ${orderBy} limit ${limit}`,
     fields,
   });
 
@@ -94,7 +102,8 @@ export async function updateRecord(params: UpdateRecordParams): Promise<void> {
 }
 
 /**
- * 重複チェック（キャッシュ対応版）
+ * 重複チェック
+ * 取得済みの採番値にあれば API を呼ばない。無くても、取得した件数に上限があるので API で確かめる
  */
 export async function checkDuplicate(
   appId: string | number,
@@ -103,14 +112,17 @@ export async function checkDuplicate(
   existingValues: Set<string>,
   apiToken?: string
 ): Promise<boolean> {
-  // キャッシュにある場合はAPIを呼ばない
-  if (existingValues.size > 0) {
-    return existingValues.has(numberingValue);
-  }
+  if (existingValues.has(numberingValue)) return true;
 
-  // キャッシュがない場合はAPIで確認
-  const condition = `${fieldCode} = ${quoteQueryValue(numberingValue)}`;
-  const orderBy = `limit 1`;
-  const records = await fetchRecords(appId, condition, orderBy, [fieldCode], apiToken);
+  const records = await fetchRecords(
+    appId,
+    {
+      condition: `${fieldCode} = ${quoteQueryValue(numberingValue)}`,
+      orderBy: '$id desc',
+      limit: 1,
+    },
+    [fieldCode],
+    apiToken
+  );
   return records.length > 0;
 }

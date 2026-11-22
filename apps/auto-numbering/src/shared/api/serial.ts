@@ -5,7 +5,7 @@
 import type { SerialContext } from '@/shared/types/numbering';
 import { RESET_TIMING, FETCH_LIMIT_FOR_RESET } from '@/shared/config/constants';
 import { quoteQueryValue } from '@/shared/lib/query';
-import { extractSerialWithResets } from '@/shared/lib/serial';
+import { extractMaxSerial, matchesFormat } from '@/shared/lib/serial';
 import { fetchRecords } from './records';
 
 /**
@@ -23,12 +23,13 @@ export async function resolveNextSerial(
         throw new Error('resetTiming が "none" の場合、serialFieldCode は必須です');
       }
 
-      const condition = `${serialFieldCode} != ""`;
-      const orderBy = `order by ${serialFieldCode} desc limit 1`;
-      const fields = [resultFieldCode, serialFieldCode];
-
       // リセットなし → 全期間で最大の連番を取得
-      const records = await fetchRecords(appId, condition, orderBy, fields, apiToken);
+      const records = await fetchRecords(
+        appId,
+        { condition: `${serialFieldCode} != ""`, orderBy: `${serialFieldCode} desc`, limit: 1 },
+        [resultFieldCode, serialFieldCode],
+        apiToken
+      );
 
       // レコードから連番を抽出
       if (records.length === 0) {
@@ -54,31 +55,30 @@ export async function resolveNextSerial(
         );
       }
 
-      const condition = `${resultFieldCode} like ${quoteQueryValue(formatString)}`;
-      const orderBy = `order by $id desc limit ${FETCH_LIMIT_FOR_RESET}`;
-      const fields = [resultFieldCode];
-
-      // 期間リセット → formatString（連番を除く部分）で一致検索
-      const records = await fetchRecords(appId, condition, orderBy, fields, apiToken);
-
-      // 既存の採番値をキャッシュ
-      const existingValues = new Set(
-        records
-          .map((r) => {
-            const value = r[resultFieldCode]?.value;
-            return typeof value === 'string' ? value : String(value ?? '');
-          })
-          .filter((v) => v !== '')
+      // 期間リセット → formatString（連番を除く部分）を含む採番値を探す
+      const records = await fetchRecords(
+        appId,
+        {
+          condition: `${resultFieldCode} like ${quoteQueryValue(formatString)}`,
+          orderBy: '$id desc',
+          limit: FETCH_LIMIT_FOR_RESET,
+        },
+        [resultFieldCode],
+        apiToken
       );
 
-      // レコードから連番を抽出
-      if (records.length === 0) {
+      // like は部分一致なので、同じ書式の採番値だけを残す
+      const existingValues = new Set(
+        records
+          .map((r) => r[resultFieldCode]?.value)
+          .filter((v): v is string => typeof v === 'string' && matchesFormat(ctx, v))
+      );
+
+      if (existingValues.size === 0) {
         return { nextSerial: initialValue, existingValues };
       }
 
-      const maxSerialNumber = extractSerialWithResets(ctx, records);
-
-      return { nextSerial: maxSerialNumber + 1, existingValues };
+      return { nextSerial: extractMaxSerial(ctx, [...existingValues]) + 1, existingValues };
     }
     default: {
       const exhaustiveCheck: never = resetTiming;
