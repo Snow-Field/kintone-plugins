@@ -26,7 +26,7 @@ React の共通コンポーネント（`packages/ui`）と共通ロジック（`
 5. [x] 設定画面の骨組みを共有パッケージ（`plugin-shell`）に移し、`template/` を最初の利用者にする
 6. [x] 依存関係を最新にする。2026-11-22 に、3プラグインを kintone の実機で確認した（問題なし）。判断の理由は [decisions/tooling.md](./decisions/tooling.md)
 7. [x] フィールドを選ぶ部品を共有パッケージに移す（`ui` の `FormAutocomplete`、`plugin-shell` の `FieldSelect`）。既存の6か所は手順8 で置き換える
-8. [ ] 既存のプラグインを1本ずつ移行する（1プラグイン1PR）。小さい順に age-calculator（移行済み・実機確認は未実施）→ field-controller → auto-numbering。移行したプラグインからは、骨組みのコピー（`src/config/hooks`・`states`）を消す
+8. [ ] 既存のプラグインを1本ずつ移行する（1プラグイン1PR）。小さい順に age-calculator（2026-11-23 に実機で確認済み）→ field-controller → auto-numbering。移行したプラグインからは、骨組みのコピー（`src/config/hooks`・`states`）を消す
 
 ### 移行で解消する問題（2026-11-21 の調査）
 
