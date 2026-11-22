@@ -54,7 +54,8 @@ React の共通コンポーネント（`packages/ui`）と共通ロジック（`
 6. [x] MUI 9
 7. [x] jotai 3
 8. [x] `@hookform/resolvers` 7
-9. [ ] kintone 関連: `@kintone/rest-api-client` 7・`dts-gen` 10・packer・uploader
+9. [x] kintone 関連: `@kintone/rest-api-client` 7・`dts-gen` 10
+9-1. [ ] `@kintone/plugin-packer`・`plugin-uploader` は保守が終了した（npm で非推奨）。後継の `@kintone/cli`（cli-kintone）に置き換えるかを決める
 10. [ ] スクリプト用: `@clack/prompts`・dotenv・node-rsa・nanoid など
 11. [ ] 3プラグインの設定画面と実行画面を、kintone の実機で確認する
 
