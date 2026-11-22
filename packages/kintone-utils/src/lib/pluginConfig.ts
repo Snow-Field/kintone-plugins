@@ -19,31 +19,53 @@ export const storePluginConfig = <T extends Record<string, any>>(
 const toError = (error: unknown): Error =>
   error instanceof Error ? error : new Error(String(error));
 
-/** 保存の完了を待つ時間の既定値（ミリ秒） */
-export const SAVE_TIMEOUT_MS = 30_000;
+/** 保存の完了を待っていると知らせるまでの時間の既定値（ミリ秒） */
+export const SAVE_SLOW_MS = 30_000;
+
+/** 保存の完了を待つのを打ち切るまでの時間の既定値（ミリ秒） */
+export const SAVE_TIMEOUT_MS = 120_000;
+
+/** 決められた時間までに保存の完了を確認できなかった（保存できたかどうかは分からない） */
+export class SaveTimeoutError extends Error {
+  constructor(timeoutMs: number) {
+    super(`保存の完了を ${timeoutMs / 1000} 秒以内に確認できませんでした`);
+    this.name = 'SaveTimeoutError';
+  }
+}
+
+type WaitForSaveOptions = {
+  /** これを過ぎても完了しなければ onSlow を1回呼ぶ。そのあとも timeoutMs までは待つ */
+  slowAfterMs?: number;
+  onSlow?: () => void;
+  /** これを過ぎても完了しなければ SaveTimeoutError で失敗にする（保存中のまま止まらないため） */
+  timeoutMs?: number;
+};
 
 /**
  * 保存の完了を待つ
  * kintone.plugin.app.setConfig は成功したときだけコールバックを呼ぶため、それを待つ。
- * 同期的に投げられた例外と、timeoutMs までに完了しなかった場合は失敗として扱う
- * （失敗が後から知らされる場合に、保存中のまま止まらないようにするため）
+ * 同期的に投げられた例外は失敗として扱う。
+ * 完了が遅れることがあるため、slowAfterMs で待っていることを知らせ、timeoutMs まで待つ
  */
 export const waitForSave = <T>(
   save: (config: T, callback: () => void) => void,
   config: T,
-  timeoutMs = SAVE_TIMEOUT_MS
+  { slowAfterMs = SAVE_SLOW_MS, onSlow, timeoutMs = SAVE_TIMEOUT_MS }: WaitForSaveOptions = {}
 ): Promise<void> =>
   new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
-      reject(new Error(`保存の完了を ${timeoutMs / 1000} 秒以内に確認できませんでした`));
-    }, timeoutMs);
+    const slowTimer = setTimeout(() => onSlow?.(), slowAfterMs);
+    const timeoutTimer = setTimeout(() => reject(new SaveTimeoutError(timeoutMs)), timeoutMs);
+    const clearTimers = () => {
+      clearTimeout(slowTimer);
+      clearTimeout(timeoutTimer);
+    };
     try {
       save(config, () => {
-        clearTimeout(timer);
+        clearTimers();
         resolve();
       });
     } catch (error) {
-      clearTimeout(timer);
+      clearTimers();
       reject(toError(error));
     }
   });

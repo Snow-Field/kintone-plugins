@@ -66,8 +66,7 @@ React の共通コンポーネント（`packages/ui`）と共通ロジック（`
 
 | 問題                                                                                                                                                                                       | 場所                                                        | 対応する時期            |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------- | ----------------------- |
-| 保存に30秒以上かかると、実際には保存できていても「保存に失敗しました」と表示する（遅れて届いた完了の通知を無視する）                                                                       | `kintone-utils/src/lib/pluginConfig.ts` の `waitForSave`    | 手順8 の前              |
-| 保存の後の画面の更新が失敗しても、成功したときの処理（`onSuccess`）が呼ばれ、読み込み失敗の警告が消える                                                                                   | `kintone-utils/src/hooks/useSubmitConfig.ts`                | 手順8 の前              |
+| 保存中も入力欄は書き換えられ、保存が完了すると、その間の変更は保存した内容に戻る（メニューとキャンセルは保存中は押せない） | `plugin-shell` の `PluginContent`・`kintone-utils` の `useSubmitConfig` | 手順8 の後 |
 | 誕生日が空のまま保存すると、年齢のフィールドに `NaN`（単位付きなら `NaN歳`）を書き込む                                                                                                    | age-calculator の `desktop`・`mobile`                       | 手順8（age-calculator） |
 | Biome の警告13件（`any` 8件、使っていない変数・引数5件。2026-11-22 時点）。うち auto-numbering の `displayLabel` と field-controller の `label` は、計算しているのに表示していない（表示し忘れの可能性） | 各プラグイン・`kintone-utils`・`template`                   | 手順8                   |
 | 上の `any` のうち、`createSchema` の型 `z.ZodType<T, any, any>` の2件は、外すと各プラグインの動的スキーマの型も変える必要がある                                                            | `kintone-utils/src/hooks/usePluginForm.ts`                  | 手順8                   |

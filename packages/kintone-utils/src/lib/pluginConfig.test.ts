@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { definePluginConfig, waitForSave } from './pluginConfig';
+import { definePluginConfig, SaveTimeoutError, waitForSave } from './pluginConfig';
 
 const schema = z.object({ version: z.literal(2), message: z.string() });
 type Config = z.infer<typeof schema>;
@@ -182,23 +182,51 @@ describe('waitForSave', () => {
     expect(save).toHaveBeenCalledWith({ a: 1 }, expect.any(Function));
   });
 
-  it('決められた時間までに完了しなければ失敗する（保存中のまま止まらない）', async () => {
+  it('slowAfterMs を過ぎたら onSlow を呼び、そのあとに届いた完了も成功として扱う', async () => {
     vi.useFakeTimers();
     try {
-      const promise = waitForSave(() => undefined, {}, 1000);
+      let complete: (() => void) | undefined;
+      const onSlow = vi.fn();
+      const promise = waitForSave(
+        (_, callback: () => void) => {
+          complete = callback;
+        },
+        {},
+        { slowAfterMs: 1000, onSlow, timeoutMs: 5000 }
+      );
+
       vi.advanceTimersByTime(1000);
-      await expect(promise).rejects.toThrow('1 秒以内に確認できませんでした');
+      expect(onSlow).toHaveBeenCalledTimes(1);
+
+      complete?.();
+      await expect(promise).resolves.toBeUndefined();
+      expect(onSlow).toHaveBeenCalledTimes(1);
+      expect(vi.getTimerCount()).toBe(0);
     } finally {
       vi.useRealTimers();
     }
   });
 
-  it('完了した後はタイムアウトしない', async () => {
+  it('timeoutMs までに完了しなければ SaveTimeoutError で失敗する（保存中のまま止まらない）', async () => {
     vi.useFakeTimers();
     try {
-      const promise = waitForSave((_, callback) => callback(), {}, 1000);
+      const promise = waitForSave(() => undefined, {}, { slowAfterMs: 1000, timeoutMs: 5000 });
+      vi.advanceTimersByTime(5000);
+      await expect(promise).rejects.toBeInstanceOf(SaveTimeoutError);
+      await expect(promise).rejects.toThrow('5 秒以内に確認できませんでした');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('完了した後は onSlow を呼ばず、タイムアウトもしない', async () => {
+    vi.useFakeTimers();
+    try {
+      const onSlow = vi.fn();
+      const promise = waitForSave((_, callback) => callback(), {}, { slowAfterMs: 1000, onSlow });
       await expect(promise).resolves.toBeUndefined();
       expect(vi.getTimerCount()).toBe(0);
+      expect(onSlow).not.toHaveBeenCalled();
     } finally {
       vi.useRealTimers();
     }

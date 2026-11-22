@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
-import { useSnackbar } from 'notistack';
+import { type SnackbarKey, useSnackbar } from 'notistack';
 import { PluginLogger } from '../lib/logger';
-import { waitForSave } from '../lib/pluginConfig';
+import { SaveTimeoutError, waitForSave } from '../lib/pluginConfig';
 
 const logger = new PluginLogger('Config');
 
@@ -14,7 +14,7 @@ type UseSubmitConfigProps<T> = {
   onSync: (data: T) => void;
   /** 保存成功時の追加処理（Snackbarのアクション等） */
   successAction?: React.ReactNode;
-  /** 成功時のコールバック */
+  /** 保存と画面の更新の両方に成功したときのコールバック */
   onSuccess?: () => void;
   /** 失敗時のコールバック */
   onError?: () => void;
@@ -31,7 +31,7 @@ export const useSubmitConfig = <T>({
   onSuccess,
   onError,
 }: UseSubmitConfigProps<T>) => {
-  const { enqueueSnackbar } = useSnackbar();
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
   const onSubmit = useCallback(
     async (data: T) => {
@@ -41,13 +41,32 @@ export const useSubmitConfig = <T>({
 
       try {
         // kintoneへ保存し、完了を待つ（完了前に保存済みとして扱うと、失敗に気づけないため）
+        // 完了が遅れたら、待っていることを知らせる。その間も保存中のまま操作できないようにする
+        // （遅れて完了したときに、その間の操作を保存した内容で上書きしないため）
+        let slowNotice: SnackbarKey | undefined;
         try {
-          await waitForSave(onSave, data);
+          await waitForSave(onSave, data, {
+            onSlow: () => {
+              logger.warn('Save completion has not been confirmed yet. Still waiting.');
+              slowNotice = enqueueSnackbar('保存の完了を待っています。このままお待ちください。', {
+                variant: 'info',
+                persist: true,
+              });
+            },
+          });
         } catch (e) {
           logger.error('Save Process Failed:', e);
-          enqueueSnackbar('保存に失敗しました。', { variant: 'error' });
+          // 時間切れは、保存できたかどうかが分からない。失敗と言い切らない
+          enqueueSnackbar(
+            e instanceof SaveTimeoutError
+              ? '保存の完了を確認できませんでした。ページを再読み込みして、設定が保存されたか確かめてください。'
+              : '保存に失敗しました。',
+            { variant: 'error' }
+          );
           onError?.();
           return;
+        } finally {
+          if (slowNotice !== undefined) closeSnackbar(slowNotice);
         }
         logger.log('kintone.plugin.app.setConfig: Success');
 
@@ -60,11 +79,13 @@ export const useSubmitConfig = <T>({
           });
           logger.info('Save Process Completed Successfully');
         } catch (e) {
+          // 画面が保存した内容と食い違っている可能性があるので、成功としては扱わない
           logger.error('Sync after save failed:', e);
           enqueueSnackbar(
             '設定情報は保存しましたが、画面の更新に失敗しました。ページを再読み込みしてください。',
             { variant: 'warning' }
           );
+          return;
         }
         onSuccess?.();
       } finally {
@@ -72,7 +93,7 @@ export const useSubmitConfig = <T>({
         setLoading(false);
       }
     },
-    [setLoading, onSave, onSync, successAction, onSuccess, onError, enqueueSnackbar]
+    [setLoading, onSave, onSync, successAction, onSuccess, onError, enqueueSnackbar, closeSnackbar]
   );
 
   return { onSubmit };
