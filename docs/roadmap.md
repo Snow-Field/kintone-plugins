@@ -9,7 +9,7 @@
 | フェーズ | 内容                                                                         | 状態                     |
 | -------- | ---------------------------------------------------------------------------- | ------------------------ |
 | 0        | 開発環境の再整備                                                             | 完了                     |
-| 1        | 共通パッケージ（`packages/`）の改修と、各プラグインのアーキテクチャの統一    | 進行中（auto-numbering の実機確認が残り） |
+| 1        | 共通パッケージ（`packages/`）の改修と、各プラグインのアーキテクチャの統一    | 完了（2026-11-23）       |
 | 2        | API トークンを秘匿するプラグインの新規開発                                   | 未着手（要件は未確定）   |
 | 3        | 各プラグイン（age-calculator / field-controller / auto-numbering）の開発再開。最初に設定画面の設計（見た目・操作の流れ）を見直す | 未着手                   |
 
@@ -26,7 +26,7 @@ React の共通コンポーネント（`packages/ui`）と共通ロジック（`
 5. [x] 設定画面の骨組みを共有パッケージ（`plugin-shell`）に移し、`template/` を最初の利用者にする
 6. [x] 依存関係を最新にする。2026-11-22 に、3プラグインを kintone の実機で確認した（問題なし）。判断の理由は [decisions/tooling.md](./decisions/tooling.md)
 7. [x] フィールドを選ぶ部品を共有パッケージに移す（`ui` の `FormAutocomplete`、`plugin-shell` の `FieldSelect`）。既存の6か所は手順8 で置き換える
-8. [ ] 既存のプラグインを1本ずつ移行する（1プラグイン1PR）。小さい順に age-calculator（2026-11-23 に実機で確認済み）→ field-controller（2026-11-23 に実機で確認済み）→ auto-numbering（移行済み・実機確認は未実施）。移行したプラグインからは、骨組みのコピー（`src/config/hooks`・`states`）を消す
+8. [x] 既存のプラグインを1本ずつ移行する（1プラグイン1PR）。小さい順に age-calculator（2026-11-23 に実機で確認済み）→ field-controller（2026-11-23 に実機で確認済み）→ auto-numbering（2026-11-23 に実機で確認済み）。移行したプラグインからは、骨組みのコピー（`src/config/hooks`・`states`）を消す
 
 ## 実機確認の項目
 
@@ -62,6 +62,7 @@ React の共通コンポーネント（`packages/ui`）と共通ロジック（`
 | 上の `any` のうち、`createSchema` の型 `z.ZodType<T, any, any>` の2件は、外すと各プラグインの動的スキーマの型も変える必要がある                                                            | `kintone-utils/src/hooks/usePluginForm.ts`                  | フェーズ1 の後（時期は未定） |
 | field-controller の条件のフィールドがアプリから消えていると、配列の値（「含む」で選んだ値）が文字の入力欄に「x,y」のように出る。フィールドを選び直すと値は空になる | field-controller の `ConditionRow.tsx` | フェーズ3（field-controller） |
 | `FieldSelect` でサブテーブルの中のフィールドを選べない（`appFieldsAtom` がアプリの最上位のフィールドだけを取得する）。3プラグインの移行では必要にならなかった | `kintone-utils/src/states/kintone.ts` | 必要になったとき |
+| auto-numbering で、書式のフィールドのパーツに選んだフィールドが空のまま保存すると、レコードは保存され、その後の採番が失敗して番号の無いレコードが残る（失敗の理由は表示する）。保存の前（submit イベント）に止めるかを決める | auto-numbering の `shared/handlers` | フェーズ3（auto-numbering） |
 | auto-numbering で期間ごとにリセットするとき、同じ期間の採番値は新しい順に500件までしか見ない。それより多いと最大の連番を見落とし、重複の再試行（最大10回）で採番に失敗することがある | auto-numbering の `shared/api/serial.ts` | フェーズ3（auto-numbering） |
 | template の `manifest.json` はプラグイン名と説明が空で、そのままでは zip を作れない。`pnpm gen` で名前を聞いて書き込むかを決める                                                           | `template/public/manifest.json`・`scripts/create-plugin.js` | 手順8 の後              |
 | `genkey.js`・`upload.js`・`dotenv.js` が、template と3プラグインの4か所に同じ内容でコピーされている                                                                                        | 各プラグインの `scripts/`                                   | 手順8 の後              |
