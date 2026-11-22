@@ -9,7 +9,7 @@
 | フェーズ | 内容                                                                         | 状態                     |
 | -------- | ---------------------------------------------------------------------------- | ------------------------ |
 | 0        | 開発環境の再整備                                                             | 完了                     |
-| 1        | 共通パッケージ（`packages/`）の改修と、各プラグインのアーキテクチャの統一    | 進行中（次は手順8）      |
+| 1        | 共通パッケージ（`packages/`）の改修と、各プラグインのアーキテクチャの統一    | 進行中（auto-numbering の実機確認が残り） |
 | 2        | API トークンを秘匿するプラグインの新規開発                                   | 未着手（要件は未確定）   |
 | 3        | 各プラグイン（age-calculator / field-controller / auto-numbering）の開発再開。最初に設定画面の設計（見た目・操作の流れ）を見直す | 未着手                   |
 
@@ -26,16 +26,7 @@ React の共通コンポーネント（`packages/ui`）と共通ロジック（`
 5. [x] 設定画面の骨組みを共有パッケージ（`plugin-shell`）に移し、`template/` を最初の利用者にする
 6. [x] 依存関係を最新にする。2026-11-22 に、3プラグインを kintone の実機で確認した（問題なし）。判断の理由は [decisions/tooling.md](./decisions/tooling.md)
 7. [x] フィールドを選ぶ部品を共有パッケージに移す（`ui` の `FormAutocomplete`、`plugin-shell` の `FieldSelect`）。既存の6か所は手順8 で置き換える
-8. [ ] 既存のプラグインを1本ずつ移行する（1プラグイン1PR）。小さい順に age-calculator（2026-11-23 に実機で確認済み）→ field-controller（2026-11-23 に実機で確認済み）→ auto-numbering。移行したプラグインからは、骨組みのコピー（`src/config/hooks`・`states`）を消す
-
-### 移行で解消する問題（2026-11-21 の調査）
-
-手順7・8 で解消する。
-
-- 3プラグインに、設定画面の骨組み（`App.tsx`・`index.tsx`・`states/`・`hooks/` など）が同じ中身でコピーされている。`template/` は手順5 で `plugin-shell` に移した
-- `packages/ui` の入力部品（`FormTextField`・`FormSwitch`）と `DynamicSortableList` は age-calculator だけが使い、field-controller と auto-numbering は同じものを個別に作っている。フィールドを選ぶ部品は3プラグインの6か所以上で個別に書かれ、同じ型の回避（`as unknown as`）を繰り返している
-- `desktop/index.ts` と `mobile/index.ts` は、イベント名以外ほぼ同じ処理を二重に持っている
-- ロジックの置き場所が `shared/lib/`（age-calculator・field-controller）と `shared/feature/<機能>/`（auto-numbering）に分かれている
+8. [ ] 既存のプラグインを1本ずつ移行する（1プラグイン1PR）。小さい順に age-calculator（2026-11-23 に実機で確認済み）→ field-controller（2026-11-23 に実機で確認済み）→ auto-numbering（移行済み・実機確認は未実施）。移行したプラグインからは、骨組みのコピー（`src/config/hooks`・`states`）を消す
 
 ## 実機確認の項目
 
@@ -67,10 +58,11 @@ React の共通コンポーネント（`packages/ui`）と共通ロジック（`
 | 問題                                                                                                                                                                                       | 場所                                                        | 対応する時期            |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------- | ----------------------- |
 | 保存中も入力欄は書き換えられ、保存が完了すると、その間の変更は保存した内容に戻る（メニューとキャンセルは保存中は押せない） | `plugin-shell` の `PluginContent`・`kintone-utils` の `useSubmitConfig` | 手順8 の後 |
-| Biome の警告10件（`any` 6件、使っていない変数・引数4件。2026-11-23 時点）。うち auto-numbering の `displayLabel` は、計算しているのに表示していない（表示し忘れの可能性） | 各プラグイン・`kintone-utils`・`template`                   | 手順8                   |
-| 上の `any` のうち、`createSchema` の型 `z.ZodType<T, any, any>` の2件は、外すと各プラグインの動的スキーマの型も変える必要がある                                                            | `kintone-utils/src/hooks/usePluginForm.ts`                  | 手順8                   |
+| Biome の警告8件（`any` 6件、使っていない変数・引数2件。2026-11-23 時点） | `kintone-utils`・`template` | フェーズ1 の後（時期は未定） |
+| 上の `any` のうち、`createSchema` の型 `z.ZodType<T, any, any>` の2件は、外すと各プラグインの動的スキーマの型も変える必要がある                                                            | `kintone-utils/src/hooks/usePluginForm.ts`                  | フェーズ1 の後（時期は未定） |
 | field-controller の条件のフィールドがアプリから消えていると、配列の値（「含む」で選んだ値）が文字の入力欄に「x,y」のように出る。フィールドを選び直すと値は空になる | field-controller の `ConditionRow.tsx` | フェーズ3（field-controller） |
-| `FieldSelect` でサブテーブルの中のフィールドを選べない（`appFieldsAtom` がアプリの最上位のフィールドだけを取得する）。3プラグインで必要かは未確認 | `kintone-utils/src/states/kintone.ts` | 手順8（必要になったプラグインの移行時） |
+| `FieldSelect` でサブテーブルの中のフィールドを選べない（`appFieldsAtom` がアプリの最上位のフィールドだけを取得する）。3プラグインの移行では必要にならなかった | `kintone-utils/src/states/kintone.ts` | 必要になったとき |
+| auto-numbering で期間ごとにリセットするとき、同じ期間の採番値は新しい順に500件までしか見ない。それより多いと最大の連番を見落とし、重複の再試行（最大10回）で採番に失敗することがある | auto-numbering の `shared/api/serial.ts` | フェーズ3（auto-numbering） |
 | template の `manifest.json` はプラグイン名と説明が空で、そのままでは zip を作れない。`pnpm gen` で名前を聞いて書き込むかを決める                                                           | `template/public/manifest.json`・`scripts/create-plugin.js` | 手順8 の後              |
 | `genkey.js`・`upload.js`・`dotenv.js` が、template と3プラグインの4か所に同じ内容でコピーされている                                                                                        | 各プラグインの `scripts/`                                   | 手順8 の後              |
 | auto-numbering は API トークンをプラグイン設定に平文で保存している。プラグイン設定はアプリを使う全員がブラウザから読めるため、トークンが漏れる                                             | auto-numbering                                              | フェーズ2（プロキシ設定を使うトークン秘匿プラグインで解消） |

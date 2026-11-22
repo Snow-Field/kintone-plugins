@@ -2,7 +2,7 @@
 
 各プラグインが共通に従う構成と、共有パッケージの責務を定める。プラグイン固有のコードだけを書けば済む状態を目指す。
 
-> **状態: 合意済み・移行中（フェーズ1）。** 移行が終わるまでは、既存のプラグインがこの構成と異なる場合がある（進捗は [roadmap.md](./roadmap.md)）。判断の理由は [decisions/packages.md](./decisions/packages.md)。
+> **状態: 合意済み。** 3プラグインとも、この構成に移した（フェーズ1 の手順8）。判断の理由は [decisions/packages.md](./decisions/packages.md)。
 
 ## 共有パッケージの責務
 
@@ -123,8 +123,6 @@ renderPluginConfig({ definition: pluginConfig, tabs });
 
 `pnpm gen` の複製元であり、この構成の基準となる実装。workspace に入れて、lint・型チェック・CI の対象にする。`pnpm gen` は `node_modules` などの生成物を複製しない。
 
-## 未確定事項
+## 並べ替えの部品
 
-| 事項                                                                                                          | 選択肢                        | 推奨                                           |
-| ------------------------------------------------------------------------------------------------------------- | ----------------------------- | ---------------------------------------------- |
-| `ui` の `DynamicSortableList`・`SortableRowContainer`（age-calculator だけが使う）を、auto-numbering の独自の並べ替えの代わりに使うか。field-controller はカード単位の並べ替えで見た目と操作が合わないため、独自の作りを残した | 使う / 独自実装を残す | 移行時に、独自実装と比べて決める |
+`ui` の `DynamicSortableList`・`SortableRowContainer` は、行の並べ替え（age-calculator のフィールドの組み合わせ）に使う。field-controller のルールと auto-numbering の採番設定はカード単位の並べ替えで、見た目と操作が合わないため、各プラグインの独自の作り（dnd-kit）を使う。カードの並べ替えが3つ目のプラグインで必要になったら、`ui` に移す。
