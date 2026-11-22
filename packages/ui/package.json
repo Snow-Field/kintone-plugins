@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "clean": "rimraf .turbo dist"
   },
   "dependencies": {

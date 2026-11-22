@@ -34,7 +34,7 @@ React 19 / TypeScript 7（Go で書き直されたネイティブ版。型チェ
 
 ## 開発コマンド
 
-- テスト: `pnpm test`（Vitest。`src/**/*.test.ts` が対象。1パッケージだけ: `pnpm --filter auto-numbering test`）
+- テスト: `pnpm test`（Vitest。`src/**/*.test.ts` が対象。`ui`・`plugin-shell` は jsdom で画面の部品を描画する `*.test.tsx` も対象。1パッケージだけ: `pnpm --filter auto-numbering test`）
 - lint・整形の確認: `pnpm lint`（ルートで Biome を実行。直すときは `pnpm fix`）
 - 型チェック: `pnpm turbo run typecheck`（ルートに script は無い）
 - バンドル: `pnpm -r --filter './apps/*' --filter './template' bundle`（kintone へのアップロードを含まない）
