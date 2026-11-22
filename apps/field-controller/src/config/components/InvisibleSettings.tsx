@@ -10,7 +10,7 @@ const VISIBILITY_TRIGGER_OPTIONS = [
   { label: '詳細画面表示時（モバイル）', value: 'mobile.app.record.detail.show' },
   { label: '追加画面表示時（モバイル）', value: 'mobile.app.record.create.show' },
   { label: '編集画面表示時（モバイル）', value: 'mobile.app.record.edit.show' },
-];
+] as const;
 
 /**
  * 非表示設定タブのコンテンツ

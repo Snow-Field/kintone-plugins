@@ -1,4 +1,4 @@
-import type { FC } from 'react';
+import type { FC, MouseEvent } from 'react';
 import { useFormContext, useFieldArray, useWatch } from 'react-hook-form';
 import {
   Box,
@@ -10,8 +10,7 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import ClearAllIcon from '@mui/icons-material/ClearAll';
-import type { PluginConfig } from '@/shared/config';
-import { createDefaultCondition } from '@/config/hooks/useConditionActions';
+import { createDefaultCondition, type PluginConfig } from '@/shared/config';
 import { ConditionRow } from './ConditionRow';
 
 type Props = {
@@ -25,21 +24,17 @@ type Props = {
 export const ConditionList: FC<Props> = ({ rulesPath, ruleIndex }) => {
   const { setValue, control } = useFormContext<PluginConfig>();
 
+  const blockPath = `${rulesPath}.${ruleIndex}.block` as const;
   const { fields, append, insert, remove, replace } = useFieldArray({
     control,
-    name: `${rulesPath}.${ruleIndex}.block.conditions` as never,
+    name: `${blockPath}.conditions`,
   });
 
-  const logic = useWatch({
-    control,
-    name: `${rulesPath}.${ruleIndex}.block.logic` as never,
-  }) as unknown as 'AND' | 'OR';
+  const logic = useWatch({ control, name: `${blockPath}.logic` });
 
-  const handleLogicChange = (_: React.MouseEvent<HTMLElement>, value: 'AND' | 'OR' | null) => {
+  const handleLogicChange = (_: MouseEvent<HTMLElement>, value: 'AND' | 'OR' | null) => {
     if (value !== null) {
-      setValue(`${rulesPath}.${ruleIndex}.block.logic` as never, value as never, {
-        shouldDirty: true,
-      });
+      setValue(`${blockPath}.logic`, value, { shouldDirty: true });
     }
   };
 
@@ -71,7 +66,7 @@ export const ConditionList: FC<Props> = ({ rulesPath, ruleIndex }) => {
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {/* 条件を追加ボタン — 常に右上に表示 */}
           <Tooltip title='条件を追加'>
-            <IconButton size='small' onClick={() => append(createDefaultCondition() as never)}>
+            <IconButton size='small' onClick={() => append(createDefaultCondition())}>
               <AddIcon fontSize='small' />
             </IconButton>
           </Tooltip>
@@ -79,7 +74,7 @@ export const ConditionList: FC<Props> = ({ rulesPath, ruleIndex }) => {
           {/* 全クリアボタン — 条件が1件以上あるときのみ表示 */}
           {hasConditions && (
             <Tooltip title='すべての条件をクリア'>
-              <IconButton size='small' color='error' onClick={() => replace([] as never)}>
+              <IconButton size='small' color='error' onClick={() => replace([])}>
                 <ClearAllIcon fontSize='small' />
               </IconButton>
             </Tooltip>
@@ -96,7 +91,7 @@ export const ConditionList: FC<Props> = ({ rulesPath, ruleIndex }) => {
               rulesPath={rulesPath}
               ruleIndex={ruleIndex}
               condIndex={condIndex}
-              onInsert={() => insert(condIndex + 1, createDefaultCondition() as never)}
+              onInsert={() => insert(condIndex + 1, createDefaultCondition())}
               onRemove={() => remove(condIndex)}
             />
           ))

@@ -149,7 +149,9 @@ function evaluateLessThanOrEqual(fieldValue: unknown, conditionValue: string | s
  * フィールド値の型によって評価方法を切り替える。
  * - 配列フィールド（CHECK_BOX, MULTI_SELECT 等）:
  *   conditionValue の全要素がフィールド値の配列に含まれるか
- * - 文字列フィールド（SINGLE_LINE_TEXT, MULTI_LINE_TEXT, RADIO_BUTTON, DROP_DOWN 等）:
+ * - 1つだけ選ぶフィールド（RADIO_BUTTON, DROP_DOWN）で、条件の値が配列のとき:
+ *   フィールド値が conditionValue のどれかと完全に一致するか
+ * - 文字列フィールド（SINGLE_LINE_TEXT, MULTI_LINE_TEXT 等）:
  *   フィールド値が conditionValue を部分文字列として含むか
  */
 function evaluateIncludes(fieldValue: unknown, conditionValue: string | string[]): boolean {
@@ -157,6 +159,10 @@ function evaluateIncludes(fieldValue: unknown, conditionValue: string | string[]
     // 配列フィールド: conditionValue の全要素が含まれるか
     const cvArray = Array.isArray(conditionValue) ? conditionValue : [conditionValue];
     return cvArray.every((cv) => fieldValue.some((fv) => String(fv) === cv));
+  }
+  // 1つだけ選ぶフィールド: 選んだ値のどれかと完全に一致するか
+  if (Array.isArray(conditionValue)) {
+    return conditionValue.includes(toStringValue(fieldValue));
   }
   // 文字列フィールド: 部分一致
   const fv = toStringValue(fieldValue);
@@ -171,7 +177,9 @@ function evaluateIncludes(fieldValue: unknown, conditionValue: string | string[]
  *
  * - 配列フィールド（CHECK_BOX, MULTI_SELECT 等）:
  *   conditionValue の要素が1つも含まれていないか
- * - 文字列フィールド（SINGLE_LINE_TEXT, MULTI_LINE_TEXT, RADIO_BUTTON, DROP_DOWN 等）:
+ * - 1つだけ選ぶフィールド（RADIO_BUTTON, DROP_DOWN）で、条件の値が配列のとき:
+ *   フィールド値が conditionValue のどれとも一致しないか
+ * - 文字列フィールド（SINGLE_LINE_TEXT, MULTI_LINE_TEXT 等）:
  *   フィールド値が conditionValue を部分文字列として含まないか
  */
 function evaluateNotIncludes(fieldValue: unknown, conditionValue: string | string[]): boolean {
@@ -179,6 +187,10 @@ function evaluateNotIncludes(fieldValue: unknown, conditionValue: string | strin
     // 配列フィールド: conditionValue の要素が1つも含まれていないか
     const cvArray = Array.isArray(conditionValue) ? conditionValue : [conditionValue];
     return cvArray.every((cv) => !fieldValue.some((fv) => String(fv) === cv));
+  }
+  // 1つだけ選ぶフィールド: 選んだ値のどれとも一致しないか
+  if (Array.isArray(conditionValue)) {
+    return !conditionValue.includes(toStringValue(fieldValue));
   }
   // 文字列フィールド: 部分一致しない
   const fv = toStringValue(fieldValue);

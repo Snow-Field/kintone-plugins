@@ -127,4 +127,4 @@ renderPluginConfig({ definition: pluginConfig, tabs });
 
 | 事項                                                                                                          | 選択肢                        | 推奨                                           |
 | ------------------------------------------------------------------------------------------------------------- | ----------------------------- | ---------------------------------------------- |
-| `ui` の `DynamicSortableList`・`SortableRowContainer`（age-calculator だけが使う）を、field-controller・auto-numbering の独自の並べ替えの代わりに使うか | 使う / 各プラグインの独自実装を残す | 移行時に、各プラグインの独自実装と比べて決める |
+| `ui` の `DynamicSortableList`・`SortableRowContainer`（age-calculator だけが使う）を、auto-numbering の独自の並べ替えの代わりに使うか。field-controller はカード単位の並べ替えで見た目と操作が合わないため、独自の作りを残した | 使う / 独自実装を残す | 移行時に、独自実装と比べて決める |

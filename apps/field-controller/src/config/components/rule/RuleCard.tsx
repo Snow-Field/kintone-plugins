@@ -1,36 +1,45 @@
 import { type FC, useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
-import {
-  Box,
-  Card,
-  CardContent,
-  Divider,
-  FormControlLabel,
-  Switch,
-  Typography,
-  IconButton,
-  Tooltip,
-  TextField,
-  Collapse,
-} from '@mui/material';
+import { Box, Card, CardContent, Collapse, Divider, IconButton, Tooltip } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DeleteIcon from '@mui/icons-material/Delete';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import type { AppFieldType } from '@kintone-plugin/kintone-utils';
+import { FieldSelect } from '@kintone-plugin/plugin-shell';
+import {
+  FormAutocomplete,
+  type FormAutocompleteOption,
+  FormSwitch,
+  FormTextField,
+} from '@kintone-plugin/ui';
 import type { PluginConfig } from '@/shared/config';
-import { TriggerSelect } from './TriggerSelect';
 import { ConditionList } from './ConditionList';
-import { FieldSelect } from './FieldSelect';
 
-type TriggerOption = {
-  label: string;
-  value: string;
-};
+/** 非表示・編集不可の対象として選べるフィールドの種類 */
+const TARGET_FIELD_TYPES = [
+  'SINGLE_LINE_TEXT',
+  'MULTI_LINE_TEXT',
+  'RICH_TEXT',
+  'NUMBER',
+  'CALC',
+  'CHECK_BOX',
+  'RADIO_BUTTON',
+  'DROP_DOWN',
+  'MULTI_SELECT',
+  'DATE',
+  'TIME',
+  'DATETIME',
+  'LINK',
+  'USER_SELECT',
+  'ORGANIZATION_SELECT',
+  'GROUP_SELECT',
+] as const satisfies readonly AppFieldType[];
 
 type Props = {
   rulesPath: 'visibilityRules' | 'disableRules';
   ruleIndex: number;
-  triggerOptions: TriggerOption[];
+  triggerOptions: readonly FormAutocompleteOption[];
   onRemove: () => void;
   onDuplicate: () => void;
   isRemoveDisabled?: boolean;
@@ -47,18 +56,11 @@ export const RuleCard: FC<Props> = ({
   onDuplicate,
   isRemoveDisabled,
 }) => {
-  const { control, setValue, register } = useFormContext<PluginConfig>();
-  const enabledPath = `${rulesPath}.${ruleIndex}.enabled` as never;
-  const labelPath = `${rulesPath}.${ruleIndex}.label` as const;
-
-  const enabled = useWatch({ control, name: enabledPath }) as unknown as boolean;
-  const label = useWatch({ control, name: labelPath }) as unknown as string | undefined;
+  const { control } = useFormContext<PluginConfig>();
+  const rulePath = `${rulesPath}.${ruleIndex}` as const;
+  const enabled = useWatch({ control, name: `${rulePath}.enabled` });
 
   const [isExpanded, setIsExpanded] = useState(true);
-
-  const handleEnabledChange = (checked: boolean) => {
-    setValue(enabledPath, checked as never, { shouldDirty: true });
-  };
 
   return (
     <Card
@@ -88,8 +90,8 @@ export const RuleCard: FC<Props> = ({
               {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
             </IconButton>
           </Tooltip>
-          <TextField
-            {...register(labelPath)}
+          <FormTextField<PluginConfig>
+            name={`${rulePath}.label`}
             size='small'
             placeholder={`設定 ${ruleIndex + 1}`}
             variant='standard'
@@ -100,29 +102,21 @@ export const RuleCard: FC<Props> = ({
                 borderBottom: 'none',
               },
               '& .MuiInput-underline:hover:not(.Mui-disabled):before': {
-                borderBottom: '1px solid rgba(0, 0, 0, 0.42)',
+                borderBottom: '1px solid',
+                borderColor: 'text.secondary',
               },
               '& .MuiInput-underline:after': {
-                borderBottom: '1px solid rgba(0, 0, 0, 0.42)',
+                borderBottom: '1px solid',
+                borderColor: 'text.secondary',
               },
             }}
           />
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={!!enabled}
-                onChange={(e) => handleEnabledChange(e.target.checked)}
-                size='small'
-                color='primary'
-              />
-            }
-            label={
-              <Typography variant='body2' sx={{ fontWeight: 500 }}>
-                {enabled ? '有効' : '無効'}
-              </Typography>
-            }
+          <FormSwitch<PluginConfig>
+            name={`${rulePath}.enabled`}
+            label={enabled ? '有効' : '無効'}
+            size='small'
           />
           <Tooltip title='このルールを複製'>
             <IconButton size='small' onClick={onDuplicate}>
@@ -141,20 +135,26 @@ export const RuleCard: FC<Props> = ({
 
       <Collapse in={isExpanded}>
         <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-          {/* イベント選択 */}
-          <TriggerSelect
-            name={`${rulesPath}.${ruleIndex}.block.triggers`}
+          <FormAutocomplete<PluginConfig>
+            name={`${rulePath}.block.triggers`}
+            label='イベント'
             options={triggerOptions}
+            multiple
+            size='small'
           />
 
           <Divider />
 
-          {/* 対象フィールド */}
-          <FieldSelect name={`${rulesPath}.${ruleIndex}.targetFields`} multiple />
+          <FieldSelect<PluginConfig>
+            name={`${rulePath}.targetFields`}
+            label='対象フィールド'
+            fieldTypes={TARGET_FIELD_TYPES}
+            multiple
+            size='small'
+          />
 
           <Divider />
 
-          {/* 条件一覧 */}
           <ConditionList rulesPath={rulesPath} ruleIndex={ruleIndex} />
         </CardContent>
       </Collapse>

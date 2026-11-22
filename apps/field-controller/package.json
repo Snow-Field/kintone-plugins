@@ -16,6 +16,7 @@
     "upload": "node scripts/upload.js",
     "deploy": "run-s build upload",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "clean": "rimraf dist artifacts .turbo"
   },
   "dependencies": {
@@ -23,23 +24,19 @@
     "@dnd-kit/sortable": "catalog:",
     "@emotion/react": "catalog:",
     "@emotion/styled": "catalog:",
-    "@hookform/resolvers": "catalog:",
+    "@kintone-plugin/kintone-utils": "workspace:*",
+    "@kintone-plugin/plugin-shell": "workspace:*",
     "@kintone-plugin/ui": "workspace:*",
-    "@kintone/rest-api-client": "catalog:",
     "@mui/icons-material": "catalog:",
     "@mui/material": "catalog:",
-    "jotai": "catalog:",
     "nanoid": "catalog:",
-    "notistack": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "react-error-boundary": "catalog:",
     "react-hook-form": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@clack/prompts": "catalog:",
-    "@kintone-plugin/kintone-utils": "workspace:*",
     "@kintone-plugin/tsconfig": "workspace:*",
     "@kintone/cli": "catalog:",
     "@kintone/dts-gen": "catalog:",
@@ -51,6 +48,7 @@
     "cross-env": "catalog:",
     "fs-extra": "catalog:",
     "npm-run-all": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }
