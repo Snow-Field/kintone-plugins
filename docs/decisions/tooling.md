@@ -11,6 +11,13 @@
 
 ## 判断履歴
 
+### 2026-11-23 画面の部品のテストに Testing Library と jsdom を使う
+
+- 背景: `ui` の `FormAutocomplete` と `plugin-shell` の `FieldSelect` を作るにあたり、画面の部品を描画して確かめる環境が無かった（それまでのテストは画面を持たない処理だけ）
+- 検討した選択肢: DOM の模擬として (1) jsdom (2) happy-dom
+- 決定: (1)。`@testing-library/react`・`@testing-library/dom`・`@testing-library/user-event` と組み合わせ、`ui`・`plugin-shell` の Vitest の環境を `jsdom` にする
+- 却下した理由: (2) は速いが、MUI の Autocomplete が使うフォーカスや配置の計算で、ブラウザと振る舞いがずれることがある
+
 ### 2026-11-22 プラグインの zip の作成とアップロードを cli-kintone に置き換える
 - 背景: `@kintone/plugin-packer`・`@kintone/plugin-uploader` は、最新版も含めて保守が終了した（npm で非推奨。後継は `@kintone/cli`）
 - 決定: `@kintone/cli`（cli-kintone）の `plugin pack`・`plugin upload`・`plugin keygen` に置き換える
