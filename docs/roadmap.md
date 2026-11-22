@@ -53,7 +53,7 @@ React の共通コンポーネント（`packages/ui`）と共通ロジック（`
 5. [x] 小さい更新: React・react-hook-form・Zod・react-error-boundary・型定義など
 6. [x] MUI 9
 7. [x] jotai 3
-8. [ ] `@hookform/resolvers` 7
+8. [x] `@hookform/resolvers` 7
 9. [ ] kintone 関連: `@kintone/rest-api-client` 7・`dts-gen` 10・packer・uploader
 10. [ ] スクリプト用: `@clack/prompts`・dotenv・node-rsa・nanoid など
 11. [ ] 3プラグインの設定画面と実行画面を、kintone の実機で確認する
