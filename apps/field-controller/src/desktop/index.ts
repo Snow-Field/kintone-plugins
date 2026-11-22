@@ -1,9 +1,6 @@
+import { onRecordEvents } from '@kintone-plugin/kintone-utils';
 import { restoreConfig } from '@/shared/config';
-import { executeDisable } from '@/shared/lib/disableExecutor';
-import { executeVisibility } from '@/shared/lib/visibilityExecutor';
-import { PluginLogger, onRecordEvents } from '@kintone-plugin/kintone-utils';
-
-const logger = new PluginLogger('Desktop');
+import { applyFieldControls } from '@/shared/handlers/record';
 
 onRecordEvents(
   [
@@ -12,11 +9,5 @@ onRecordEvents(
     'app.record.create.show',
     'app.record.edit.show',
   ],
-  (event) => {
-    logger.info('Plugin is active.');
-    const pluginConfig = restoreConfig();
-    executeDisable(pluginConfig.disableRules, event);
-    executeVisibility(pluginConfig.visibilityRules, event);
-    return event;
-  }
+  (event) => applyFieldControls(event, restoreConfig())
 );
