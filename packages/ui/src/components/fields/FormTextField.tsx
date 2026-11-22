@@ -1,28 +1,45 @@
-import type { FC } from 'react';
-import { Controller, useFormContext, type FieldValues } from 'react-hook-form';
+import { Controller, type FieldPath, type FieldValues, useFormContext } from 'react-hook-form';
 import { TextField } from '@mui/material';
 import type { TextFieldProps } from '@mui/material';
 
-type Props = {
-  name: string;
-  label?: string;
-} & TextFieldProps;
+/** React Hook Form が管理するため、外から受け取らない props */
+type ManagedProps = 'name' | 'value' | 'defaultValue' | 'onChange' | 'error' | 'helperText';
 
-export const FormTextField: FC<Props> = ({ name, label, disabled, ...textFieldProps }) => {
-  const { control } = useFormContext<FieldValues>();
+export type FormTextFieldProps<TFieldValues extends FieldValues = FieldValues> = {
+  name: FieldPath<TFieldValues>;
+  label?: string;
+} & Omit<TextFieldProps, ManagedProps>;
+
+/**
+ * 文字を入力する欄（MUI の TextField を React Hook Form につないだもの）
+ * 検証エラーは入力欄の下に表示する
+ */
+export const FormTextField = <TFieldValues extends FieldValues = FieldValues>({
+  name,
+  label,
+  onBlur,
+  ...textFieldProps
+}: FormTextFieldProps<TFieldValues>) => {
+  const { control } = useFormContext<TFieldValues>();
 
   return (
     <Controller
       name={name}
       control={control}
-      render={({ field: { value, onChange } }) => (
+      render={({ field, fieldState: { error } }) => (
         <TextField
           {...textFieldProps}
+          name={field.name}
           label={label}
-          value={value}
-          variant='outlined'
-          onChange={(e) => onChange(e.target.value)}
-          disabled={disabled}
+          value={field.value ?? ''}
+          inputRef={field.ref}
+          onChange={(e) => field.onChange(e.target.value)}
+          onBlur={(e) => {
+            field.onBlur();
+            onBlur?.(e);
+          }}
+          error={!!error}
+          helperText={error?.message}
         />
       )}
     />

@@ -26,14 +26,14 @@ React の共通コンポーネント（`packages/ui`）と共通ロジック（`
 5. [x] 設定画面の骨組みを共有パッケージ（`plugin-shell`）に移し、`template/` を最初の利用者にする
 6. [x] 依存関係を最新にする。2026-11-22 に、3プラグインを kintone の実機で確認した（問題なし）。判断の理由は [decisions/tooling.md](./decisions/tooling.md)
 7. [x] フィールドを選ぶ部品を共有パッケージに移す（`ui` の `FormAutocomplete`、`plugin-shell` の `FieldSelect`）。既存の6か所は手順8 で置き換える
-8. [ ] 既存のプラグインを1本ずつ移行する（1プラグイン1PR）。小さい順に age-calculator → field-controller → auto-numbering。移行したプラグインからは、骨組みのコピー（`src/config/hooks`・`states`）を消す
+8. [ ] 既存のプラグインを1本ずつ移行する（1プラグイン1PR）。小さい順に age-calculator（移行済み・実機確認は未実施）→ field-controller → auto-numbering。移行したプラグインからは、骨組みのコピー（`src/config/hooks`・`states`）を消す
 
 ### 移行で解消する問題（2026-11-21 の調査）
 
 手順7・8 で解消する。
 
 - 3プラグインに、設定画面の骨組み（`App.tsx`・`index.tsx`・`states/`・`hooks/` など）が同じ中身でコピーされている。`template/` は手順5 で `plugin-shell` に移した
-- `packages/ui` の入力部品（`FormSingleAutocomplete`・`FormTextField`・`FormSwitch`）と `DynamicSortableList` は age-calculator だけが使い、field-controller と auto-numbering は同じものを個別に作っている。フィールドを選ぶ部品は3プラグインの6か所以上で個別に書かれ、同じ型の回避（`as unknown as`）を繰り返している
+- `packages/ui` の入力部品（`FormTextField`・`FormSwitch`）と `DynamicSortableList` は age-calculator だけが使い、field-controller と auto-numbering は同じものを個別に作っている。フィールドを選ぶ部品は3プラグインの6か所以上で個別に書かれ、同じ型の回避（`as unknown as`）を繰り返している
 - `desktop/index.ts` と `mobile/index.ts` は、イベント名以外ほぼ同じ処理を二重に持っている
 - ロジックの置き場所が `shared/lib/`（age-calculator・field-controller）と `shared/feature/<機能>/`（auto-numbering）に分かれている
 
@@ -67,8 +67,7 @@ React の共通コンポーネント（`packages/ui`）と共通ロジック（`
 | 問題                                                                                                                                                                                       | 場所                                                        | 対応する時期            |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------- | ----------------------- |
 | 保存中も入力欄は書き換えられ、保存が完了すると、その間の変更は保存した内容に戻る（メニューとキャンセルは保存中は押せない） | `plugin-shell` の `PluginContent`・`kintone-utils` の `useSubmitConfig` | 手順8 の後 |
-| 誕生日が空のまま保存すると、年齢のフィールドに `NaN`（単位付きなら `NaN歳`）を書き込む                                                                                                    | age-calculator の `desktop`・`mobile`                       | 手順8（age-calculator） |
-| Biome の警告13件（`any` 8件、使っていない変数・引数5件。2026-11-22 時点）。うち auto-numbering の `displayLabel` と field-controller の `label` は、計算しているのに表示していない（表示し忘れの可能性） | 各プラグイン・`kintone-utils`・`template`                   | 手順8                   |
+| Biome の警告11件（`any` 6件、使っていない変数・引数5件。2026-11-23 時点）。うち auto-numbering の `displayLabel` と field-controller の `label` は、計算しているのに表示していない（表示し忘れの可能性） | 各プラグイン・`kintone-utils`・`template`                   | 手順8                   |
 | 上の `any` のうち、`createSchema` の型 `z.ZodType<T, any, any>` の2件は、外すと各プラグインの動的スキーマの型も変える必要がある                                                            | `kintone-utils/src/hooks/usePluginForm.ts`                  | 手順8                   |
 | `FieldSelect` でサブテーブルの中のフィールドを選べない（`appFieldsAtom` がアプリの最上位のフィールドだけを取得する）。3プラグインで必要かは未確認 | `kintone-utils/src/states/kintone.ts` | 手順8（必要になったプラグインの移行時） |
 | template の `manifest.json` はプラグイン名と説明が空で、そのままでは zip を作れない。`pnpm gen` で名前を聞いて書き込むかを決める                                                           | `template/public/manifest.json`・`scripts/create-plugin.js` | 手順8 の後              |
