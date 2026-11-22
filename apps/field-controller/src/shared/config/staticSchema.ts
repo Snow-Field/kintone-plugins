@@ -127,3 +127,9 @@ export type DisableRuleBlock = DisableRule['block'];
 
 /** 条件ブロックの共通型 */
 export type RuleBlock = VisibilityRuleBlock | DisableRuleBlock;
+
+/** ルールの共通型（非表示・編集不可） */
+export type Rule = VisibilityRule | DisableRule;
+
+/** 1つの条件の型 */
+export type Condition = RuleBlock['conditions'][number];

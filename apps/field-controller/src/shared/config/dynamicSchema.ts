@@ -1,25 +1,16 @@
 // TODO: 対象フィールドの重複チェックについて検討
 
 import type { z, ZodType } from 'zod';
-import type { KintoneFormFieldProperty } from '@kintone/rest-api-client';
+import type { AppFieldType, FieldInfo } from '@kintone-plugin/kintone-utils';
 import {
   PluginConfigSchema,
   OPERATOR_TYPES,
   type PluginConfig,
   type RuleBlock,
-} from '@/shared/config/staticSchema';
-
-/** フィールドプロパティの型エイリアス */
-type FieldProperty = KintoneFormFieldProperty.OneOf;
-
-/** createConfigSchema に渡すフィールド情報の型（usePluginForm の FieldInfo と互換） */
-type FieldInfo = {
-  code: string;
-  type: FieldProperty['type'];
-};
+} from './staticSchema';
 
 /** 演算子とフィールドタイプの互換性マップ */
-const OPERATOR_COMPATIBILITY: Partial<Record<FieldProperty['type'], OPERATOR_TYPES[]>> = {
+const OPERATOR_COMPATIBILITY: Partial<Record<AppFieldType, OPERATOR_TYPES[]>> = {
   SINGLE_LINE_TEXT: [
     OPERATOR_TYPES.EQUALS,
     OPERATOR_TYPES.NOT_EQUALS,
@@ -73,8 +64,22 @@ const OPERATOR_COMPATIBILITY: Partial<Record<FieldProperty['type'], OPERATOR_TYP
   ],
 };
 
+/** 値が空でもよい演算子 */
+const EMPTY_VALUE_OPERATORS = new Set<OPERATOR_TYPES>([
+  OPERATOR_TYPES.EQUALS,
+  OPERATOR_TYPES.NOT_EQUALS,
+]);
+
 /** デフォルト演算子リスト */
 const DEFAULT_OPERATORS: OPERATOR_TYPES[] = [OPERATOR_TYPES.INCLUDES, OPERATOR_TYPES.NOT_INCLUDES];
+
+/**
+ * フィールドの種類で使える演算子の一覧
+ * 互換性マップに存在しないフィールドタイプは includes / notIncludes のみ（OTHERS 扱い）
+ */
+export function getCompatibleOperators(fieldType: AppFieldType): OPERATOR_TYPES[] {
+  return OPERATOR_COMPATIBILITY[fieldType] ?? DEFAULT_OPERATORS;
+}
 
 /**
  * 演算子がフィールドタイプと互換性があるかチェック
@@ -82,10 +87,9 @@ const DEFAULT_OPERATORS: OPERATOR_TYPES[] = [OPERATOR_TYPES.INCLUDES, OPERATOR_T
  */
 export function isOperatorCompatibleWithFieldType(
   operator: OPERATOR_TYPES,
-  fieldType: FieldProperty['type']
+  fieldType: AppFieldType
 ): boolean {
-  const compatibleOperators = OPERATOR_COMPATIBILITY[fieldType] ?? DEFAULT_OPERATORS;
-  return compatibleOperators.includes(operator);
+  return getCompatibleOperators(fieldType).includes(operator);
 }
 
 /**
@@ -117,6 +121,16 @@ function validateBlocks(
         code: 'custom',
         path: [...conditionPath, 'operator'],
         message: `演算子「${condition.operator}」はフィールドタイプ「${fieldInfo.type}」では使用できません`,
+      });
+    }
+
+    // 3. 値の入力チェック。等しい・等しくないは「空のとき」の条件として空を許す
+    // （含むは空だと必ず合い、大小の比較は空だと必ず合わないため）
+    if (!EMPTY_VALUE_OPERATORS.has(condition.operator) && condition.value.length === 0) {
+      ctx.addIssue({
+        code: 'custom',
+        path: [...conditionPath, 'value'],
+        message: '値を入力してください',
       });
     }
   });

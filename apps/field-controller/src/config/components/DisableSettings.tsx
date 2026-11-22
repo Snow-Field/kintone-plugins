@@ -9,7 +9,7 @@ const DISABLE_TRIGGER_OPTIONS = [
   { label: '編集画面表示時（PC）', value: 'app.record.edit.show' },
   { label: '追加画面表示時（モバイル）', value: 'mobile.app.record.create.show' },
   { label: '編集画面表示時（モバイル）', value: 'mobile.app.record.edit.show' },
-];
+] as const;
 
 /**
  * 編集不可設定タブのコンテンツ

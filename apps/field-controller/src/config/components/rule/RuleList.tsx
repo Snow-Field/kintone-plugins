@@ -1,4 +1,4 @@
-import type { FC } from 'react';
+import type { FC, ReactNode } from 'react';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import {
   DndContext,
@@ -13,24 +13,24 @@ import { Box, Button, IconButton, Tooltip } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import { nanoid } from 'nanoid';
-import type { PluginConfig } from '@/shared/config';
-import { createDefaultRule } from '@/config/hooks/useRuleActions';
+import type { FormAutocompleteOption } from '@kintone-plugin/ui';
+import {
+  createDefaultRule,
+  type DisableRule,
+  type PluginConfig,
+  type VisibilityRule,
+} from '@/shared/config';
 import { RuleCard } from './RuleCard';
-
-type TriggerOption = {
-  label: string;
-  value: string;
-};
 
 type Props = {
   rulesPath: 'visibilityRules' | 'disableRules';
-  triggerOptions: TriggerOption[];
+  triggerOptions: readonly FormAutocompleteOption[];
 };
 
 /** ドラッグ可能なルールアイテムのラッパー */
 const SortableRuleItem: FC<{
   id: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }> = ({ id, children }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
@@ -93,20 +93,12 @@ export const RuleList: FC<Props> = ({ rulesPath, triggerOptions }) => {
   };
 
   const handleDuplicate = (index: number) => {
-    const rules = getValues(rulesPath);
-    const source = rules[index];
+    const source = getValues(rulesPath)[index];
     if (!source) return;
-    const duplicated = {
-      ...source,
-      id: nanoid(),
-      block: {
-        ...source.block,
-        conditions: source.block.conditions.map((c) => ({ ...c })),
-        triggers: [...source.block.triggers],
-      },
-      targetFields: [...source.targetFields],
-    };
-    insert(index + 1, duplicated as never);
+    const duplicated = { ...structuredClone(source), id: nanoid() };
+    // 非表示と編集不可のどちらの一覧かで型が分かれるが、React Hook Form は2種類の一覧を
+    // まとめた型を受け取れない。複製元と同じ一覧に入れるので、形は必ず合う
+    insert(index + 1, duplicated as VisibilityRule & DisableRule);
   };
 
   return (
@@ -131,7 +123,7 @@ export const RuleList: FC<Props> = ({ rulesPath, triggerOptions }) => {
       <Button
         variant='outlined'
         startIcon={<AddIcon />}
-        onClick={() => append(createDefaultRule() as never)}
+        onClick={() => append(createDefaultRule())}
         sx={{ borderStyle: 'dashed', width: '100%', py: 1.5 }}
       >
         ルールを追加
