@@ -11,6 +11,14 @@
 
 ## 判断履歴
 
+### 2026-11-22 プラグインの zip の作成とアップロードを cli-kintone に置き換える
+- 背景: `@kintone/plugin-packer`・`@kintone/plugin-uploader` は、最新版も含めて保守が終了した（npm で非推奨。後継は `@kintone/cli`）
+- 決定: `@kintone/cli`（cli-kintone）の `plugin pack`・`plugin upload`・`plugin keygen` に置き換える
+  - 今の秘密鍵で今の packer と cli-kintone の両方で zip を作り、`cli-kintone plugin info` でプラグイン ID が同じになることを確かめた
+  - アップロードはブラウザの自動操作から REST API に変わり、puppeteer（Chrome のダウンロードを含む）が不要になった
+  - 秘密鍵の作成（node-rsa）と `.env` の読み込み（dotenv）も不要になった（`.env` は Node の `process.loadEnvFile` で読む）
+- 制約: アップロードはパスワード認証のみ（今と同じ）
+
 ### 2026-11-22 ESLint・Prettier を Biome に置き換える
 
 - 背景: 依存関係を最新にするにあたり、ESLint で TypeScript を解析する `typescript-eslint`（8.73.0）が TypeScript 6.0 系までにしか対応しておらず、TypeScript 7 に上げられなかった。検査と整形に ESLint・Prettier・`@cybozu/eslint-config`・`packages/eslint-config` の4つを使っていた
