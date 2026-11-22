@@ -4,24 +4,25 @@ import {
   Box,
   Card,
   CardContent,
+  Collapse,
   Divider,
-  FormControlLabel,
-  Switch,
-  Typography,
   IconButton,
   Tooltip,
-  TextField,
-  Collapse,
+  Typography,
 } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DeleteIcon from '@mui/icons-material/Delete';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { FieldSelect } from '@kintone-plugin/plugin-shell';
+import { FormSwitch, FormTextField } from '@kintone-plugin/ui';
 import type { PluginConfig } from '@/shared/config';
-import { ResultFieldSelector } from './ResultFieldSelector';
-import { SerialConfigEditor } from './SerialConfigEditor';
 import { FormatPartsList } from './FormatPartsList';
 import { PreviewDisplay } from './PreviewDisplay';
+import { SerialConfigEditor } from './SerialConfigEditor';
+
+/** 採番結果を書き込めるフィールドの種類 */
+const RESULT_FIELD_TYPES = ['SINGLE_LINE_TEXT'] as const;
 
 type Props = {
   settingIndex: number;
@@ -29,6 +30,13 @@ type Props = {
   onDuplicate: () => void;
   isRemoveDisabled?: boolean;
 };
+
+/** カードの中の見出し */
+const SectionTitle: FC<{ children: string }> = ({ children }) => (
+  <Typography variant='subtitle2' sx={{ mb: 0.5, fontSize: '0.875rem' }}>
+    {children}
+  </Typography>
+);
 
 /**
  * 1採番設定単位の設定カード
@@ -39,21 +47,11 @@ export const NumberingSettingCard: FC<Props> = ({
   onDuplicate,
   isRemoveDisabled,
 }) => {
-  const { control, setValue, register } = useFormContext<PluginConfig>();
-  const enabledPath = `numberingSettings.${settingIndex}.enabled` as const;
-  const labelPath = `numberingSettings.${settingIndex}.label` as const;
-
-  const enabled = useWatch({ control, name: enabledPath }) as unknown as boolean;
-  const label = useWatch({ control, name: labelPath }) as unknown as string | undefined;
+  const { control } = useFormContext<PluginConfig>();
+  const settingPath = `numberingSettings.${settingIndex}` as const;
+  const enabled = useWatch({ control, name: `${settingPath}.enabled` });
 
   const [isExpanded, setIsExpanded] = useState(true);
-
-  const handleEnabledChange = (checked: boolean) => {
-    setValue(enabledPath, checked as never, { shouldDirty: true });
-  };
-
-  // 表示名（未入力時は「設定 N」）
-  const displayLabel = label || `設定 ${settingIndex + 1}`;
 
   return (
     <Card
@@ -83,8 +81,8 @@ export const NumberingSettingCard: FC<Props> = ({
               {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
             </IconButton>
           </Tooltip>
-          <TextField
-            {...register(labelPath)}
+          <FormTextField<PluginConfig>
+            name={`${settingPath}.label`}
             size='small'
             placeholder={`設定 ${settingIndex + 1}`}
             variant='standard'
@@ -95,29 +93,21 @@ export const NumberingSettingCard: FC<Props> = ({
                 borderBottom: 'none',
               },
               '& .MuiInput-underline:hover:not(.Mui-disabled):before': {
-                borderBottom: '1px solid rgba(0, 0, 0, 0.42)',
+                borderBottom: '1px solid',
+                borderColor: 'text.secondary',
               },
               '& .MuiInput-underline:after': {
-                borderBottom: '1px solid rgba(0, 0, 0, 0.42)',
+                borderBottom: '1px solid',
+                borderColor: 'text.secondary',
               },
             }}
           />
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={!!enabled}
-                onChange={(e) => handleEnabledChange(e.target.checked)}
-                size='small'
-                color='primary'
-              />
-            }
-            label={
-              <Typography variant='body2' sx={{ fontWeight: 500 }}>
-                {enabled ? '有効' : '無効'}
-              </Typography>
-            }
+          <FormSwitch<PluginConfig>
+            name={`${settingPath}.enabled`}
+            label={enabled ? '有効' : '無効'}
+            size='small'
           />
           <Tooltip title='この設定を複製'>
             <IconButton size='small' onClick={onDuplicate}>
@@ -136,47 +126,36 @@ export const NumberingSettingCard: FC<Props> = ({
 
       <Collapse in={isExpanded}>
         <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, py: 2 }}>
-          {/* プレビュー */}
           <Box>
-            <Typography variant='subtitle2' sx={{ mb: 0.5, fontSize: '0.875rem' }}>
-              プレビュー
-            </Typography>
+            <SectionTitle>プレビュー</SectionTitle>
             <PreviewDisplay settingIndex={settingIndex} />
           </Box>
 
           <Divider textAlign='left' sx={{ mt: 1.5 }} />
 
-          {/* 基本設定 */}
-          <Box sx={{ mt: 1 }}>
-            <Typography variant='subtitle2' sx={{ mb: 0.5, fontSize: '0.875rem' }}>
-              基本設定
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, maxWidth: 300 }}>
-              <Typography variant='body2' sx={{ fontSize: '0.875rem' }}>
-                採番結果フィールド
-              </Typography>
-              <ResultFieldSelector name={`numberingSettings.${settingIndex}.resultFieldCode`} />
-            </Box>
+          <Box sx={{ mt: 1, maxWidth: 300 }}>
+            <SectionTitle>基本設定</SectionTitle>
+            <FieldSelect<PluginConfig>
+              name={`${settingPath}.resultFieldCode`}
+              label='採番結果フィールド'
+              placeholder='フィールドを選択'
+              fieldTypes={RESULT_FIELD_TYPES}
+              size='small'
+            />
           </Box>
 
           <Divider textAlign='left' sx={{ mt: 1.5 }} />
 
-          {/* フォーマットパーツ */}
           <Box sx={{ mt: 1 }}>
-            <Typography variant='subtitle2' sx={{ mb: 0.5, fontSize: '0.875rem' }}>
-              フォーマットパーツ（最大3つ）
-            </Typography>
-            <FormatPartsList basePath={`numberingSettings.${settingIndex}`} />
+            <SectionTitle>フォーマットパーツ（最大3つ）</SectionTitle>
+            <FormatPartsList settingIndex={settingIndex} />
           </Box>
 
           <Divider textAlign='left' sx={{ mt: 1.5 }} />
 
-          {/* 連番設定 */}
           <Box sx={{ mt: 1 }}>
-            <Typography variant='subtitle2' sx={{ mb: 0.5, fontSize: '0.875rem' }}>
-              連番設定
-            </Typography>
-            <SerialConfigEditor basePath={`numberingSettings.${settingIndex}.serialConfig`} />
+            <SectionTitle>連番設定</SectionTitle>
+            <SerialConfigEditor settingIndex={settingIndex} />
           </Box>
         </CardContent>
       </Collapse>

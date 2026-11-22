@@ -1,4 +1,4 @@
-import type { FC } from 'react';
+import type { FC, ReactNode } from 'react';
 import { useFormContext, useFieldArray } from 'react-hook-form';
 import {
   DndContext,
@@ -13,14 +13,13 @@ import { Box, Button, IconButton, Tooltip } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import { nanoid } from 'nanoid';
-import type { PluginConfig } from '@/shared/config';
-import { createDefaultNumberingSetting } from '@/config/hooks/useNumberingActions';
+import { createDefaultNumberingSetting, type PluginConfig } from '@/shared/config';
 import { NumberingSettingCard } from './NumberingSettingCard';
 
 /** ドラッグ可能な設定アイテムのラッパー */
 const SortableSettingItem: FC<{
   id: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }> = ({ id, children }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
@@ -86,14 +85,11 @@ export const NumberingSettingsList: FC = () => {
     const settings = getValues('numberingSettings');
     const source = settings[index];
     if (!source) return;
-    const duplicated = {
-      ...source,
+    insert(index + 1, {
+      ...structuredClone(source),
       id: nanoid(),
       label: source.label ? `${source.label} (コピー)` : '',
-      formatParts: source.formatParts.map((part) => ({ ...part })),
-      serialConfig: { ...source.serialConfig },
-    };
-    insert(index + 1, duplicated as never);
+    });
   };
 
   return (
@@ -116,7 +112,7 @@ export const NumberingSettingsList: FC = () => {
       <Button
         variant='outlined'
         startIcon={<AddIcon />}
-        onClick={() => append(createDefaultNumberingSetting() as never)}
+        onClick={() => append(createDefaultNumberingSetting())}
         disabled={fields.length >= 5}
         sx={{ borderStyle: 'dashed', width: '100%', py: 1.5 }}
       >

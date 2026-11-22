@@ -1,16 +1,5 @@
-import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import App from './App';
+import { renderPluginConfig } from '@kintone-plugin/plugin-shell';
+import { pluginConfig } from '@/shared/config';
+import { tabs } from './tabs';
 
-const rootElement = document.getElementById('settings');
-if (!rootElement) {
-  throw new Error(
-    'プラグインのHTMLに、ルート要素が存在しません。プラグイン設定をレンダリングするためには、id="settings"の要素が必要です。'
-  );
-}
-
-createRoot(rootElement).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);
+renderPluginConfig({ definition: pluginConfig, tabs });

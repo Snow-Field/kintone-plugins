@@ -2,7 +2,7 @@ import type { FC } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { Box, Paper, Typography, Alert } from '@mui/material';
 import PreviewIcon from '@mui/icons-material/Preview';
-import type { PluginConfig, NumberingSetting } from '@/shared/config';
+import type { PluginConfig } from '@/shared/config';
 import { useNumberingPreview } from '@/config/hooks/useNumberingPreview';
 
 type Props = {
@@ -17,10 +17,7 @@ export const PreviewDisplay: FC<Props> = ({ settingIndex }) => {
   const { control } = useFormContext<PluginConfig>();
 
   // 採番設定全体を監視
-  const setting = useWatch({
-    control,
-    name: `numberingSettings.${settingIndex}` as never,
-  }) as unknown as NumberingSetting | undefined;
+  const setting = useWatch({ control, name: `numberingSettings.${settingIndex}` });
 
   // プレビューを生成
   const { value, error } = useNumberingPreview(setting);

@@ -9,24 +9,24 @@ import type { PluginConfig } from '@/shared/config';
 import { FormatPartItem } from './FormatPartItem';
 
 type Props = {
-  basePath: string;
+  settingIndex: number;
 };
 
 /**
  * フォーマットパーツ一覧コンポーネント
  * インライン形式で1行ずつ表示
  */
-export const FormatPartsList: FC<Props> = ({ basePath }) => {
+export const FormatPartsList: FC<Props> = ({ settingIndex }) => {
   const { control } = useFormContext<PluginConfig>();
 
   const { fields, append, remove, move } = useFieldArray({
     control,
-    name: `${basePath}.formatParts` as never,
+    name: `numberingSettings.${settingIndex}.formatParts`,
   });
 
   const handleAddPart = () => {
     // デフォルトでテキストパーツを追加
-    append({ type: 'text', value: '' } as never);
+    append({ type: 'text', value: '' });
   };
 
   const handleMoveUp = (index: number) => {
@@ -81,7 +81,7 @@ export const FormatPartsList: FC<Props> = ({ basePath }) => {
 
           {/* パーツ編集エリア */}
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <FormatPartItem basePath={`${basePath}.formatParts.${index}`} partIndex={index} />
+            <FormatPartItem settingIndex={settingIndex} partIndex={index} />
           </Box>
 
           {/* 操作ボタン */}

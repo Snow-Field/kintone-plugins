@@ -1,7 +1,7 @@
 import type { ZodType } from 'zod';
-import type { KintoneFormFieldProperty } from '@kintone/rest-api-client';
-import { PluginConfigSchema, type PluginConfig } from '@/shared/config/staticSchema';
-import { RESET_TIMING, DATE_FORMATS } from '@/shared/config/constants';
+import type { FieldInfo } from '@kintone-plugin/kintone-utils';
+import { DATE_FORMATS, RESET_TIMING } from './constants';
+import { type PluginConfig, PluginConfigSchema } from './staticSchema';
 
 /**
  * リセットタイミングに必要な最小日付フォーマットを判定
@@ -32,12 +32,6 @@ const getRequiredDateFormatsForResetTiming = (
     default:
       return null;
   }
-};
-
-/** フィールド情報の型（usePluginForm と互換） */
-type FieldInfo = {
-  code: string;
-  type: KintoneFormFieldProperty.OneOf['type'];
 };
 
 /**
@@ -92,11 +86,9 @@ export const createConfigSchema = (fields: FieldInfo[]): ZodType<PluginConfig> =
         }
       }
 
-      // resetTiming が 'none' 以外の場合、serialFieldCode は不要（警告）
-      if (
-        serialConfig.resetTiming !== RESET_TIMING.NONE &&
-        serialConfig.serialFieldCode !== undefined
-      ) {
+      // resetTiming が 'none' 以外の場合、serialFieldCode は使わない
+      // （空文字は未選択なので、値が入っているときだけ知らせる）
+      if (serialConfig.resetTiming !== RESET_TIMING.NONE && serialConfig.serialFieldCode) {
         ctx.addIssue({
           code: 'custom',
           message: 'リセットタイミングが "なし" 以外の場合、連番フィールドコードは使用されません',

@@ -1,77 +1,60 @@
-import { PLUGIN_ID, storePluginConfig, restorePluginConfig } from '@kintone-plugin/kintone-utils';
 import { nanoid } from 'nanoid';
+import { definePluginConfig } from '@kintone-plugin/kintone-utils';
+import { CONNECTORS, RESET_TIMING } from './constants';
+import { createConfigSchema } from './dynamicSchema';
 import {
   LATEST_PLUGIN_VERSION,
-  PluginConfigSchema,
+  type NumberingSetting,
   type PluginConfig,
-  type AnyPluginConfig,
-} from '@/shared/config/staticSchema';
-import { RESET_TIMING, CONNECTORS } from '@/shared/config/constants';
+  PluginConfigSchema,
+} from './staticSchema';
 
-/**
- * 初期化: デフォルトの設定情報を返す
- */
+/** 新しい採番設定の既定値 */
+export const createDefaultNumberingSetting = (): NumberingSetting => ({
+  id: nanoid(),
+  label: '',
+  enabled: true,
+  resultFieldCode: '',
+  formatParts: [{ type: 'text', value: '' }],
+  connector: CONNECTORS.HYPHEN,
+  serialConfig: {
+    initialValue: 1,
+    digit: 5,
+    position: 'suffix',
+    resetTiming: RESET_TIMING.NONE,
+    serialFieldCode: '',
+  },
+});
+
+/** 既定の設定。最初の採番設定は連番だけ（書式のパーツは空） */
 export const createConfig = (): PluginConfig => ({
   version: LATEST_PLUGIN_VERSION,
-  numberingSettings: [
-    {
-      id: nanoid(),
-      label: '',
-      enabled: true,
-      resultFieldCode: '',
-      formatParts: [], // 空配列（連番のみ）
-      connector: CONNECTORS.HYPHEN,
-      serialConfig: {
-        initialValue: 1,
-        digit: 5,
-        position: 'suffix',
-        resetTiming: RESET_TIMING.NONE,
-        serialFieldCode: '',
-      },
-    },
-  ],
+  numberingSettings: [{ ...createDefaultNumberingSetting(), formatParts: [] }],
   common: {
     apiToken: '',
   },
 });
 
 /**
- * 保存: 設定情報をkintoneに保存
+ * 旧版の設定を最新版に変換する
+ * 版（version）の無い設定は、v1 より前のものなので既定値にする
  */
-export const storeConfig = (config: PluginConfig, callback?: () => void): void => {
-  storePluginConfig(config, callback);
+export const migrateConfig = (parsed: Record<string, unknown>): PluginConfig => {
+  if (parsed.version === undefined) return createConfig();
+  return PluginConfigSchema.parse(parsed);
 };
 
 /**
- * 変換: 古い設定情報を新しい設定情報に変換
+ * プラグイン設定の定義
+ * 設定画面（config）と実行画面（desktop・mobile）の両方から使う
  */
-const migrateConfig = (parsedConfig: AnyPluginConfig): PluginConfig => {
-  const config = { ...parsedConfig };
+export const pluginConfig = definePluginConfig<PluginConfig>({
+  name: '自動採番プラグイン',
+  schema: PluginConfigSchema,
+  createDefault: createConfig,
+  migrate: migrateConfig,
+  createValidationSchema: createConfigSchema,
+});
 
-  // バージョン情報がない、または認識できない構造の場合はデフォルト値で初期化
-  if (config.version === undefined) {
-    console.warn('[migrateConfig] No version found in config. Using default config.');
-    return createConfig();
-  }
-
-  // 将来のバージョンアップ時はここにマイグレーションステップを追加
-  // if (config.version === 1) {
-  //   config.version = 2;
-  //   // ... V1 → V2 のマイグレーション処理
-  //   // 例: 新しいフィールドの追加、フィールド名の変更など
-  // }
-
-  return config as PluginConfig;
-};
-
-/**
- * 復元: kintoneから取得し、Zodで検証・補完して返す
- */
-export const restoreConfig = (): PluginConfig => {
-  return restorePluginConfig({
-    schema: PluginConfigSchema,
-    pluginId: PLUGIN_ID,
-    defaultConfig: createConfig(),
-    migrate: (parsed) => migrateConfig(parsed as AnyPluginConfig),
-  });
-};
+/** 実行画面用。読み込みに失敗したら既定値で動く（エラーはコンソールに出す） */
+export const restoreConfig = (): PluginConfig => pluginConfig.restore();
