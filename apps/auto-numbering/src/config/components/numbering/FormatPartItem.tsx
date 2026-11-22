@@ -54,6 +54,10 @@ export const FormatPartItem: FC<Props> = ({ settingIndex, partIndex }) => {
   const { control } = useFormContext<PluginConfig>();
   const partPath = `numberingSettings.${settingIndex}.formatParts.${partIndex}` as const;
   const partType = useWatch({ control, name: `${partPath}.type` });
+  const resultFieldCode = useWatch({
+    control,
+    name: `numberingSettings.${settingIndex}.resultFieldCode`,
+  });
 
   return (
     <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', flexWrap: 'wrap' }}>
@@ -79,6 +83,8 @@ export const FormatPartItem: FC<Props> = ({ settingIndex, partIndex }) => {
           name={`${partPath}.fieldCode`}
           label='フィールド'
           fieldTypes={FIELD_PART_TYPES}
+          // 採番結果のフィールドは、採番の時点ではまだ空なので選べないようにする
+          filter={(field) => field.code !== resultFieldCode}
           size='small'
           sx={{ flex: 1, minWidth: 200, maxWidth: 400 }}
         />

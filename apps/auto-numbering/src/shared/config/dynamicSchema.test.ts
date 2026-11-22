@@ -65,6 +65,16 @@ describe('createConfigSchema', () => {
     ]);
   });
 
+  it('書式のパーツに採番結果のフィールド自身を選んでいたらエラーにする', () => {
+    const config = configWith((s) => ({
+      ...s,
+      formatParts: [{ type: 'field', fieldCode: 'number' }],
+    }));
+    expect(issues(config).map((i) => i.path)).toEqual([
+      'numberingSettings.0.formatParts.0.fieldCode',
+    ]);
+  });
+
   it('初期値が空なら、日本語のメッセージで知らせる', () => {
     const config = configWith((s) => ({
       ...s,
