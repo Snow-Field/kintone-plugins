@@ -30,7 +30,7 @@ export const PreviewDisplay: FC<Props> = ({ settingIndex }) => {
     return (
       <Box>
         <Alert severity='error' icon={<PreviewIcon fontSize='small' />} sx={{ py: 0.5 }}>
-          <Typography variant='caption' fontWeight={500}>
+          <Typography variant='caption' sx={{ fontWeight: 500 }}>
             プレビューを生成できません: {error}
           </Typography>
         </Alert>

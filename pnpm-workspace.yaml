@@ -17,8 +17,8 @@ catalog:
   '@types/react-dom': 19.3.0
 
   # UI関連
-  '@mui/material': 7.3.7
-  '@mui/icons-material': 7.3.7
+  '@mui/material': 9.5.0
+  '@mui/icons-material': 9.5.0
   '@emotion/react': 11.14.0
   '@emotion/styled': 11.14.1
   notistack: 3.0.2

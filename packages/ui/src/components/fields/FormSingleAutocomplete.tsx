@@ -110,12 +110,10 @@ export const FormSingleAutocomplete = ({
             );
           }}
           renderInput={(params) => {
-            // MUI v7 の型定義の不整合を回避するため、InputProps を明示的に型アサーション
-            const { InputProps, ...restParams } = params;
+            // MUI 9 では params が slotProps でそろっているため、そのまま渡す
             return (
               <TextField
-                {...restParams}
-                InputProps={InputProps as any}
+                {...params}
                 label={label}
                 placeholder={placeholder}
                 variant='outlined'
