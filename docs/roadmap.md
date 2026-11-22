@@ -59,6 +59,19 @@ React の共通コンポーネント（`packages/ui`）と共通ロジック（`
 10. [x] スクリプト用: `@clack/prompts`・nanoid（dotenv・node-rsa は cli-kintone への置き換えで不要になった）
 11. [ ] 3プラグインの設定画面と実行画面を、kintone の実機で確認する
 
+#### 手順6-11 の確認項目
+
+各プラグインで `pnpm build` のあと `pnpm upload`（または `pnpm dev`）でアップロードし、次を確かめる。
+
+| 対象 | 確認すること | 関係する更新 |
+| --- | --- | --- |
+| アップロード | `pnpm upload` で kintone に反映される。既存のプラグインが更新され、別のプラグインとして増えない | cli-kintone |
+| 設定画面の表示 | タブ・入力欄・フィールドの選択肢・並べ替え・ダイアログの見た目と配置が崩れていない | MUI 9 |
+| 設定画面の読み込み | 保存済みの設定が表示される。フィールドの一覧が読み込まれる | jotai 3・rest-api-client 7 |
+| 設定画面の操作 | 保存・リセット・インポート・エクスポートで画面が更新される。入力の検証エラーが表示される | jotai 3・`@hookform/resolvers` 7 |
+| 実行画面 | age-calculator の年齢計算、field-controller の表示・編集の制御、auto-numbering の採番（レコードの取得と更新）が動く | rest-api-client 7・Rsbuild 2 |
+| 対話式のコマンド | `pnpm run init` と `pnpm gen` の入力が動く | `@clack/prompts` 1 |
+
 手順6 以降は設定画面の動作を kintone の実機で確かめるので、着手前に各プラグインの `.env` と `private.ppk` が必要。
 
 ### 調査で分かった現状（2026-11-21）
@@ -74,7 +87,22 @@ React の共通コンポーネント（`packages/ui`）と共通ロジック（`
 | 事項                                                                                                                                                                | 決める時期                                  |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
 | API トークン秘匿プラグインの要件                                                                                                                                    | フェーズ3 の着手前                          |
-| 実行画面のバンドルが約270KB ある。kintone-utils を1つの入口から読むため、実行画面で使わない REST API クライアントや通知の部品まで入っている。入口を分けるかを決める | 手順7 の後                                  |
+| 実行画面のバンドルが約276KB ある（rest-api-client 7 で増えた）。kintone-utils を1つの入口から読むため、実行画面で使わない REST API クライアントや通知の部品まで入っている。入口を分けるかを決める | 手順8 の後 |
 | [architecture.md](./architecture.md) の未確定事項                                                                                                                   | plugin-shell の実装時・各プラグインの移行時 |
 | Biome の実験段階（nursery）のルールを採用するか。今は採用しない                                                                                                     | 必要になったとき                            |
 | Markdown のドキュメントを Biome の整形の対象にするか。今は対象にしない                                                                                              | 必要になったとき                            |
+
+## 既知の問題（未対応）
+
+`/code-review` などで見つかり、まだ直していないもの。対応したら行を消す。
+
+| 問題 | 場所 | 対応する時期 |
+| --- | --- | --- |
+| 保存に30秒以上かかると、実際には保存できていても「保存に失敗しました」と表示する（遅れて届いた完了の通知を無視する） | `kintone-utils/src/lib/pluginConfig.ts` の `waitForSave` | 手順8 の前 |
+| 保存の後の画面の更新が失敗しても、成功したときの処理（`onSuccess`）が呼ばれ、読み込み失敗の警告が消える | `kintone-utils/src/hooks/useSubmitConfig.ts` | 手順8 の前 |
+| 誕生日が空のまま保存すると、年齢のフィールドに `NaN`（単位付きなら `NaN歳`）を書き込む | age-calculator の `desktop`・`mobile` | 手順8（age-calculator） |
+| Biome の警告15件（`any` 10件、使っていない変数・引数5件）。うち auto-numbering の `displayLabel` と field-controller の `label` は、計算しているのに表示していない（表示し忘れの可能性） | 各プラグイン・`kintone-utils` | 手順8 |
+| `createSchema` の型 `z.ZodType<T, any, any>` の `any`。外すと各プラグインの動的スキーマの型も変える必要がある | `kintone-utils/src/hooks/usePluginForm.ts` | 手順8 |
+| template の `manifest.json` はプラグイン名と説明が空で、そのままでは zip を作れない。`pnpm gen` で名前を聞いて書き込むかを決める | `template/public/manifest.json`・`scripts/create-plugin.js` | 手順8 の後 |
+| `genkey.js`・`upload.js`・`dotenv.js` が、template と3プラグインの4か所に同じ内容でコピーされている | 各プラグインの `scripts/` | 手順8 の後 |
+| スクリプトはコマンドを直接起動するため、Windows では動かない（macOS で開発する前提） | 各プラグインの `scripts/` | 必要になったとき |
