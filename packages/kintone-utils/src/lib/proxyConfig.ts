@@ -29,6 +29,11 @@ export type PluginSecrets<T> = {
   strip: (config: T) => T;
   /** 保存済みの秘密をフォームの値に戻す（設定画面の読み込みとインポートのあと） */
   fill: (config: T, read: ProxySettingsReader) => T;
+  /**
+   * 保存しうるキーが決まっていれば返す。保存のたびに、今回保存しないものを {} で上書きする
+   * （前回の保存が途中で失敗し、予約キーに記録されなかった組も消せるように）
+   */
+  knownKeys?: () => ProxyKey[];
 };
 
 /**
@@ -37,6 +42,14 @@ export type PluginSecrets<T> = {
  */
 export const PROXY_KEYS_CONFIG_KEY = '__proxyKeys';
 
+/** あとから新しい保存が始まったので、この保存の残りの書き込みをやめた */
+export class SaveSupersededError extends Error {
+  constructor() {
+    super('新しい保存が始まったため、前の保存を途中でやめました');
+    this.name = 'SaveSupersededError';
+  }
+}
+
 const sameKey = (a: ProxyKey, b: ProxyKey) => a.url === b.url && a.method === b.method;
 
 /**
@@ -44,6 +57,13 @@ const sameKey = (a: ProxyKey, b: ProxyKey) => a.url === b.url && a.method === b.
  */
 export const staleProxyKeys = (entries: ProxyEntry[], previous: ProxyKey[]): ProxyKey[] =>
   previous.filter((key) => !entries.some((entry) => sameKey(entry, key)));
+
+/** キーの一覧をまとめる（重なりは1つにする） */
+export const mergeProxyKeys = (...lists: ProxyKey[][]): ProxyKey[] =>
+  lists
+    .flat()
+    .filter((key, i, all) => all.findIndex((other) => sameKey(other, key)) === i)
+    .map(({ url, method }) => ({ url, method }));
 
 /** 同じキーの組が2つあると、後の保存で先の保存が上書きされて気づけないため拒否する */
 const assertUniqueKeys = (entries: ProxyEntry[]) => {
@@ -54,11 +74,19 @@ const assertUniqueKeys = (entries: ProxyEntry[]) => {
   });
 };
 
-const isProxyKey = (value: unknown): value is ProxyKey =>
-  typeof value === 'object' &&
-  value !== null &&
-  typeof (value as ProxyKey).url === 'string' &&
-  typeof (value as ProxyKey).method === 'string';
+const PROXY_METHODS: readonly string[] = ['GET', 'POST', 'PUT', 'DELETE'];
+
+/** setProxyConfig に渡せるキーか（渡せないものを混ぜると、保存が毎回失敗するため） */
+const isProxyKey = (value: unknown): value is ProxyKey => {
+  if (typeof value !== 'object' || value === null) return false;
+  const { url, method } = value as Record<string, unknown>;
+  return (
+    typeof url === 'string' &&
+    url !== '' &&
+    typeof method === 'string' &&
+    PROXY_METHODS.includes(method)
+  );
+};
 
 /**
  * setConfig の生の値から、前回保存したキーを読む
@@ -90,15 +118,19 @@ const setProxySettings = ({ url, method, headers, data }: ProxyEntry): Promise<v
  */
 export const storeProxyEntries = async (
   entries: ProxyEntry[],
-  previous: ProxyKey[]
+  previous: ProxyKey[],
+  /** false を返したら、残りを書かずに失敗する（あとから始まった保存を上書きしないため） */
+  isCurrent: () => boolean = () => true
 ): Promise<ProxyKey[]> => {
   assertUniqueKeys(entries);
+  const writes = [
+    ...entries,
+    ...staleProxyKeys(entries, previous).map((key) => ({ ...key, headers: {}, data: {} })),
+  ];
   // 並行させない（kintone が同時の保存をどう扱うか分からないため）
-  for (const entry of entries) {
-    await setProxySettings(entry);
-  }
-  for (const key of staleProxyKeys(entries, previous)) {
-    await setProxySettings({ ...key, headers: {}, data: {} });
+  for (const write of writes) {
+    if (!isCurrent()) throw new SaveSupersededError();
+    await setProxySettings(write);
   }
   return entries.map(({ url, method }) => ({ url, method }));
 };

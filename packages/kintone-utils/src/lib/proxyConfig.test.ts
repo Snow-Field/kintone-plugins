@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
+  mergeProxyKeys,
   type ProxyEntry,
   parseProxyKeys,
   readProxySettings,
@@ -52,6 +53,23 @@ describe('staleProxyKeys', () => {
   });
 });
 
+describe('mergeProxyKeys', () => {
+  it('キーの一覧をまとめ、URL とメソッドが同じものは1つにする', () => {
+    expect(
+      mergeProxyKeys(
+        [{ url: BASE, method: 'GET' }],
+        [
+          { url: BASE, method: 'GET' },
+          { url: BASE, method: 'PUT' },
+        ]
+      )
+    ).toEqual([
+      { url: BASE, method: 'GET' },
+      { url: BASE, method: 'PUT' },
+    ]);
+  });
+});
+
 describe('parseProxyKeys', () => {
   it('保存した JSON からキーを読む', () => {
     expect(parseProxyKeys(JSON.stringify([{ url: BASE, method: 'GET' }]))).toEqual([
@@ -71,6 +89,18 @@ describe('parseProxyKeys', () => {
     expect(
       parseProxyKeys(JSON.stringify([{ url: BASE }, null, { url: BASE, method: 'PUT' }]))
     ).toEqual([{ url: BASE, method: 'PUT' }]);
+  });
+
+  it('setProxyConfig に渡せないメソッドや空の URL は除く（混ざると保存が毎回失敗するため）', () => {
+    expect(
+      parseProxyKeys(
+        JSON.stringify([
+          { url: BASE, method: 'PATCH' },
+          { url: '', method: 'GET' },
+          { url: BASE, method: 'DELETE' },
+        ])
+      )
+    ).toEqual([{ url: BASE, method: 'DELETE' }]);
   });
 });
 

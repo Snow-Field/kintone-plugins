@@ -1,6 +1,11 @@
 import { nanoid } from 'nanoid';
 import { definePluginConfig, type PluginSecrets } from '@kintone-plugin/kintone-utils';
-import { API_TOKEN_HEADER, apiTokenEntries, apiTokenReadKey } from '@/shared/api/request';
+import {
+  API_TOKEN_HEADER,
+  apiTokenEntries,
+  apiTokenKeys,
+  apiTokenReadKey,
+} from '@/shared/api/request';
 import { CONNECTORS, RESET_TIMING } from './constants';
 import { createConfigSchema } from './dynamicSchema';
 import {
@@ -84,6 +89,8 @@ export const apiTokenSecrets: PluginSecrets<PluginConfig> = {
       ? config
       : { ...config, common: { ...config.common, apiToken: saved } };
   },
+  // トークンを空にして保存したら、前回の保存が途中で失敗していても、3つとも {} で上書きする
+  knownKeys: apiTokenKeys,
 };
 
 /**

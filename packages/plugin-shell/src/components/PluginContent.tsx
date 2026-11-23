@@ -74,6 +74,8 @@ const PluginContentForm = <T extends FieldValues>({
     setLoading,
     onSave: definition.store,
     onSync: syncConfig,
+    // 開発ビルドでは保存するデータをコンソールに出すので、秘密を除く
+    redact: definition.toExport,
     onSuccess: clearLoadError,
     successAction: (
       <Button type='button' color='inherit' size='small' variant='outlined' onClick={navigateBack}>
@@ -106,7 +108,8 @@ const PluginContentForm = <T extends FieldValues>({
       />
       {showLoadError && (
         <Alert severity='warning' sx={{ mx: 3, mt: 2 }}>
-          保存済みの設定を読み込めなかったため、既定値を表示しています。保存すると、表示中の内容で上書きされます（原因はブラウザのコンソールに出力しています）。
+          保存済みの設定の全部または一部（API
+          トークンなど）を読み込めなかったため、読み込めなかった部分は既定値か空で表示しています。保存すると、表示中の内容で上書きされます（原因はブラウザのコンソールに出力しています）。
         </Alert>
       )}
       <Form tabs={tabs} activeTab={activeTab} disabled={isSaving} />

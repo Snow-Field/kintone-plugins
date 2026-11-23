@@ -4,8 +4,10 @@ import { logger } from './logger';
 import {
   type PluginSecrets,
   PROXY_KEYS_CONFIG_KEY,
+  mergeProxyKeys,
   parseProxyKeys,
   readProxySettings,
+  SaveSupersededError,
   storeProxyEntries,
 } from './proxyConfig';
 
@@ -202,13 +204,24 @@ export const definePluginConfig = <T extends { version: number } & Record<string
   /** 保存済みの秘密を埋める。読めなければ例外を投げる */
   const fill = (config: T): T => (secrets ? secrets.fill(config, readProxySettings) : config);
 
+  /** 最後に始めた保存の番号。時間切れのあとも古い保存は続くので、新しい保存を上書きしないよう止める */
+  let latestStore = 0;
+
   const store = async (config: T, callback: () => void): Promise<void> => {
     if (!secrets) return storePluginConfig(config, callback);
+    const id = ++latestStore;
+    const isCurrent = () => id === latestStore;
     const saved: Record<string, string> = kintone.plugin.app.getConfig(pluginId);
-    const previous = parseProxyKeys(saved[PROXY_KEYS_CONFIG_KEY]);
+    // 前回の保存が途中で失敗すると、保存したプロキシ設定が予約キーに記録されない。
+    // そのため knownKeys も常に上書きの対象にする（記録漏れのトークンを設定画面から消せるように）
+    const previous = mergeProxyKeys(
+      parseProxyKeys(saved[PROXY_KEYS_CONFIG_KEY]),
+      secrets.knownKeys?.() ?? []
+    );
     // setConfig より先に保存する（setConfig を先にすると、秘密の保存に失敗したときに、
     // 実行画面が保存されていない秘密を使おうとするため）
-    const keys = await storeProxyEntries(secrets.toEntries(config), previous);
+    const keys = await storeProxyEntries(secrets.toEntries(config), previous, isCurrent);
+    if (!isCurrent()) throw new SaveSupersededError();
     storePluginConfig({ ...secrets.strip(config), [PROXY_KEYS_CONFIG_KEY]: keys }, callback);
   };
 
@@ -219,7 +232,8 @@ export const definePluginConfig = <T extends { version: number } & Record<string
       try {
         return { ...result, config: fill(result.config) };
       } catch (error) {
-        return { config: definition.createDefault(), error: toError(error) };
+        // 秘密だけを読めなかったときは、読めた設定は残す（既定値に戻すと、保存で全部を失うため）
+        return { config: result.config, error: result.error ?? toError(error) };
       }
     },
     parse: (data) => {

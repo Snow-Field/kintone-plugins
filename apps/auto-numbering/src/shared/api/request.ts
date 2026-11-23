@@ -46,6 +46,10 @@ export const apiTokenEntries = (token: string): ProxyEntry[] =>
     data: {},
   }));
 
+/** トークンを保存しうるキー（保存のたびに、今回保存しないものを {} で上書きする） */
+export const apiTokenKeys = (): ProxyKey[] =>
+  TOKEN_TARGETS.map(({ path, method }) => ({ url: apiUrl(path), method }));
+
 /** 保存済みのトークンを読むときのキー（どの組にも同じトークンを保存するので、最初の組を読む） */
 export const apiTokenReadKey = (): ProxyKey => {
   const [first] = TOKEN_TARGETS;

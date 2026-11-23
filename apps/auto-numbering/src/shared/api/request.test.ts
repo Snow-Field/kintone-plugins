@@ -18,7 +18,7 @@ const { api, proxy } = vi.hoisted(() => {
   return { api, proxy };
 });
 
-const { apiTokenEntries, apiTokenReadKey, requestApi } = await import('./request');
+const { apiTokenEntries, apiTokenKeys, apiTokenReadKey, requestApi } = await import('./request');
 
 describe('apiTokenEntries・apiTokenReadKey', () => {
   it('ゲストスペースでは /k/guest/{スペースID}/v1/ の、採番で使う API にトークンを保存する', () => {
@@ -28,6 +28,10 @@ describe('apiTokenEntries・apiTokenReadKey', () => {
       ['PUT', `${BASE}record.json`],
     ]);
     expect(apiTokenReadKey()).toEqual({ url: `${BASE}records.json`, method: 'GET' });
+    // 保存しうるキーは、保存する組と同じ
+    expect(apiTokenKeys()).toEqual(
+      apiTokenEntries('token').map(({ url, method }) => ({ url, method }))
+    );
   });
 });
 

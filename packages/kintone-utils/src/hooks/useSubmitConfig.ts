@@ -21,6 +21,8 @@ type UseSubmitConfigProps<T> = {
   onSuccess?: () => void;
   /** 失敗時のコールバック */
   onError?: () => void;
+  /** ログに出す前に変換する（秘密を除くなど） */
+  redact?: (data: T) => unknown;
 };
 
 /**
@@ -33,6 +35,7 @@ export const useSubmitConfig = <T>({
   successAction,
   onSuccess,
   onError,
+  redact,
 }: UseSubmitConfigProps<T>) => {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
@@ -40,7 +43,7 @@ export const useSubmitConfig = <T>({
     async (data: T) => {
       setLoading(true);
       logger.group('kintone Plugin Config Save');
-      logger.log('Saving Data:', data);
+      logger.log('Saving Data:', redact ? redact(data) : data);
 
       try {
         // kintoneへ保存し、完了を待つ（完了前に保存済みとして扱うと、失敗に気づけないため）
@@ -96,7 +99,17 @@ export const useSubmitConfig = <T>({
         setLoading(false);
       }
     },
-    [setLoading, onSave, onSync, successAction, onSuccess, onError, enqueueSnackbar, closeSnackbar]
+    [
+      setLoading,
+      onSave,
+      onSync,
+      successAction,
+      onSuccess,
+      onError,
+      redact,
+      enqueueSnackbar,
+      closeSnackbar,
+    ]
   );
 
   return { onSubmit };
