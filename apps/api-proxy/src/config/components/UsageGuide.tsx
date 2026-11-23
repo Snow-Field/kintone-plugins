@@ -112,11 +112,8 @@ export const UsageGuide: FC = () => (
     <Heading>注意</Heading>
     <Alert severity='warning'>
       <AlertTitle>値は見えませんが、利用者は登録した範囲でその権限を使えます</AlertTitle>
-      <List items={RISKS} />
-      {/* 起こりうることと対策は、見出しを付けずに余白で分ける */}
-      <Box sx={{ mt: 1.5 }}>
-        <List items={MEASURES} />
-      </Box>
+      {/* 起こりうることと対策を、同じ階層・同じ間隔の1つの箇条書きにする */}
+      <List items={[...RISKS, ...MEASURES]} />
     </Alert>
 
     <Heading>プラグイン ID</Heading>
