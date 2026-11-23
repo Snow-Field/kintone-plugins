@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { useSnackbar } from 'notistack';
 
-type UseExportConfigProps<T> = {
+type UseExportConfigProps = {
   /** プラグイン名 */
   pluginName: string;
   /** 完了時のメッセージ（任意） */
@@ -12,7 +12,7 @@ type UseExportConfigProps<T> = {
 export const useExportConfig = <T extends Record<string, unknown>>({
   pluginName,
   message = '設定情報をエクスポートしました',
-}: UseExportConfigProps<T>) => {
+}: UseExportConfigProps) => {
   const { getValues } = useFormContext<T>();
   const { enqueueSnackbar } = useSnackbar();
 

@@ -110,6 +110,8 @@ renderPluginConfig({ definition: pluginConfig, tabs });
 
 定義を plugin-shell ではなく kintone-utils に置くのは、実行画面から plugin-shell（React・MUI）を読み込まないため。
 
+動的な検証（`dynamicSchema.ts` の `createConfigSchema`）の戻り値の型は `ZodType<PluginConfig, PluginConfig>` と書き、検証の前と後の型を同じにする。フォームの値をそのままスキーマに渡すため、スキーマで値を変換する書き方（`.default()`・`.transform()`・`z.coerce` など）は使わない。既定値は `createDefault` で、旧版からの変換は `migrate` で行う。
+
 ### 設定ファイルのインポート
 
 旧版でエクスポートしたファイルも読めるよう、`migrate` を通してから最新版のスキーマで検証する。`version` が数値で入っていないファイルは拒否する（各プラグインの `migrate` は `version` の無い設定を既定値に戻すため、無関係なファイルが既定値として受け付けられてしまう）。そのため、プラグイン設定は必ず `version` を持つ。

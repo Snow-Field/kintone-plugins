@@ -38,7 +38,7 @@ const getRequiredDateFormatsForResetTiming = (
  * 動的な検証を含むスキーマを生成する
  * @param fields アプリに存在するフィールド情報のリスト
  */
-export const createConfigSchema = (fields: FieldInfo[]): ZodType<PluginConfig> => {
+export const createConfigSchema = (fields: FieldInfo[]): ZodType<PluginConfig, PluginConfig> => {
   const fieldCodeSet = new Set(fields.map((f) => f.code));
 
   return PluginConfigSchema.superRefine((config, ctx) => {
