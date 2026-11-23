@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { runCliKintone } from '../lib/cli-kintone.js';
 
 // プラグインのフォルダ（pnpm は各プラグインの package.json のある場所で実行する）
 const ROOT_DIR = process.cwd();
@@ -10,20 +10,6 @@ const ENV_PATH = path.join(ROOT_DIR, '.env');
 
 /** cli-kintone が読む接続情報（.env に書く） */
 const REQUIRED_ENV_VARS = ['KINTONE_BASE_URL', 'KINTONE_USERNAME', 'KINTONE_PASSWORD'];
-
-/**
- * 外部コマンドを実行する Promise ラッパー
- */
-const runCommand = (command, args) =>
-  new Promise((resolve, reject) => {
-    const child = spawn(command, args, { cwd: ROOT_DIR, stdio: 'inherit' });
-    child.on('close', (code, signal) => {
-      // Ctrl+C などで止めた場合（監視モードの終了など）は、失敗として扱わない
-      if (code === 0 || signal === 'SIGINT' || signal === 'SIGTERM') resolve();
-      else reject(new Error(`${command} が終了コード ${code} で失敗しました。`));
-    });
-    child.on('error', reject);
-  });
 
 const main = async () => {
   const isWatch = process.argv.slice(2).includes('--watch');
@@ -60,7 +46,7 @@ const main = async () => {
     } else {
       console.log('🚀 プラグインをアップロード中...');
     }
-    await runCommand('cli-kintone', args);
+    await runCliKintone(args);
     if (!isWatch) console.log('✨ アップロードが完了しました!');
   } catch (error) {
     console.error(`❌ Unexpected error: ${error.message}`);

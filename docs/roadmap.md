@@ -64,4 +64,3 @@
 | 問題 | 場所 |
 | --- | --- |
 | `FieldSelect` でサブテーブルの中のフィールドを選べない（`appFieldsAtom` がアプリの最上位のフィールドだけを取得する）。3プラグインの移行では必要にならなかった | `kintone-utils/src/states/kintone.ts` |
-| スクリプトはコマンドを直接起動するため、Windows では動かない（macOS で開発する前提） | `packages/plugin-scripts`・ルートの `scripts/` |

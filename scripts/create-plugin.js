@@ -9,6 +9,13 @@ const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 
 /**
+ * biome の実体（JavaScript のファイル）のパスを返す
+ * `node_modules/.bin/biome` は Windows では `.cmd` になり、シェルを通さずに起動できない。
+ * そのため実体を今動いている Node で直接起動する（OS によらず同じ動き方にするため）
+ */
+const resolveBiome = () => fileURLToPath(import.meta.resolve('@biomejs/biome/bin/biome'));
+
+/**
  * template から複製しないもの
  * template は workspace に入っているため、依存関係やビルドの生成物、認証情報が置かれることがある
  */
@@ -133,7 +140,7 @@ async function main() {
     // JSON.stringify の書き方（配列を必ず複数行にする）は Biome の書式と違い、pnpm lint で失敗するため整形する
     let formatWarning;
     try {
-      execFileSync('biome', ['format', '--write', pkgPath, manifestPath], {
+      execFileSync(process.execPath, [resolveBiome(), 'format', '--write', pkgPath, manifestPath], {
         cwd: rootDir,
         stdio: 'ignore',
       });
