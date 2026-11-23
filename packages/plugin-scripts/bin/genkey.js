@@ -1,25 +1,11 @@
 #!/usr/bin/env node
-import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { runCliKintone } from '../lib/cli-kintone.js';
 
 // プラグインのフォルダ（pnpm は各プラグインの package.json のある場所で実行する）
 const ROOT_DIR = process.cwd();
 const PRIVATE_KEY_PATH = path.join(ROOT_DIR, 'private.ppk');
-
-/**
- * 外部コマンドを実行する Promise ラッパー
- */
-const runCommand = (command, args) =>
-  new Promise((resolve, reject) => {
-    const child = spawn(command, args, { cwd: ROOT_DIR, stdio: 'inherit' });
-    child.on('close', (code, signal) => {
-      // Ctrl+C などで止めた場合（監視モードの終了など）は、失敗として扱わない
-      if (code === 0 || signal === 'SIGINT' || signal === 'SIGTERM') resolve();
-      else reject(new Error(`${command} が終了コード ${code} で失敗しました。`));
-    });
-    child.on('error', reject);
-  });
 
 /**
  * 秘密鍵の初期化処理
@@ -44,7 +30,7 @@ const main = async () => {
     }
 
     console.log('🔐 新しい秘密鍵を生成中...');
-    await runCommand('cli-kintone', ['plugin', 'keygen', '--output', PRIVATE_KEY_PATH]);
+    await runCliKintone(['plugin', 'keygen', '--output', PRIVATE_KEY_PATH]);
     console.log('✨ private.ppk が生成されました!');
   } catch (error) {
     console.error(`❌ Unexpected error: ${error.message}`);
