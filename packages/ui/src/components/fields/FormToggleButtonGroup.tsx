@@ -27,6 +27,8 @@ export const FormToggleButtonGroup = <TFieldValues extends FieldValues = FieldVa
   label,
   options,
   size = 'small',
+  // 選んだボタンが分かるよう、既定で主色にする
+  color = 'primary',
   ...groupProps
 }: FormToggleButtonGroupProps<TFieldValues>) => {
   const { control } = useFormContext<TFieldValues>();
@@ -42,6 +44,7 @@ export const FormToggleButtonGroup = <TFieldValues extends FieldValues = FieldVa
             <ToggleButtonGroup
               {...groupProps}
               size={size}
+              color={color}
               aria-label={label}
               value={selected}
               onChange={(_, next: string[]) => {
