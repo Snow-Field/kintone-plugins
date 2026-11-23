@@ -1,5 +1,6 @@
 import type { FormatPart, SerialConfig, ConnectorsSchema } from '@/shared/config/staticSchema';
 import type { z } from 'zod';
+import type { ApiAuth } from '@/shared/api/request';
 
 export type ResolvedPart = {
   type: FormatPart['type'];
@@ -8,7 +9,7 @@ export type ResolvedPart = {
 
 export type SerialContext = {
   appId: string | number;
-  apiToken?: string;
+  auth: ApiAuth;
   resultFieldCode: string;
   serialConfig: SerialConfig;
   connector: z.infer<typeof ConnectorsSchema>;
@@ -30,5 +31,5 @@ export type UpdateRecordParams = {
   serialConfig: SerialConfig;
   currentSerial: number;
   revision?: string | number;
-  apiToken?: string;
+  auth: ApiAuth;
 };

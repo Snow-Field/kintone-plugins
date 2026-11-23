@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { DATE_SOURCE, DATE_FORMATS, CONNECTORS, RESET_TIMING } from './constants';
 
 /** プラグインバージョン */
-export const LATEST_PLUGIN_VERSION = 1;
+export const LATEST_PLUGIN_VERSION = 2;
 
 // =============================================================================
 // Version 1 Schema Definitions
@@ -90,7 +90,7 @@ export const NumberingSettingsSchema = z.object({
 // -----------------------------------------------------------------------------
 
 export const PluginConfigSchemaV1 = z.object({
-  version: z.literal(LATEST_PLUGIN_VERSION),
+  version: z.literal(1),
   /** 採番設定（複数設定可能、最大5件） */
   numberingSettings: z
     .array(NumberingSettingsSchema)
@@ -102,11 +102,28 @@ export const PluginConfigSchemaV1 = z.object({
   }),
 });
 
+// -----------------------------------------------------------------------------
+// プラグイン設定スキーマ（V2）: API トークンをプロキシ設定に移した
+// -----------------------------------------------------------------------------
+
+export const PluginConfigSchemaV2 = PluginConfigSchemaV1.extend({
+  version: z.literal(2),
+  common: z.object({
+    /**
+     * API トークン。フォームの中だけで使い、setConfig には空で保存する
+     * （値はプロキシ設定に保存する。setConfig は実行画面から誰でも読めるため）
+     */
+    apiToken: z.string(),
+    /** API トークンをプロキシ設定に保存したか。実行画面は、これで呼び出し方を決める */
+    useApiToken: z.boolean(),
+  }),
+});
+
 // =============================================================================
 // Latest Version Schema
 // =============================================================================
 
-export const PluginConfigSchema = PluginConfigSchemaV1;
+export const PluginConfigSchema = PluginConfigSchemaV2;
 
 // =============================================================================
 // 型定義

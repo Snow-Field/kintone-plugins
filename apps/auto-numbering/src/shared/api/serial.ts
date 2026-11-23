@@ -14,7 +14,7 @@ import { fetchRecords } from './records';
 export async function resolveNextSerial(
   ctx: SerialContext
 ): Promise<{ nextSerial: number; existingValues: Set<string> }> {
-  const { appId, apiToken, resultFieldCode, serialConfig, formatString } = ctx;
+  const { appId, auth, resultFieldCode, serialConfig, formatString } = ctx;
   const { initialValue, resetTiming, serialFieldCode } = serialConfig;
 
   switch (resetTiming) {
@@ -28,7 +28,7 @@ export async function resolveNextSerial(
         appId,
         { condition: `${serialFieldCode} != ""`, orderBy: `${serialFieldCode} desc`, limit: 1 },
         [resultFieldCode, serialFieldCode],
-        apiToken
+        auth
       );
 
       // レコードから連番を抽出
@@ -64,7 +64,7 @@ export async function resolveNextSerial(
           limit: FETCH_LIMIT_FOR_RESET,
         },
         [resultFieldCode],
-        apiToken
+        auth
       );
 
       // like は部分一致なので、同じ書式の採番値だけを残す
