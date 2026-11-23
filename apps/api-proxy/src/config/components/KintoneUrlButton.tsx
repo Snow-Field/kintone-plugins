@@ -30,7 +30,7 @@ export const KintoneUrlButton: FC<Props> = ({ onSelect }) => {
         onClick={(e) => setAnchor(e.currentTarget)}
         sx={{ whiteSpace: 'nowrap' }}
       >
-        kintone の URL を入れる
+        kintone URL を挿入
       </Button>
       <Menu anchorEl={anchor} open={anchor !== null} onClose={() => setAnchor(null)}>
         <MenuItem
@@ -73,7 +73,7 @@ export const KintoneUrlButton: FC<Props> = ({ onSelect }) => {
               onSelect(kintoneApiBaseUrl(location.origin, spaceId));
             }}
           >
-            入れる
+            挿入
           </Button>
         </DialogActions>
       </Dialog>

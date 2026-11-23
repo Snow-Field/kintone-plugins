@@ -15,9 +15,15 @@ export const InfoTip: FC<Props> = ({ label, lines }) => (
     arrow
     placement='right-start'
     title={
-      <Box component='ul' sx={{ m: 0, pl: 2, fontSize: 13, lineHeight: 1.7 }}>
+      // kintone の CSS で箇条書きの記号が消えるので、記号は自分で出す
+      <Box
+        sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, fontSize: 13, lineHeight: 1.6 }}
+      >
         {lines.map((line) => (
-          <li key={line}>{line}</li>
+          <Box key={line} sx={{ display: 'flex', gap: 0.5 }}>
+            <span aria-hidden>・</span>
+            <span>{line}</span>
+          </Box>
         ))}
       </Box>
     }
@@ -27,14 +33,4 @@ export const InfoTip: FC<Props> = ({ label, lines }) => (
       <InfoOutlinedIcon sx={{ fontSize: 18 }} />
     </IconButton>
   </Tooltip>
-);
-
-/** 見出しと ⓘ を1行に並べる */
-export const LabelWithTip: FC<Props & { title: string }> = ({ title, label, lines }) => (
-  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 1 }}>
-    <Box component='span' sx={{ fontSize: 14, fontWeight: 600 }}>
-      {title}
-    </Box>
-    <InfoTip label={label} lines={lines} />
-  </Box>
 );

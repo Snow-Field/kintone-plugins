@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Target } from '@/shared/config/staticSchema';
 import {
-  callExample,
   countApiTokens,
   fillTargets,
   isApiTokenHeader,
@@ -257,22 +256,5 @@ describe('overlappingTargets', () => {
         target({ url: `${ORIGIN}/k/v1/record.json`, methods: ['PUT'] }),
       ])
     ).toEqual([[0, 1]]);
-  });
-});
-
-describe('callExample', () => {
-  it('プラグイン ID・URL・最初のメソッドを入れ、ステータスの判定も書く', () => {
-    const example = callExample('plugin-id', target());
-    expect(example).toContain('"plugin-id"');
-    expect(example).toContain(`"${ORIGIN}/k/v1/"`);
-    expect(example).toContain('"GET"');
-    // 201・204 も成功にする
-    expect(example).toContain('status < 200 || status >= 300');
-  });
-
-  it("URL に ' や \\ が入っても、正しい JS の文字列にする", () => {
-    const url = "https://example.com/o'brien\\";
-    const example = callExample('plugin-id', target({ url }));
-    expect(example).toContain(JSON.stringify(url));
   });
 });

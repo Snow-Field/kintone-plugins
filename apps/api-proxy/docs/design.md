@@ -29,14 +29,13 @@ PluginConfigSchemaV1
 
 | 場所 | 役割 |
 | --- | --- |
-| `src/shared/lib/targets.ts` | 接続先とプロキシ設定の変換（`toProxyEntries`・`stripTargets`・`fillTargets`）、入力の検証（`validateTargets`）、前方一致の重なり（`overlappingTargets`）、呼び出しの例（`callExample`）。kintone に依存しないのでテストを書く |
+| `src/shared/lib/targets.ts` | 接続先とプロキシ設定の変換（`toProxyEntries`・`stripTargets`・`fillTargets`）、入力の検証（`validateTargets`）、前方一致の重なり（`overlappingTargets`）。kintone に依存しないのでテストを書く |
 | `src/shared/config/` | 設定の形・検証・既定値。`PLUGIN_ID`（使い方タブに出す）もここで読む |
-| `src/config/components/TargetsSettings.tsx` | 接続先タブ（注意書き・前方一致の重なりの知らせ・接続先の追加と削除） |
-| `src/config/components/TargetCard.tsx` | 接続先1件（URL・kintone の URL を入れるボタン・メソッド・ヘッダー・本文・メモ） |
-| `src/config/components/HeaderEditor.tsx` | ヘッダーのキーと値の行。値は `ui` の `FormSecretField`（伏せ字と表示の切り替え） |
-| `src/config/components/DataEditor.tsx`・`src/shared/lib/dataJson.ts` | 本文の値。キーの一覧と、JSON でまとめて書くダイアログ。JSON と `DataItem[]` の変換は `dataJson.ts`（テストを書く） |
+| `src/config/components/TargetsSettings.tsx` | 接続先タブ（接続先の表・前方一致の重なりの知らせ・接続先の追加と削除） |
+| `src/config/components/TargetRow.tsx` | 接続先1件（表の1行。URL と kintone URL を挿入するボタン・メソッド・ヘッダー・本文の値・メモ） |
+| `src/config/components/KeyValueField.tsx`・`src/shared/lib/keyValueJson.ts` | ヘッダーと本文の値。キーの一覧と、JSON でまとめて書くダイアログ。JSON と行の一覧の変換は `keyValueJson.ts`（テストを書く） |
 | `src/config/components/InfoTip.tsx` | 見出しの横の ⓘ（カーソルを乗せると説明を出す）。ほかのプラグインでも使うようになったら `ui` に移す |
-| `src/config/components/UsageGuide.tsx` | 使い方タブ（プラグイン ID と、接続先ごとの呼び出しの例。コピーできる） |
+| `src/config/components/UsageGuide.tsx` | 使い方タブ（権限についての注意・プラグイン ID・固定の呼び出しの例。コピーできる） |
 
 ## 決めたこと
 

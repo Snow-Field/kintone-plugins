@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import type { DataItem } from '@/shared/config/staticSchema';
-import { dataToJson, jsonToData } from './dataJson';
+import type { DataItem, Header } from '@/shared/config/staticSchema';
+import {
+  addHeaderKey,
+  dataToJson,
+  duplicatedKeys,
+  headersToJson,
+  jsonToData,
+  jsonToHeaders,
+} from './keyValueJson';
 
 let seq = 0;
 const createId = () => `new-${++seq}`;
@@ -76,5 +83,53 @@ describe('jsonToData', () => {
       { id: '3', key: 'dry', value: 'false', type: 'boolean' },
     ];
     expect(jsonToData(dataToJson(items), items, createId)).toEqual({ ok: true, items });
+  });
+});
+
+describe('headersToJson・jsonToHeaders', () => {
+  it('ヘッダーと JSON を行き来でき、同じキーの行の id は引き継ぐ', () => {
+    const headers: Header[] = [{ id: 'keep', key: 'X-Cybozu-API-Token', value: 'a,b' }];
+    expect(JSON.parse(headersToJson(headers))).toEqual({ 'X-Cybozu-API-Token': 'a,b' });
+    expect(jsonToHeaders(headersToJson(headers), headers, createId)).toEqual({
+      ok: true,
+      items: headers,
+    });
+  });
+
+  it('値は文字だけ', () => {
+    const result = jsonToHeaders('{"X-Count": 1}', [], createId);
+    expect(result.ok).toBe(false);
+    expect(!result.ok && result.message).toContain('「X-Count」の値は');
+  });
+
+  it('空ならヘッダーを無しにする', () => {
+    expect(jsonToHeaders('', [], createId)).toEqual({ ok: true, items: [] });
+  });
+});
+
+describe('addHeaderKey', () => {
+  it('キーを空の値で足す', () => {
+    const result = addHeaderKey('{"A": "1"}', 'X-Cybozu-API-Token');
+    expect(result.ok && JSON.parse(result.text)).toEqual({ A: '1', 'X-Cybozu-API-Token': '' });
+    const empty = addHeaderKey('', 'K');
+    expect(empty.ok && JSON.parse(empty.text)).toEqual({ K: '' });
+  });
+
+  it('すでにある（大文字小文字は区別しない）ときと、読めないときは理由を返す', () => {
+    expect(addHeaderKey('{"x-cybozu-api-token": "t"}', 'X-Cybozu-API-Token')).toEqual({
+      ok: false,
+      message: 'X-Cybozu-API-Token はすでにあります',
+    });
+    const invalid = addHeaderKey('[]', 'K');
+    expect(!invalid.ok && invalid.message).toContain('オブジェクト');
+    const broken = addHeaderKey('{', 'K');
+    expect(!broken.ok && broken.message).toContain('JSON として読めません');
+  });
+});
+
+describe('duplicatedKeys', () => {
+  it('2つ以上ある同じキーを1つずつ返す', () => {
+    expect(duplicatedKeys([{ key: 'A' }, { key: 'B' }, { key: 'A' }, { key: 'A' }])).toEqual(['A']);
+    expect(duplicatedKeys([{ key: 'A' }, { key: 'a' }])).toEqual([]);
   });
 });

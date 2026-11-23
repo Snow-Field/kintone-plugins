@@ -226,20 +226,3 @@ export const overlappingTargets = (targets: Target[]): [number, number][] => {
   });
   return pairs;
 };
-
-/** 呼び出しの例（使い方タブに出す）。文字列は JSON.stringify で作る（URL に ' などが入っても正しい JS にするため） */
-export const callExample = (pluginId: string, target: Target): string => {
-  const method = target.methods[0] ?? 'GET';
-  const body = method === 'GET' || method === 'DELETE' ? '{}' : '{ /* 本文 */ }';
-  return [
-    `const [body, status] = await kintone.plugin.app.proxy(`,
-    `  ${JSON.stringify(pluginId)},`,
-    `  ${JSON.stringify(target.url.trim())} /* + 続きのパスやクエリ */,`,
-    `  ${JSON.stringify(method)},`,
-    `  {},`,
-    `  ${body}`,
-    `);`,
-    `// proxy は 4xx・5xx でも失敗にならないので、ステータスを確かめる`,
-    `if (status < 200 || status >= 300) throw new Error(body);`,
-  ].join('\n');
-};

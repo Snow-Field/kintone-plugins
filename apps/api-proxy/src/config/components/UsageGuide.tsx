@@ -1,10 +1,8 @@
 import { type FC, useState } from 'react';
-import { useFormContext, useWatch } from 'react-hook-form';
-import { Box, Button, Paper, Typography } from '@mui/material';
+import { Alert, Box, Button, Paper, Typography } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { FormSection, Text } from '@kintone-plugin/ui';
-import { PLUGIN_ID, type PluginConfig } from '@/shared/config';
-import { callExample } from '@/shared/lib/targets';
+import { PLUGIN_ID } from '@/shared/config';
 import { InfoTip } from './InfoTip';
 
 /** コピーのボタン。コピーできたかを、ボタンの文字で知らせる */
@@ -27,63 +25,72 @@ const CopyButton: FC<{ text: string; label: string }> = ({ text, label }) => {
   );
 };
 
-const Code: FC<{ children: string }> = ({ children }) => (
-  <Paper
-    variant='outlined'
-    component='pre'
-    sx={{ p: 1.5, m: 0, overflowX: 'auto', fontSize: 13, fontFamily: 'monospace' }}
-  >
-    {children}
-  </Paper>
-);
-
 const USAGE_TIPS = [
   'JS カスタマイズや他のプラグインから、このプラグインの ID を指定して kintone.plugin.app.proxy を呼びます',
   '登録した URL で始まり、メソッドが同じリクエストに、ヘッダーと本文の値が付きます',
-  'proxy はレコードの画面（一覧・詳細・追加・編集など）でだけ使えます。試すのもレコードの画面で行います',
+  'proxy はレコードの画面（一覧・詳細・追加・編集など）でだけ使えます',
 ];
 
+const RISK_TIPS = [
+  'アプリを開ける利用者は、開発者ツールから proxy を呼べます',
+  'kintone の API トークンは利用者本人の権限とは別に働くので、閲覧の権限が無いレコードも読めます',
+  'トークンの権限は必要なものだけにし、アプリ管理の権限は付けないでください',
+  '絞りたいときは、URL をパスまで具体的にし、メソッドを減らします',
+];
+
+/**
+ * 呼び出しの例（レコード一覧の画面で、kintone の REST API からレコードを取得する）
+ * JS カスタマイズのファイルにそのまま貼れるよう、レコードの画面のイベントの中で呼ぶ（proxy はレコードの画面でだけ使える）
+ */
+const EXAMPLE = [
+  `const PLUGIN_ID = ${JSON.stringify(PLUGIN_ID)};`,
+  ``,
+  `kintone.events.on('app.record.index.show', async (event) => {`,
+  `  const url = kintone.api.url('/k/v1/records.json', true) + '?app=' + kintone.app.getId();`,
+  `  const [body, status] = await kintone.plugin.app.proxy(PLUGIN_ID, url, 'GET', {}, {});`,
+  `  // proxy は 4xx・5xx でも失敗にならないので、ステータスを確かめる`,
+  `  if (status < 200 || status >= 300) throw new Error(body);`,
+  `  const { records } = JSON.parse(body);`,
+  `  console.log(records);`,
+  `  return event;`,
+  `});`,
+].join('\n');
+
 /** 使い方タブ */
-export const UsageGuide: FC = () => {
-  const { control } = useFormContext<PluginConfig>();
-  const targets = useWatch({ control, name: 'targets' }) ?? [];
+export const UsageGuide: FC = () => (
+  <FormSection>
+    <Text variant='sectionTitle'>
+      使い方 <InfoTip label='使い方の説明' lines={USAGE_TIPS} />
+    </Text>
 
-  return (
-    <FormSection>
-      <Text variant='sectionTitle'>
-        使い方 <InfoTip label='使い方の説明' lines={USAGE_TIPS} />
-      </Text>
+    <Alert
+      severity='warning'
+      sx={{ mb: 3, alignItems: 'center' }}
+      action={<InfoTip label='権限についての説明' lines={RISK_TIPS} />}
+    >
+      値は隠せますが、アプリの利用者は登録した範囲でその権限を使えます
+    </Alert>
 
-      <Typography variant='subtitle2'>プラグイン ID</Typography>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Typography component='code' sx={{ fontFamily: 'monospace' }}>
-          {PLUGIN_ID}
-        </Typography>
-        <CopyButton text={PLUGIN_ID} label='コピー' />
-      </Box>
-
-      <Typography variant='subtitle2' sx={{ mt: 3, mb: 1 }}>
-        呼び出しの例
+    <Typography variant='subtitle2'>プラグイン ID</Typography>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Typography component='code' sx={{ fontFamily: 'monospace' }}>
+        {PLUGIN_ID}
       </Typography>
-      {targets.length === 0 && (
-        <Text variant='description'>接続先を登録すると、ここに接続先ごとの例が出ます。</Text>
-      )}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {targets.map((target, i) => {
-          const example = callExample(PLUGIN_ID, target);
-          return (
-            <Box key={target.id}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                <Typography variant='body2' sx={{ flex: 1 }}>
-                  {`接続先 ${i + 1}${target.memo ? `（${target.memo}）` : ''}`}
-                </Typography>
-                <CopyButton text={example} label='例をコピー' />
-              </Box>
-              <Code>{example}</Code>
-            </Box>
-          );
-        })}
-      </Box>
-    </FormSection>
-  );
-};
+      <CopyButton text={PLUGIN_ID} label='コピー' />
+    </Box>
+
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 3, mb: 0.5 }}>
+      <Typography variant='subtitle2' sx={{ flex: 1 }}>
+        呼び出しの例（kintone のレコードを取得する）
+      </Typography>
+      <CopyButton text={EXAMPLE} label='例をコピー' />
+    </Box>
+    <Paper
+      variant='outlined'
+      component='pre'
+      sx={{ p: 1.5, m: 0, overflowX: 'auto', fontSize: 13, fontFamily: 'monospace' }}
+    >
+      {EXAMPLE}
+    </Paper>
+  </FormSection>
+);

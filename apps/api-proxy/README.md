@@ -21,11 +21,15 @@ API トークンなどの秘密を、アプリの利用者から見えないプ�
 const PLUGIN_ID = '（使い方タブのプラグイン ID）';
 
 // kintone の REST API（接続先: https://{サブドメイン}.cybozu.com/k/v1/、ヘッダー: X-Cybozu-API-Token）
-const url = kintone.api.url('/k/v1/records.json', true) + '?app=' + kintone.app.getId();
-const [body, status] = await kintone.plugin.app.proxy(PLUGIN_ID, url, 'GET', {}, {});
-// proxy は 4xx・5xx でも失敗にならないので、ステータスを確かめる
-if (status !== 200) throw new Error(body);
-const { records } = JSON.parse(body);
+kintone.events.on('app.record.index.show', async (event) => {
+  const url = kintone.api.url('/k/v1/records.json', true) + '?app=' + kintone.app.getId();
+  const [body, status] = await kintone.plugin.app.proxy(PLUGIN_ID, url, 'GET', {}, {});
+  // proxy は 4xx・5xx でも失敗にならないので、ステータスを確かめる
+  if (status < 200 || status >= 300) throw new Error(body);
+  const { records } = JSON.parse(body);
+  console.log(records);
+  return event;
+});
 ```
 
 - 呼び出し側の `headers` には秘密を書きません（保存した値が付きます）
