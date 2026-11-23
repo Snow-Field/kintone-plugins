@@ -9,6 +9,7 @@ export * from './components/fields/FormSelect';
 export * from './components/fields/FormSwitch';
 export * from './components/fields/SortableRowContainer';
 export * from './components/fields/FormTextField';
+export * from './components/fields/FormToggleButtonGroup';
 export * from './components/form/Text';
 export * from './components/layout/Form';
 export * from './components/layout/FormSection';

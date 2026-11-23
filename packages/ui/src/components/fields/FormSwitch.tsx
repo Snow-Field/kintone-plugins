@@ -26,26 +26,27 @@ export const FormSwitch = <TFieldValues extends FieldValues = FieldValues>({
     <Controller
       name={name}
       control={control}
-      render={({ field, fieldState: { error } }) => (
-        <FormControl error={!!error}>
-          <FormControlLabel
-            label={label}
-            control={
-              <Switch
-                {...switchProps}
-                name={field.name}
-                checked={!!field.value}
-                onChange={(e) => field.onChange(e.target.checked)}
-                onBlur={(e) => {
-                  field.onBlur();
-                  onBlur?.(e);
-                }}
-              />
-            }
+      render={({ field, fieldState: { error } }) => {
+        const control = (
+          <Switch
+            {...switchProps}
+            name={field.name}
+            checked={!!field.value}
+            onChange={(e) => field.onChange(e.target.checked)}
+            onBlur={(e) => {
+              field.onBlur();
+              onBlur?.(e);
+            }}
           />
-          {error && <FormHelperText>{error.message}</FormHelperText>}
-        </FormControl>
-      )}
+        );
+        return (
+          <FormControl error={!!error}>
+            {/* ラベルが無いときはスイッチだけを出す（FormControlLabel の余白で幅が広がるため） */}
+            {label === undefined ? control : <FormControlLabel label={label} control={control} />}
+            {error && <FormHelperText>{error.message}</FormHelperText>}
+          </FormControl>
+        );
+      }}
     />
   );
 };

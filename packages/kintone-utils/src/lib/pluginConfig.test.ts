@@ -178,6 +178,8 @@ describe('definePluginConfig の secrets', () => {
   const setupSecrets = (saved: Record<string, string>) => {
     getConfig.mockReturnValue(saved);
     setProxyConfig.mockImplementation((_u, _m, _h, _d, callback: () => void) => callback());
+    // 新しい組を書く前に予約キーを記録する setConfig も、完了を待つ
+    setConfig.mockImplementation((_config, callback?: () => void) => callback?.());
     vi.stubGlobal('kintone', {
       $PLUGIN_ID: 'plugin-id',
       plugin: { app: { getConfig, setConfig, getProxyConfig, setProxyConfig } },
@@ -257,11 +259,12 @@ describe('definePluginConfig の secrets', () => {
     setProxyConfig.mockImplementation((_u, _m, _h, _d, callback: () => void) => callback());
     const secondCallback = vi.fn();
     await pluginConfig.store({ version: 1, token: '', hasToken: false }, secondCallback);
-    // 1回目の保存が遅れて戻ってきても、setConfig は書かない
+    // 1回目の保存が遅れて戻ってきても、設定（予約キー以外）は書かない
     callbacks[0]?.();
     await expect(first).rejects.toThrow(SaveSupersededError);
-    expect(setConfig).toHaveBeenCalledTimes(1);
-    expect(setConfig.mock.calls[0]?.[1]).toBe(secondCallback);
+    const finalSaves = setConfig.mock.calls.filter(([config]) => 'version' in config);
+    expect(finalSaves).toHaveLength(1);
+    expect(finalSaves[0]?.[1]).toBe(secondCallback);
   });
 
   it('store は秘密をプロキシ設定に保存し、消えた組を無効にしてから、秘密を除いて setConfig に保存する', async () => {
@@ -275,7 +278,15 @@ describe('definePluginConfig の secrets', () => {
       [URL, 'GET', { token: '秘密' }, {}],
       [`${URL}old/`, 'PUT', {}, {}],
     ]);
-    expect(setConfig).toHaveBeenCalledWith(
+    // 1回目: 秘密を書く前に、書く組のキーを予約キーに足す（設定の中身は前回のまま）
+    expect(setConfig.mock.calls[0]?.[0]).toEqual({
+      __proxyKeys: JSON.stringify([
+        { url: `${URL}old/`, method: 'PUT' },
+        { url: URL, method: 'GET' },
+      ]),
+    });
+    // 2回目: 秘密を除いた設定と、今回保存したキー
+    expect(setConfig).toHaveBeenLastCalledWith(
       {
         version: '1',
         token: '""',
@@ -322,7 +333,43 @@ describe('definePluginConfig の secrets', () => {
     await expect(
       pluginConfig.store({ version: 1, token: '秘密', hasToken: false }, vi.fn())
     ).rejects.toThrow('保存できません');
-    expect(setConfig).not.toHaveBeenCalled();
+    // 予約キーの記録だけは先に行われ、設定（秘密を除いたもの）は保存されない
+    expect(setConfig.mock.calls.filter(([config]) => 'version' in config)).toEqual([]);
+  });
+
+  it('予約キーだけが保存されている（初めての保存が途中で止まった）ときは、未保存として既定値を返す', () => {
+    const pluginConfig = setupSecrets({
+      __proxyKeys: JSON.stringify([{ url: URL, method: 'GET' }]),
+    });
+    getProxyConfig.mockReturnValue(null);
+    expect(pluginConfig.load()).toEqual({
+      config: { version: 1, token: '', hasToken: false },
+      error: null,
+    });
+  });
+
+  it('同じ画面で保存をやり直しても、前の試みで記録したキーを落とさない（getConfig が古いままでも）', async () => {
+    // getConfig は画面を開いた時点の設定（予約キーなし）を返し続ける
+    const pluginConfig = setupSecrets({});
+    setProxyConfig.mockImplementationOnce(() => {
+      throw new Error('保存できません');
+    });
+    await expect(
+      pluginConfig.store({ version: 1, token: '古い', hasToken: false }, vi.fn())
+    ).rejects.toThrow('保存できません');
+
+    // 2回目はトークンを空にして保存する。1回目に書いたかもしれない組も {} で消す
+    setProxyConfig.mockImplementation((_u, _m, _h, _d, callback: () => void) => callback());
+    await pluginConfig.store({ version: 1, token: '', hasToken: false }, vi.fn());
+    expect(setProxyConfig).toHaveBeenLastCalledWith(URL, 'GET', {}, {}, expect.any(Function));
+  });
+
+  it('書く組がすべて記録済みなら、先に記録する setConfig は呼ばない', async () => {
+    const pluginConfig = setupSecrets({
+      __proxyKeys: JSON.stringify([{ url: URL, method: 'GET' }]),
+    });
+    await pluginConfig.store({ version: 1, token: '秘密', hasToken: false }, vi.fn());
+    expect(setConfig).toHaveBeenCalledTimes(1);
   });
 
   it('toExport は秘密を除く', () => {

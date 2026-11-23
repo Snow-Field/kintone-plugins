@@ -6,6 +6,7 @@ import {
   PROXY_KEYS_CONFIG_KEY,
   mergeProxyKeys,
   parseProxyKeys,
+  type ProxyKey,
   readProxySettings,
   SaveSupersededError,
   storeProxyEntries,
@@ -110,8 +111,10 @@ export const loadPluginConfig = <T>({
   try {
     const rawConfig: Record<string, string> = kintone.plugin.app.getConfig(pluginId);
 
-    // 未保存なら既定値（失敗ではない）
-    if (!Object.keys(rawConfig).length) return { config: defaultConfig, error: null };
+    // 未保存なら既定値（失敗ではない）。予約キーだけのとき（初めての保存が途中で止まったとき）も未保存とする
+    if (!Object.keys(rawConfig).some((k) => k !== PROXY_KEYS_CONFIG_KEY)) {
+      return { config: defaultConfig, error: null };
+    }
 
     // プロキシ設定のキー（予約キー）は設定の一部ではないので除く
     const parsed: Record<string, unknown> = Object.fromEntries(
@@ -206,21 +209,47 @@ export const definePluginConfig = <T extends { version: number } & Record<string
 
   /** 最後に始めた保存の番号。時間切れのあとも古い保存は続くので、新しい保存を上書きしないよう止める */
   let latestStore = 0;
+  /**
+   * この画面で予約キーに記録したキー。getConfig は画面を開いた時点の設定を返すことがあるので、
+   * 同じ画面で保存をやり直したときに、前の試みで記録したキーを落とさないよう、ここにも持つ
+   */
+  let recordedInSession: ProxyKey[] = [];
 
   const store = async (config: T, callback: () => void): Promise<void> => {
     if (!secrets) return storePluginConfig(config, callback);
     const id = ++latestStore;
     const isCurrent = () => id === latestStore;
     const saved: Record<string, string> = kintone.plugin.app.getConfig(pluginId);
-    // 前回の保存が途中で失敗すると、保存したプロキシ設定が予約キーに記録されない。
-    // そのため knownKeys も常に上書きの対象にする（記録漏れのトークンを設定画面から消せるように）
-    const previous = mergeProxyKeys(
+    const recorded = mergeProxyKeys(
       parseProxyKeys(saved[PROXY_KEYS_CONFIG_KEY]),
-      secrets.knownKeys?.() ?? []
+      recordedInSession
     );
+    const entries = secrets.toEntries(config);
+
+    // 新しい組を書く前に、そのキーを予約キーに足しておく。秘密を書いたあとで保存が止まっても、
+    // 次の保存でその組を {} で消せるようにするため（URL を管理者が自由に決めるプラグインでは、
+    // knownKeys だけでは消し漏れる）。設定の中身は前回のまま変えない
+    const pending = mergeProxyKeys(recorded, entries);
+    recordedInSession = pending;
+    if (pending.length > parseProxyKeys(saved[PROXY_KEYS_CONFIG_KEY]).length) {
+      await new Promise<void>((resolve, reject) => {
+        try {
+          kintone.plugin.app.setConfig(
+            { ...saved, [PROXY_KEYS_CONFIG_KEY]: JSON.stringify(pending) },
+            resolve
+          );
+        } catch (error) {
+          reject(error);
+        }
+      });
+      if (!isCurrent()) throw new SaveSupersededError();
+    }
+
+    // knownKeys も常に上書きの対象にする（決まったキーなら、記録が無くても消せるように）
+    const previous = mergeProxyKeys(pending, secrets.knownKeys?.(config) ?? []);
     // setConfig より先に保存する（setConfig を先にすると、秘密の保存に失敗したときに、
     // 実行画面が保存されていない秘密を使おうとするため）
-    const keys = await storeProxyEntries(secrets.toEntries(config), previous, isCurrent);
+    const keys = await storeProxyEntries(entries, previous, isCurrent);
     if (!isCurrent()) throw new SaveSupersededError();
     storePluginConfig({ ...secrets.strip(config), [PROXY_KEYS_CONFIG_KEY]: keys }, callback);
   };

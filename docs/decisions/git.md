@@ -4,7 +4,7 @@
 
 - ブランチは Git Flow に従う。`main`（リリース済み）と `develop`（開発の統合先）を置き、作業ブランチは `develop` から切って PR で戻す
 - 作業ブランチの名前は `<type>/<英語の要約>`（kebab-case）。新機能は `feature/`、それ以外は Conventional Commits の type（`fix/` `chore/` `docs/` など）を使う。リリースと緊急修正には `release/` `hotfix/` を使う
-- commit は Conventional Commits に従う。対象のプラグインは scope で示す（`feat(age): 〇〇`）。scope は `age` / `field` / `num`（auto-numbering）と、共有パッケージの `ui` / `kintone-utils` / `plugin-shell`。全体や複数にまたがる変更では省く
+- commit は Conventional Commits に従う。対象のプラグインは scope で示す（`feat(age): 〇〇`）。scope は `age` / `field` / `num`（auto-numbering） / `proxy`（api-proxy）と、共有パッケージの `ui` / `kintone-utils` / `plugin-shell`。全体や複数にまたがる変更では省く
 - `main`・`develop` へは直接 commit せず、PR 経由でマージする。GitHub のブランチ保護で強制している（PR 必須・CI の `check` ジョブの通過が必須・管理者にも適用・force push と削除は禁止）。個人開発のため承認者数は 0
 
 ## 判断履歴

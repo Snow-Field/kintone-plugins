@@ -1,0 +1,25 @@
+{
+  "$schema": "https://raw.githubusercontent.com/kintone/js-sdk/%40kintone/plugin-manifest-validator%4010.2.0/packages/plugin-manifest-validator/manifest-schema.json",
+  "manifest_version": 1,
+  "version": "1.0.0",
+  "type": "APP",
+  "icon": "image/icon.png",
+  "name": {
+    "en": "API Proxy Settings",
+    "ja": "API プロキシ設定プラグイン"
+  },
+  "description": {
+    "en": "Stores API tokens and other secrets in proxy settings hidden from app users, for use with kintone.plugin.app.proxy from JS customizations and other plugins.",
+    "ja": "APIトークンなどの秘密を、アプリの利用者から見えないプロキシ設定に保存します。JSカスタマイズや他のプラグインから kintone.plugin.app.proxy で使います。"
+  },
+  "homepage_url": {
+    "en": "https://github.com/Snow-Field/kintone-plugins/tree/main/apps/api-proxy",
+    "ja": "https://github.com/Snow-Field/kintone-plugins/tree/main/apps/api-proxy"
+  },
+  "config": {
+    "html": "html/config.html",
+    "js": ["js/config.js"],
+    "css": [],
+    "required_params": []
+  }
+}
