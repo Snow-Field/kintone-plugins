@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { Target } from '@/shared/config/staticSchema';
 import {
   countApiTokens,
+  disabledKey,
   fillTargets,
   isApiTokenHeader,
   kintoneApiBaseUrl,
@@ -20,6 +21,7 @@ const target = (overrides: Partial<Target> = {}): Target => ({
   headers: [{ id: 'h', key: 'X-Cybozu-API-Token', value: 'token' }],
   data: [],
   memo: '',
+  enabled: true,
   ...overrides,
 });
 
@@ -59,7 +61,7 @@ describe('toProxyEntries', () => {
     ]);
   });
 
-  it('本文の値は種類に合わせて変換する', () => {
+  it('データは種類に合わせて変換する', () => {
     const [entry] = toProxyEntries([
       target({
         methods: ['POST'],
@@ -75,8 +77,45 @@ describe('toProxyEntries', () => {
   });
 });
 
+describe('無効な接続先', () => {
+  const disabled = target({ id: 'off', enabled: false });
+
+  it('本来の URL には保存せず、どこにも届かない URL に1件だけ値を残す', () => {
+    expect(toProxyEntries([disabled])).toEqual([
+      {
+        url: 'https://api-proxy-disabled.invalid/off',
+        method: 'GET',
+        headers: { 'X-Cybozu-API-Token': 'token' },
+        data: {},
+      },
+    ]);
+  });
+
+  it('値は、残した URL から読んで戻す', () => {
+    const read = vi.fn(() => ({ headers: { 'X-Cybozu-API-Token': 'saved' }, data: {} }));
+    const [filled] = fillTargets(stripTargets([disabled]), read);
+    expect(read).toHaveBeenCalledWith(disabledKey('off'));
+    expect(filled?.headers[0]?.value).toBe('saved');
+  });
+
+  it('有効なのに本来の URL に値が無ければ、無効のときの保存先から戻す', () => {
+    const read = vi.fn((key: { url: string }) =>
+      key.url === disabledKey('t').url
+        ? { headers: { 'X-Cybozu-API-Token': 'saved' }, data: {} }
+        : null
+    );
+    const [filled] = fillTargets(stripTargets([target()]), read);
+    expect(filled?.headers[0]?.value).toBe('saved');
+  });
+
+  it('URL とメソッドの組の重なりと、前方一致の重なりを見ない（値が付かないため）', () => {
+    expect(validateTargets([target(), disabled])).toEqual([]);
+    expect(overlappingTargets([target({ url: `${ORIGIN}/` }), disabled])).toEqual([]);
+  });
+});
+
 describe('stripTargets・fillTargets', () => {
-  it('strip はヘッダーと本文の値だけを空にする（キー・URL・メモは残す）', () => {
+  it('strip はヘッダーとデータだけを空にする（キー・URL・メモは残す）', () => {
     const [stripped] = stripTargets([
       target({ data: [{ id: 'd', key: 'k', value: 'v', type: 'string' }], memo: 'メモ' }),
     ]);
@@ -150,6 +189,7 @@ describe('validateTargets', () => {
   it('同じ URL とメソッドの組を、複数の接続先で重ねられない（同じ組は後の値で上書きされるため）', () => {
     expect(issues([target(), target({ methods: ['PUT', 'POST'] })])).toEqual([
       'targets.1.methods: 1番目の接続先と、URL と PUT の組が重なっています',
+      'targets.0.methods: 2番目の接続先と、URL と PUT の組が重なっています',
     ]);
   });
 
@@ -183,7 +223,7 @@ describe('validateTargets', () => {
     ).toEqual(['targets.0.headers.0.value: API トークンは9個までです']);
   });
 
-  it('本文の値は種類に合っていること', () => {
+  it('データは種類に合っていること', () => {
     expect(
       issues([
         target({

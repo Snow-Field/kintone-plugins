@@ -51,7 +51,7 @@ export const countApiTokens = (value: string): number =>
     .map((t) => t.trim())
     .filter(Boolean).length;
 
-/** 本文の値を種類に合わせて変換する（setProxyConfig の data の値にオブジェクトは使えない） */
+/** データを種類に合わせて変換する（setProxyConfig の data の値にオブジェクトは使えない） */
 const toDataValue = ({ type, value }: DataItem): string | number | boolean => {
   if (type === 'number') return Number(value);
   if (type === 'boolean') return value === 'true';
@@ -64,13 +64,24 @@ const toDataValue = ({ type, value }: DataItem): string | number | boolean => {
  */
 export const toProxyEntries = (targets: Target[]): ProxyEntry[] =>
   targets.flatMap((target) => {
-    const url = target.url.trim();
     const headers = Object.fromEntries(target.headers.map((h) => [h.key.trim(), h.value.trim()]));
     const data = Object.fromEntries(target.data.map((d) => [d.key.trim(), toDataValue(d)]));
+    // 無効な接続先は、値を消さずに、どこにも届かない URL に1件だけ残す（有効に戻したときに入れ直さずに済むように）
+    if (!target.enabled) return [{ ...disabledKey(target.id), headers, data }];
+    const url = target.url.trim();
     return target.methods.map((method) => ({ url, method, headers, data }));
   });
 
-/** 秘密（ヘッダーと本文の値）を空にした形（setConfig とエクスポートに入れる） */
+/**
+ * 無効な接続先の値を残すキー。.invalid はどこにも割り当てられないと決められたドメインなので、
+ * 利用者がこの URL を proxy で呼んでも、値はどこにも届かない
+ */
+export const disabledKey = (targetId: string): { url: string; method: 'GET' } => ({
+  url: `https://api-proxy-disabled.invalid/${encodeURIComponent(targetId)}`,
+  method: 'GET',
+});
+
+/** 秘密（ヘッダーとデータ）を空にした形（setConfig とエクスポートに入れる） */
 export const stripTargets = (targets: Target[]): Target[] =>
   targets.map((target) => ({
     ...target,
@@ -79,14 +90,16 @@ export const stripTargets = (targets: Target[]): Target[] =>
   }));
 
 /**
- * 保存済みのプロキシ設定から、ヘッダーと本文の値を戻す
+ * 保存済みのプロキシ設定から、ヘッダーとデータを戻す
  * どのメソッドにも同じ値を保存するので、最初のメソッドの組を読む。キーが見つからない値はそのまま残す
  */
 export const fillTargets = (targets: Target[], read: ProxySettingsReader): Target[] =>
   targets.map((target) => {
     const [method] = target.methods;
-    if (!method) return target;
-    const saved = read({ url: target.url.trim(), method });
+    // 有効なのに本来の URL に値が無ければ、無効のときの保存先も探す（切り替えの保存が途中で失敗したときのため）
+    const saved =
+      (target.enabled && method ? read({ url: target.url.trim(), method }) : null) ??
+      read(disabledKey(target.id));
     if (!saved) return target;
     return {
       ...target,
@@ -158,14 +171,20 @@ export const validateTargets = (targets: Target[]): TargetIssue[] => {
       issues.push({ path: [...base, 'methods'], message: 'メソッドを1つ以上選んでください' });
     }
     // URL が空か不正なときは、重なりを見ない（「URL を入力してください」と重なって紛らわしいため）
-    for (const method of isHttpUrl(url) ? target.methods : []) {
+    // 無効な接続先は値が付かないので、重なりを見ない
+    for (const method of isHttpUrl(url) && target.enabled ? target.methods : []) {
       const key = `${url} ${method}`;
       const first = seen.get(key);
       if (first === undefined) seen.set(key, t);
       else {
+        // どちらの行を直してもよいので、両方の行に出す（一覧のスイッチで有効にした行だけが無傷に見えないように）
         issues.push({
           path: [...base, 'methods'],
           message: `${first + 1}番目の接続先と、URL と ${method} の組が重なっています`,
+        });
+        issues.push({
+          path: ['targets', first, 'methods'],
+          message: `${t + 1}番目の接続先と、URL と ${method} の組が重なっています`,
         });
       }
     }
@@ -217,7 +236,7 @@ export const overlappingTargets = (targets: Target[]): [number, number][] => {
   const pairs: [number, number][] = [];
   targets.forEach((a, i) => {
     targets.forEach((b, j) => {
-      if (i >= j) return;
+      if (i >= j || !a.enabled || !b.enabled) return;
       const ua = a.url.trim();
       const ub = b.url.trim();
       if (!ua || !ub || ua === ub) return;

@@ -50,6 +50,11 @@ const DATA_TIPS = [
 
 const METHOD_TIPS = ['選んだメソッドのリクエストにだけ値が付きます'];
 
+const SAVE_TIPS = [
+  '「保存」は一覧に戻すだけです',
+  'kintone への保存は、画面右上の「設定を保存」で行います',
+];
+
 /** 見出し（ⓘ 付き） */
 const FieldTitle: FC<{ title: string; tips?: string[] }> = ({ title, tips }) => (
   <Typography variant='subtitle2' sx={{ mb: 0.5 }}>
@@ -68,7 +73,7 @@ type Props = {
 
 /**
  * 接続先の編集ダイアログ
- * 一覧とは別のフォームで編集し、「反映する」で検証してから一覧に戻す（キャンセルなら何も変えない）
+ * 一覧とは別のフォームで編集し、「保存」で検証してから一覧に戻す（キャンセルなら何も変えない）
  * 外を押しても閉じない（書きかけが消えるため）
  * 開くたびに作り直す（呼び出し側で key を変える）。前に開いた接続先の値が一瞬でも映らないよう、
  * フォームは最初から開いた接続先の値で作る
@@ -120,7 +125,11 @@ export const TargetDialog: FC<Props> = ({ editing, others, onApply, onClose }) =
       maxWidth='md'
     >
       <DialogTitle>
-        {editing.isNew ? '接続先を追加' : `接続先 ${editing.index + 1} を編集`}
+        <TitleWithTip
+          title={editing.isNew ? '接続先を追加' : `接続先 ${editing.index + 1} を編集`}
+          label='保存についての説明'
+          lines={SAVE_TIPS}
+        />
       </DialogTitle>
       <FormProvider {...methods}>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
@@ -176,7 +185,7 @@ export const TargetDialog: FC<Props> = ({ editing, others, onApply, onClose }) =
           </Box>
 
           <Box>
-            <FieldTitle title='本文の値' tips={DATA_TIPS} />
+            <FieldTitle title='データ' tips={DATA_TIPS} />
             <FormTextField<TargetDraft>
               name='dataText'
               multiline
@@ -184,7 +193,7 @@ export const TargetDialog: FC<Props> = ({ editing, others, onApply, onClose }) =
               fullWidth
               spellCheck={false}
               placeholder={'{\n  "channel": "C01234",\n  "limit": 100\n}'}
-              slotProps={{ htmlInput: { 'aria-label': '本文の値（JSON）' } }}
+              slotProps={{ htmlInput: { 'aria-label': 'データ（JSON）' } }}
               sx={{ '& textarea': { fontFamily: 'monospace' } }}
             />
           </Box>
@@ -193,7 +202,7 @@ export const TargetDialog: FC<Props> = ({ editing, others, onApply, onClose }) =
       <DialogActions>
         <Button onClick={onClose}>キャンセル</Button>
         <Button variant='contained' onClick={apply}>
-          反映する
+          保存
         </Button>
       </DialogActions>
     </Dialog>

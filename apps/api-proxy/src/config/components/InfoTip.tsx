@@ -27,7 +27,7 @@ export const InfoTip: FC<Props> = ({ label, lines }) => (
         ))}
       </Box>
     }
-    slotProps={{ tooltip: { sx: { maxWidth: 420 } } }}
+    slotProps={{ tooltip: { sx: { maxWidth: 440, px: 2, py: 1.5 } } }}
   >
     <IconButton
       size='small'

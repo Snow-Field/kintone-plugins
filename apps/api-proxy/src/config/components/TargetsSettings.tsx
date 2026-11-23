@@ -40,15 +40,22 @@ const createTarget = (): Target => ({
   headers: [],
   data: [],
   memo: '',
+  enabled: true,
 });
 
 const ABOUT_TIPS = [
-  'ヘッダーと本文の値は、利用者には見えない場所（プロキシ設定）に保存します',
+  'ヘッダーとデータは、利用者には見えない場所（プロキシ設定）に保存します',
   'kintone.plugin.app.proxy を呼ぶと、kintone のサーバーが値を付けて送ります',
   '保存したあと「アプリを更新」で反映します',
 ];
 
-const URL_TIPS = ['この URL で始まるリクエストに、ヘッダーと本文の値が付きます'];
+const URL_TIPS = ['この URL で始まるリクエストに、ヘッダーとデータが付きます'];
+
+const ENABLED_TIPS = [
+  '無効にすると、この接続先の値は付かなくなります',
+  'ただし、URL が前方一致で重なる、有効なほかの接続先の値は付きます',
+  '値は消さずに残すので、有効に戻せばそのまま使えます',
+];
 
 const HEADER_TIPS = [
   'キーだけを出しています。値は「編集」の中でだけ見えます',
@@ -117,11 +124,11 @@ export const TargetsSettings: FC = () => {
             <TableHead>
               <TableRow>
                 <TableCell sx={{ width: 64 }} />
-                <HeadCell title='説明' />
+                <HeadCell title='有効' tips={ENABLED_TIPS} />
                 <HeadCell title='URL' tips={URL_TIPS} />
                 <HeadCell title='メソッド' />
                 <HeadCell title='ヘッダー' tips={HEADER_TIPS} />
-                <HeadCell title='本文の値' tips={HEADER_TIPS} />
+                <HeadCell title='説明' />
                 <TableCell sx={{ width: 136 }} />
               </TableRow>
             </TableHead>

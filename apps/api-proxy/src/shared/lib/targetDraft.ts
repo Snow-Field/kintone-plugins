@@ -1,6 +1,6 @@
 /**
  * 接続先の編集ダイアログの入力（下書き）と、接続先の変換。kintone に依存しない
- * ダイアログでは、ヘッダーと本文の値を JSON の文字で編集し、「反映する」で接続先に戻す
+ * ダイアログでは、ヘッダーとデータを JSON の文字で編集し、「保存」で接続先に戻す
  */
 import type { ProxyMethod, Target } from '@/shared/config/staticSchema';
 import {
@@ -22,7 +22,7 @@ export type TargetDraft = {
 
 export type DraftField = keyof TargetDraft;
 
-/** 接続先を下書きにする。ヘッダーと本文の値が無ければ、JSON の欄は空にする（見本を出すため） */
+/** 接続先を下書きにする。ヘッダーとデータが無ければ、JSON の欄は空にする（見本を出すため） */
 export const toDraft = (target: Target): TargetDraft => ({
   url: target.url,
   methods: target.methods,
@@ -39,7 +39,7 @@ export const draftWarning = (target: Target): string | undefined => {
   const keys = [...duplicatedKeys(target.headers), ...duplicatedKeys(target.data)];
   return keys.length === 0
     ? undefined
-    : `同じキー（${keys.join(', ')}）が複数ありました。最後の値だけを出しています。反映すると、ほかの値は消えます。`;
+    : `同じキー（${keys.join(', ')}）が複数ありました。最後の値だけを出しています。保存すると、ほかの値は消えます。`;
 };
 
 export type FromDraftResult =
@@ -88,7 +88,7 @@ export const fromDraft = (
   for (const { path, message } of validateTargets(all)) {
     if (path[1] !== index) continue;
     const field = fieldOf(path[2]);
-    // ヘッダーと本文の値は JSON の欄が1つなので、どのキーの誤りかを添える
+    // ヘッダーとデータは JSON の欄が1つなので、どのキーの誤りかを添える
     const row = typeof path[3] === 'number' ? path[3] : undefined;
     const items = field === 'headersText' ? target.headers : target.data;
     const detail =
@@ -102,7 +102,8 @@ export const fromDraft = (
   // 編集中の行とほかの行を、上下どちらの向きでも比べる
   const url = target.url.trim();
   all.forEach((other, j) => {
-    if (j === index || errors.methods || other.url.trim() !== url) return;
+    if (j === index || errors.methods || !target.enabled || !other.enabled) return;
+    if (other.url.trim() !== url) return;
     const method = target.methods.find((m) => other.methods.includes(m));
     if (method) errors.methods = `${j + 1}番目の接続先と、URL と ${method} の組が重なっています`;
   });

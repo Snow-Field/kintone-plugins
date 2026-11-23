@@ -6,6 +6,7 @@ import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import EditIcon from '@mui/icons-material/Edit';
+import { FormSwitch } from '@kintone-plugin/ui';
 import type { PluginConfig } from '@/shared/config';
 
 type Props = {
@@ -25,6 +26,30 @@ const Empty: FC = () => (
   </Typography>
 );
 
+/**
+ * 最大幅を決めて1行で出し、はみ出す分は省略する（カーソルを乗せると全体を出す）
+ * 値の長さでほかの列の幅が変わらないようにするため
+ */
+const Clamp: FC<{ text: string; maxWidth: number }> = ({ text, maxWidth }) =>
+  text ? (
+    <Tooltip title={text} placement='top-start'>
+      <Box
+        component='span'
+        sx={{
+          display: 'block',
+          maxWidth,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}
+      >
+        {text}
+      </Box>
+    </Tooltip>
+  ) : (
+    <Empty />
+  );
+
 /** 接続先1件の一覧の行（読み取り専用。編集はダイアログで行う） */
 export const TargetRow: FC<Props> = ({ sortableId, index, onEdit, onInsertAfter, onRemove }) => {
   const { control } = useFormContext<PluginConfig>();
@@ -37,7 +62,7 @@ export const TargetRow: FC<Props> = ({ sortableId, index, onEdit, onInsertAfter,
   if (!target) return null;
 
   const headerKeys = target.headers.map((h) => h.key).join(', ');
-  const dataKeys = target.data.map((d) => d.key).join(', ');
+  const dim = target.enabled ? 1 : 0.45;
 
   return (
     <TableRow
@@ -70,18 +95,18 @@ export const TargetRow: FC<Props> = ({ sortableId, index, onEdit, onInsertAfter,
           {index + 1}
         </Box>
       </TableCell>
-      <TableCell>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {target.memo ? target.memo : <Empty />}
-          {hasError && (
-            <Tooltip title='「編集」を開くと、誤りの理由が出ます'>
-              <Chip label='要修正' color='error' size='small' variant='outlined' />
-            </Tooltip>
-          )}
-        </Box>
+      <TableCell sx={{ px: 0.5 }}>
+        <FormSwitch<PluginConfig>
+          name={`targets.${index}.enabled`}
+          size='small'
+          slotProps={{ input: { 'aria-label': `接続先 ${index + 1} を有効にする` } }}
+        />
       </TableCell>
-      <TableCell sx={{ wordBreak: 'break-all' }}>{target.url || <Empty />}</TableCell>
-      <TableCell sx={{ whiteSpace: 'nowrap' }}>
+      {/* 無効な行は薄く出す（操作のボタンとスイッチは除く） */}
+      <TableCell sx={{ opacity: dim }}>
+        <Clamp text={target.url} maxWidth={360} />
+      </TableCell>
+      <TableCell sx={{ whiteSpace: 'nowrap', opacity: dim }}>
         <Box sx={{ display: 'flex', gap: 0.5 }}>
           {target.methods.length === 0 ? (
             <Empty />
@@ -90,8 +115,22 @@ export const TargetRow: FC<Props> = ({ sortableId, index, onEdit, onInsertAfter,
           )}
         </Box>
       </TableCell>
-      <TableCell>{headerKeys || <Empty />}</TableCell>
-      <TableCell>{dataKeys || <Empty />}</TableCell>
+      <TableCell sx={{ opacity: dim }}>
+        <Clamp text={headerKeys} maxWidth={200} />
+      </TableCell>
+      <TableCell>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {/* 誤りの印は無効な行でも見落とさないよう、薄くしない */}
+          <Box sx={{ opacity: dim }}>
+            <Clamp text={target.memo} maxWidth={240} />
+          </Box>
+          {hasError && (
+            <Tooltip title='「編集」を開くと、誤りの理由が出ます'>
+              <Chip label='要修正' color='error' size='small' variant='outlined' />
+            </Tooltip>
+          )}
+        </Box>
+      </TableCell>
       <TableCell sx={{ px: 0.5, whiteSpace: 'nowrap' }}>
         <Tooltip title='編集'>
           <IconButton aria-label={`接続先 ${index + 1} を編集`} onClick={onEdit}>
@@ -104,7 +143,7 @@ export const TargetRow: FC<Props> = ({ sortableId, index, onEdit, onInsertAfter,
           </IconButton>
         </Tooltip>
         <Tooltip title='削除'>
-          <IconButton aria-label={`接続先 ${index + 1} を削除`} onClick={onRemove}>
+          <IconButton aria-label={`接続先 ${index + 1} を削除`} onClick={onRemove} color='error'>
             <DeleteIcon />
           </IconButton>
         </Tooltip>

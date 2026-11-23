@@ -1,5 +1,5 @@
 /**
- * ヘッダーと本文の値（行の一覧）と、JSON の文字列の変換。kintone に依存しない
+ * ヘッダーとデータ（行の一覧）と、JSON の文字列の変換。kintone に依存しない
  * 設定画面では、どちらも JSON でまとめて入力する。保存の形は行の一覧のまま
  */
 import type { DataItem, Header } from '@/shared/config/staticSchema';
@@ -102,13 +102,13 @@ export const duplicatedKeys = (items: { key: string }[]): string[] => [
 ];
 
 // -----------------------------------------------------------------------------
-// 本文の値
+// データ
 // -----------------------------------------------------------------------------
 
 /**
- * 本文の値を JSON の文字列にする（ダイアログに出す）
+ * データを JSON の文字列にする（ダイアログに出す）
  * 値が空の数値・真偽の行（インポートした直後や、保存済みの値を読めなかったとき）は null にする。
- * 0 や false に見せると、そのまま保存されてしまうため（null は反映するときに理由を示して拒否する）
+ * 0 や false に見せると、そのまま保存されてしまうため（null は保存するときに理由を示して拒否する）
  */
 export const dataToJson = (items: DataItem[]): string => {
   if (items.length === 0) return EMPTY_JSON;
@@ -123,7 +123,7 @@ export const dataToJson = (items: DataItem[]): string => {
   return JSON.stringify(object, null, 2);
 };
 
-/** JSON の文字列を本文の値にする。種類（文字・数値・真偽）は JSON の値から決める */
+/** JSON の文字列をデータにする。種類（文字・数値・真偽）は JSON の値から決める */
 export const jsonToData = (
   text: string,
   current: DataItem[],

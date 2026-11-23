@@ -46,7 +46,7 @@ describe('jsonToData', () => {
     });
   });
 
-  it('空なら本文の値を無しにする', () => {
+  it('空ならデータを無しにする', () => {
     expect(jsonToData('  ', [], createId)).toEqual({ ok: true, items: [] });
     expect(jsonToData('{}', [], createId)).toEqual({ ok: true, items: [] });
   });
@@ -76,7 +76,7 @@ describe('jsonToData', () => {
     expect(!result.ok && result.message).toContain(message);
   });
 
-  it('JSON にして読み直すと、元の本文の値に戻る', () => {
+  it('JSON にして読み直すと、元のデータに戻る', () => {
     const items: DataItem[] = [
       { id: '1', key: 'channel', value: 'C01', type: 'string' },
       { id: '2', key: 'limit', value: '1.5', type: 'number' },

@@ -1,12 +1,12 @@
 import { z } from 'zod';
 
 /** プラグインバージョン */
-export const LATEST_PLUGIN_VERSION = 1;
+export const LATEST_PLUGIN_VERSION = 2;
 
 /** プロキシ設定で使えるメソッド（kintone の仕様） */
 export const PROXY_METHODS = ['GET', 'POST', 'PUT', 'DELETE'] as const;
 
-/** 本文の値の種類。setProxyConfig の data の値にオブジェクトは使えない */
+/** データの種類。setProxyConfig の data の値にオブジェクトは使えない */
 export const DATA_VALUE_TYPES = ['string', 'number', 'boolean'] as const;
 
 // =============================================================================
@@ -22,7 +22,7 @@ export const HeaderSchema = z.object({
   value: z.string(),
 });
 
-/** 本文の値の1行。value はフォームの中だけで使い、setConfig には空で保存する */
+/** データの1行。value はフォームの中だけで使い、setConfig には空で保存する */
 export const DataItemSchema = z.object({
   id: z.string(),
   key: z.string(),
@@ -30,8 +30,8 @@ export const DataItemSchema = z.object({
   type: z.enum(DATA_VALUE_TYPES),
 });
 
-/** 接続先。選んだメソッドごとに、URL の前方一致でヘッダーと本文の値が付く */
-export const TargetSchema = z.object({
+/** 接続先（V1）。選んだメソッドごとに、URL の前方一致でヘッダーとデータが付く */
+export const TargetSchemaV1 = z.object({
   id: z.string(),
   url: z.string(),
   methods: z.array(z.enum(PROXY_METHODS)),
@@ -42,6 +42,20 @@ export const TargetSchema = z.object({
 
 export const PluginConfigSchemaV1 = z.object({
   version: z.literal(1),
+  targets: z.array(TargetSchemaV1),
+});
+
+// -----------------------------------------------------------------------------
+// Version 2: 接続先ごとに有効・無効を切り替えられるようにした
+// -----------------------------------------------------------------------------
+
+/** 接続先。無効にすると、値は本来の URL には付かない（値はどこにも届かない URL に残す） */
+export const TargetSchema = TargetSchemaV1.extend({
+  enabled: z.boolean(),
+});
+
+export const PluginConfigSchemaV2 = z.object({
+  version: z.literal(2),
   targets: z.array(TargetSchema),
 });
 
@@ -49,7 +63,7 @@ export const PluginConfigSchemaV1 = z.object({
 // Latest Version Schema
 // =============================================================================
 
-export const PluginConfigSchema = PluginConfigSchemaV1;
+export const PluginConfigSchema = PluginConfigSchemaV2;
 
 // =============================================================================
 // 型定義

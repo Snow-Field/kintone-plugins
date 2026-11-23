@@ -13,11 +13,12 @@ const target = (overrides: Partial<Target> = {}): Target => ({
   headers: [{ id: 'h', key: 'X-Cybozu-API-Token', value: 'token' }],
   data: [],
   memo: '説明',
+  enabled: true,
   ...overrides,
 });
 
 describe('toDraft', () => {
-  it('ヘッダーは JSON に、無い本文の値は空の欄にする', () => {
+  it('ヘッダーは JSON に、無いデータは空の欄にする', () => {
     const draft = toDraft(target());
     expect(JSON.parse(draft.headersText)).toEqual({ 'X-Cybozu-API-Token': 'token' });
     expect(draft.dataText).toBe('');

@@ -27,7 +27,7 @@ const CopyButton: FC<{ text: string; label: string }> = ({ text, label }) => {
 
 const USAGE_TIPS = [
   'JS カスタマイズや他のプラグインから、このプラグインの ID を指定して kintone.plugin.app.proxy を呼びます',
-  '登録した URL で始まり、メソッドが同じリクエストに、ヘッダーと本文の値が付きます',
+  '登録した URL で始まり、メソッドが同じリクエストに、ヘッダーとデータが付きます',
   'proxy はレコードの画面（一覧・詳細・追加・編集など）でだけ使えます',
 ];
 
