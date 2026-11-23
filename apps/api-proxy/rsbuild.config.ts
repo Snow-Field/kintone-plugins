@@ -6,8 +6,6 @@ export default defineConfig({
   plugins: [pluginReact(), pluginTypeCheck()],
   source: {
     entry: {
-      desktop: { import: './src/desktop/index.ts', html: false },
-      mobile: { import: './src/mobile/index.ts', html: false },
       config: { import: './src/config/index.tsx', html: false },
     },
     tsconfigPath: './tsconfig.json',

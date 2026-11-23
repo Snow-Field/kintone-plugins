@@ -16,14 +16,6 @@
     "en": "https://github.com/Snow-Field/kintone-plugins/tree/main/apps/api-proxy",
     "ja": "https://github.com/Snow-Field/kintone-plugins/tree/main/apps/api-proxy"
   },
-  "desktop": {
-    "js": ["js/desktop.js"],
-    "css": []
-  },
-  "mobile": {
-    "js": ["js/mobile.js"],
-    "css": []
-  },
   "config": {
     "html": "html/config.html",
     "js": ["js/config.js"],

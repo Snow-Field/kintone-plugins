@@ -2,7 +2,7 @@
 
 フェーズ2 の要件。auto-numbering の API トークンを秘匿し、あわせて秘匿のためだけの汎用プラグイン `api-proxy` を作る。
 
-> **状態: 共有部分（kintone-utils の `secrets`）と auto-numbering は実装済み。api-proxy は要件を確定し、実装中。** 判断の理由は [decisions/proxy-config.md](./decisions/proxy-config.md)。`api-proxy` の設計は、`pnpm gen` でフォルダを作った後に `apps/api-proxy/docs/design.md` へ移す。
+> **状態: 共有部分（kintone-utils の `secrets`）と auto-numbering は実装済み。api-proxy は実装済みで、実機での確認がまだ。** 判断の理由は [decisions/proxy-config.md](./decisions/proxy-config.md)。api-proxy の実装の構成は [apps/api-proxy/docs/design.md](../apps/api-proxy/docs/design.md)。
 
 ## 前提となる kintone の仕様
 

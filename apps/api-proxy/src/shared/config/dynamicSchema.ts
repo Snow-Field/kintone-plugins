@@ -1,21 +1,14 @@
 import type { ZodType } from 'zod';
-import type { FieldInfo } from '@kintone-plugin/kintone-utils';
-import { PluginConfigSchema, type PluginConfig } from '@/shared/config/staticSchema';
+import { validateTargets } from '@/shared/lib/targets';
+import { type PluginConfig, PluginConfigSchema } from '@/shared/config/staticSchema';
 
 /**
- * 動的な検証を含むスキーマを生成する
- * @param fields アプリに存在するフィールドの一覧
+ * 入力の検証を含むスキーマを作る（設定画面のフォームで使う）
+ * アプリのフィールドには依存しないので、引数は使わない
  */
-export const createConfigSchema = (fields: FieldInfo[]): ZodType<PluginConfig, PluginConfig> => {
-  const _fieldCodeSet = new Set(fields.map((f) => f.code));
-  return PluginConfigSchema.superRefine((_, _ctx) => {
-    // テンプレート用のサンプルバリデーション
-    /*
-    _ctx.addIssue({
-      code: 'custom',
-      message: '指定されたフィールドがアプリ内に見つかりません',
-      path: ['conditions'],
-    });
-    */
+export const createConfigSchema = (): ZodType<PluginConfig, PluginConfig> =>
+  PluginConfigSchema.superRefine((config, ctx) => {
+    for (const { path, message } of validateTargets(config.targets)) {
+      ctx.addIssue({ code: 'custom', path, message });
+    }
   });
-};

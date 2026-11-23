@@ -22,12 +22,9 @@
   "dependencies": {
     "@kintone-plugin/plugin-shell": "workspace:*",
     "@kintone-plugin/ui": "workspace:*",
-    "@dnd-kit/core": "catalog:",
-    "@dnd-kit/sortable": "catalog:",
     "@emotion/react": "catalog:",
     "@emotion/styled": "catalog:",
     "@hookform/resolvers": "catalog:",
-    "@kintone/rest-api-client": "catalog:",
     "@mui/icons-material": "catalog:",
     "@mui/material": "catalog:",
     "jotai": "catalog:",

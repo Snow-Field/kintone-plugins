@@ -1,10 +1,9 @@
 import type { TabItem } from '@kintone-plugin/ui';
-import { GeneralSettings } from './components/GeneralSettings';
+import { TargetsSettings } from './components/TargetsSettings';
+import { UsageGuide } from './components/UsageGuide';
 
 /** 設定画面のタブ */
 export const tabs: TabItem[] = [
-  {
-    label: '基本設定',
-    content: <GeneralSettings />,
-  },
+  { label: '接続先', content: <TargetsSettings /> },
+  { label: '使い方', content: <UsageGuide /> },
 ];

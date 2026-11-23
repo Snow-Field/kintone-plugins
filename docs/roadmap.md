@@ -4,7 +4,7 @@
 
 ## 次にやること
 
-1. フェーズ2: 汎用プラグイン `api-proxy` を作る（要件は [proxy-config.md](./proxy-config.md)。保存の処理は kintone-utils の `secrets` を使う）
+1. フェーズ2: 汎用プラグイン `api-proxy` を実機で確かめる（[apps/api-proxy/docs/tasks.md](../apps/api-proxy/docs/tasks.md)）
 
 ## フェーズ
 
@@ -14,7 +14,7 @@
 | -------- | ---------------------------------------------------------------------------- | ------------------------ |
 | 0        | 開発環境の再整備                                                             | 完了                     |
 | 1        | 共通パッケージ（`packages/`）の改修と、各プラグインのアーキテクチャの統一    | 完了（2026-11-23）       |
-| 2        | API トークンなどの秘匿。auto-numbering への組み込みと、汎用プラグイン `api-proxy` の新規開発 | 要件確定（[proxy-config.md](./proxy-config.md)） |
+| 2        | API トークンなどの秘匿。auto-numbering への組み込みと、汎用プラグイン `api-proxy` の新規開発 | api-proxy の実機確認が残り（[proxy-config.md](./proxy-config.md)） |
 | 3        | 各プラグイン（age-calculator / field-controller / auto-numbering）の開発再開。最初に設定画面の設計（見た目・操作の流れ）を見直す | 未着手                   |
 
 フェーズ0 では、Node の固定・lint エラーの解消・テストと CI の導入・ブランチ保護・各プラグインの `.env` と `private.ppk` の作り直しなどを行った。
