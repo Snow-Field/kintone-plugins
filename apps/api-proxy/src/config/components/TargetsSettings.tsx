@@ -43,12 +43,6 @@ const createTarget = (): Target => ({
   enabled: true,
 });
 
-const ABOUT_TIPS = [
-  'ヘッダーとデータは、利用者には見えない場所（プロキシ設定）に保存します',
-  'kintone.plugin.app.proxy を呼ぶと、kintone のサーバーが値を付けて送ります',
-  '保存したあと「アプリを更新」で反映します',
-];
-
 const URL_TIPS = ['この URL で始まるリクエストに、ヘッダーとデータが付きます'];
 
 const HEADER_TIPS = [
@@ -101,9 +95,7 @@ export const TargetsSettings: FC = () => {
 
   return (
     <FormSection>
-      <Text variant='sectionTitle'>
-        <TitleWithTip title='接続先' label='接続先の説明' lines={ABOUT_TIPS} />
-      </Text>
+      <Text variant='sectionTitle'>接続先</Text>
 
       {overlaps.map(([a, b]) => (
         <Alert key={`${a}-${b}`} severity='info' sx={{ mb: 2 }}>

@@ -26,9 +26,11 @@ const CopyButton: FC<{ text: string; label: string }> = ({ text, label }) => {
 };
 
 const USAGE_TIPS = [
-  'JS カスタマイズや他のプラグインから、このプラグインの ID を指定して kintone.plugin.app.proxy を呼びます',
+  'ヘッダーとデータは、利用者には見えない場所（プロキシ設定）に保存します',
+  'JS カスタマイズや他のプラグインから、このプラグインの ID を指定して kintone.plugin.app.proxy を呼ぶと、kintone のサーバーが値を付けて送ります',
   '登録した URL で始まり、メソッドが同じリクエストに、ヘッダーとデータが付きます',
   'proxy はレコードの画面（一覧・詳細・追加・編集など）でだけ使えます',
+  '接続先を保存したあと「アプリを更新」で反映します',
 ];
 
 const RISK_LINES = [
