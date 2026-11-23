@@ -55,10 +55,9 @@
 
 | # | 問題 | 場所 | 推奨の理由 |
 | --- | --- | --- | --- |
-| 1 | 実行画面のバンドルが約280〜290KB ある。kintone-utils を1つの入口から読むため、実行画面で使わない REST API クライアント・通知・React の部品まで入っている。入口（実行画面用と設定画面用）を分けるかを決める | `kintone-utils` の `src/index.ts` | 新しいプラグインを作る前に、入口の形を決めておく |
-| 2 | Biome の警告8件（`any` 6件、使っていない変数・引数2件。2026-11-23 時点）。うち `createSchema` の型 `z.ZodType<T, any, any>` の2件は、外すと各プラグインの動的スキーマの型も変える必要がある | `kintone-utils`（`usePluginForm.ts` など）・`template` | 共有パッケージの型の回避は、各プラグインに広がる（architecture.md のルール5） |
-| 3 | `genkey.js`・`upload.js`・`dotenv.js` が、template と3プラグインの4か所に同じ内容でコピーされている | 各プラグインと template の `scripts/` | 新しいプラグインで5か所目のコピーを作らないため |
-| 4 | template の `manifest.json` はプラグイン名と説明が空で、そのままでは zip を作れない。`pnpm gen` で名前を聞いて書き込むかを決める | `template/public/manifest.json`・`scripts/create-plugin.js` | フェーズ2 で `pnpm gen` を使う前に |
+| 1 | Biome の警告8件（`any` 6件、使っていない変数・引数2件。2026-11-23 時点）。うち `createSchema` の型 `z.ZodType<T, any, any>` の2件は、外すと各プラグインの動的スキーマの型も変える必要がある | `kintone-utils`（`usePluginForm.ts` など）・`template` | 共有パッケージの型の回避は、各プラグインに広がる（architecture.md のルール5） |
+| 2 | `genkey.js`・`upload.js`・`dotenv.js` が、template と3プラグインの4か所に同じ内容でコピーされている | 各プラグインと template の `scripts/` | 新しいプラグインで5か所目のコピーを作らないため |
+| 3 | template の `manifest.json` はプラグイン名と説明が空で、そのままでは zip を作れない。`pnpm gen` で名前を聞いて書き込むかを決める | `template/public/manifest.json`・`scripts/create-plugin.js` | フェーズ2 で `pnpm gen` を使う前に |
 
 ### 各プラグインで直すもの（フェーズ3）
 

@@ -5,10 +5,19 @@
 - 設定画面の骨組みは新しいパッケージ `@kintone-plugin/plugin-shell` に置く。依存の向きは `ui` ← `kintone-utils` ← `plugin-shell` ← 各プラグイン
 - `template/` は workspace に入れ、lint・型チェック・CI の対象にする
 - kintone の型は公式（`@kintone/dts-gen`・`@kintone/rest-api-client`）を正とし、`kintone-utils` が自前で持つのはレコード画面のイベントの外枠だけにする
+- 共有パッケージは `"sideEffects": false` を付け、入口は1つのままにする
 
 詳細は [architecture.md](../architecture.md)。
 
 ## 判断履歴
+
+### 2026-11-23 共有パッケージに sideEffects: false を付け、入口は分けない
+
+- 背景: 実行画面のバンドルが約280〜290KB あった。実行画面が kintone-utils から使うのは `onRecordEvents`・`PluginLogger`・`definePluginConfig`・`getKintoneApp` と型だけだが、REST API クライアント・通知・フォームのフックまで入っていた。原因は `package.json` に `sideEffects` が無く、バンドラーが使っていない export を副作用の可能性があるとして残していたこと
+- 検討した選択肢: (A) 共有パッケージに `"sideEffects": false` を付ける (B) kintone-utils の入口を実行画面用と設定画面用に分ける
+- 決定: (A)。1行の変更で、import の書き方も公開する API も変わらない。desktop.js は age-calculator が 277KB → 83KB、field-controller が 281KB → 87KB になった。auto-numbering は実行画面で REST API クライアントを使うため 291KB → 268KB。`ui`・`plugin-shell` は実行画面から使われていないが、約束をそろえるため同じく付けた
+- 却下した理由: (B) は小さくなる量が (A) と同じで、3プラグインと template の import をすべて書き換える必要がある
+- 注意: 読み込むだけで動く処理を共有パッケージに置くと、バンドルから消える。置くときは `sideEffects` にそのファイルを書く
 
 ### 2026-11-22 MUI の部品は、何かを足すものだけを共通部品にする
 
