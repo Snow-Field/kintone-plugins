@@ -42,7 +42,14 @@ export const InfoTip: FC<Props> = ({ label, lines }) => (
 /** 見出しの文字と ⓘ を、縦の中央でそろえて並べる */
 export const TitleWithTip: FC<Props & { title: string }> = ({ title, label, lines }) => (
   <Box component='span' sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
-    {title}
+    {/*
+      日本語のフォントは上下の余白が対称でないので、行の中央に ⓘ を置くと、字より下に見える。
+      text-box で字の上下の余白を切り落とし、字の形（大文字の高さとベースライン）で中央をそろえる。
+      対応していないブラウザ（Firefox など）では、今までどおりの位置になる
+    */}
+    <Box component='span' sx={{ textBox: 'trim-both cap alphabetic' }}>
+      {title}
+    </Box>
     <InfoTip label={label} lines={lines} />
   </Box>
 );

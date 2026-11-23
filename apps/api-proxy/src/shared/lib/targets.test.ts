@@ -111,6 +111,20 @@ describe('stripTargets・fillTargets', () => {
     expect(filled?.data[0]?.value).toBe('10');
   });
 
+  it('constructor などのキーで、Object.prototype の関数を拾わない', () => {
+    const [filled] = fillTargets(
+      [
+        target({
+          headers: [{ id: 'h', key: 'constructor', value: '' }],
+          data: [{ id: 'd', key: 'toString', value: '', type: 'string' }],
+        }),
+      ],
+      () => ({ headers: {}, data: {} })
+    );
+    expect(filled?.headers[0]?.value).toBe('');
+    expect(filled?.data[0]?.value).toBe('');
+  });
+
   it('保存済みの値が無いキーと接続先は、そのまま残す', () => {
     const [filled] = fillTargets([target()], () => ({ headers: {}, data: {} }));
     expect(filled?.headers[0]?.value).toBe('token');

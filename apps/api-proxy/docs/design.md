@@ -32,8 +32,9 @@ PluginConfigSchemaV1
 | `src/shared/lib/targets.ts` | 接続先とプロキシ設定の変換（`toProxyEntries`・`stripTargets`・`fillTargets`）、入力の検証（`validateTargets`）、前方一致の重なり（`overlappingTargets`）。kintone に依存しないのでテストを書く |
 | `src/shared/config/` | 設定の形・検証・既定値。`PLUGIN_ID`（使い方タブに出す）もここで読む |
 | `src/config/components/TargetsSettings.tsx` | 接続先タブ（接続先の表・前方一致の重なりの知らせ・接続先の追加と削除） |
-| `src/config/components/TargetRow.tsx` | 接続先1件（表の1行。URL と kintone URL を挿入するボタン・メソッド・ヘッダー・本文の値・メモ） |
-| `src/config/components/KeyValueField.tsx`・`src/shared/lib/keyValueJson.ts` | ヘッダーと本文の値。キーの一覧と、JSON でまとめて書くダイアログ。JSON と行の一覧の変換は `keyValueJson.ts`（テストを書く） |
+| `src/config/components/TargetRow.tsx` | 接続先1件の一覧の行（読み取り専用。並べ替えの取っ手・編集・この下に追加・削除） |
+| `src/config/components/TargetDialog.tsx` | 接続先の編集ダイアログ。一覧とは別のフォーム（下書き）で編集し、「反映する」で検証してから一覧に戻す |
+| `src/shared/lib/targetDraft.ts`・`keyValueJson.ts` | 下書きと接続先の変換・検証の割り当て（`targetDraft.ts`）、ヘッダーと本文の値と JSON の変換（`keyValueJson.ts`）。テストを書く |
 | `src/config/components/InfoTip.tsx` | 見出しの横の ⓘ（カーソルを乗せると説明を出す）。ほかのプラグインでも使うようになったら `ui` に移す |
 | `src/config/components/UsageGuide.tsx` | 使い方タブ（権限についての注意・プラグイン ID・固定の呼び出しの例。コピーできる） |
 
@@ -41,6 +42,7 @@ PluginConfigSchemaV1
 
 | 事項 | 内容と理由 |
 | --- | --- |
+| 画面での呼び名 | 設定の `memo` は、画面では「説明」と呼ぶ（接続先の名前の代わりに一覧の先頭に出す） |
 | 接続先の並べ替え | できる（取っ手のドラッグ。キーボードでも可）。順番は動作に影響しない（同じ URL とメソッドの組は重ねられず、前方一致が重なったときの優先は kintone が長さで決める）ので、管理者が見やすく並べるためだけに使う |
 | 本文の値の数値・真偽 | `setProxyConfig` の `data` に数値・真偽のまま渡す（kintone-utils の `ProxyDataValue`）。JSON の大きな整数（安全な整数の範囲を超えるもの）は、読んだ時点で値が変わるので拒否し、文字で書いてもらう。`getProxyConfig` が数値・真偽をどの型で返すかは未確認なので、読み込みでは文字にしてから戻す |
 | ヘッダー名 | 大文字小文字を区別しない（HTTP の仕様）。重複の検証と、保存済みの値を戻すときの照合で区別しない。キーは HTTP のトークンの文字だけ、値は改行などの制御文字を拒否する（混ざると保存か呼び出しが失敗するため） |

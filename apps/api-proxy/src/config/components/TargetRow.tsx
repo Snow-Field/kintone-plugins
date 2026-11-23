@@ -1,72 +1,43 @@
 import type { FC } from 'react';
-import { type FieldError, useFormContext, useFormState, useWatch } from 'react-hook-form';
-import { nanoid } from 'nanoid';
+import { useFormContext, useFormState, useWatch } from 'react-hook-form';
 import { useSortable } from '@dnd-kit/sortable';
-import { Box, IconButton, TableCell, TableRow, Tooltip } from '@mui/material';
+import { Box, Chip, IconButton, TableCell, TableRow, Tooltip, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
-import KeyIcon from '@mui/icons-material/Key';
-import { FormTextField, FormToggleButtonGroup } from '@kintone-plugin/ui';
-import { type PluginConfig, PROXY_METHODS } from '@/shared/config';
-import {
-  addHeaderKey,
-  dataToJson,
-  duplicatedKeys,
-  headersToJson,
-  jsonToData,
-  jsonToHeaders,
-} from '@/shared/lib/keyValueJson';
-import { API_TOKEN_HEADER } from '@/shared/lib/targets';
-import { KeyValueField } from './KeyValueField';
-import { KintoneUrlButton } from './KintoneUrlButton';
-
-const METHOD_OPTIONS = PROXY_METHODS.map((m) => ({ value: m, label: m }));
-
-type RowErrors = ({ key?: FieldError; value?: FieldError } | undefined)[] | undefined;
-
-/** 行ごとの検証エラーを「キー: 理由」の一覧にする（行ごとの入力欄が無いため。キーと値の両方の誤りを出す） */
-const toErrorLines = (rowErrors: RowErrors, keys: string[]): string[] =>
-  Array.isArray(rowErrors)
-    ? rowErrors.flatMap((rowError, i) =>
-        [rowError?.key?.message, rowError?.value?.message]
-          .filter((message): message is string => Boolean(message))
-          .map((message) => `${keys[i] || `${i + 1}番目`}: ${message}`)
-      )
-    : [];
-
-/** 同じキーの行が複数あるときの注意（JSON にすると最後の値だけが残る） */
-const duplicateWarning = (items: { key: string }[]): string | undefined => {
-  const keys = duplicatedKeys(items);
-  return keys.length === 0
-    ? undefined
-    : `同じキー（${keys.join(', ')}）が複数ありました。最後の値だけを出しています。反映すると、ほかの値は消えます。`;
-};
+import EditIcon from '@mui/icons-material/Edit';
+import type { PluginConfig } from '@/shared/config';
 
 type Props = {
   /** 並べ替えの識別子（useFieldArray の行の key） */
   sortableId: string;
   index: number;
+  onEdit: () => void;
   /** この行の後ろに接続先を足す */
   onInsertAfter: () => void;
   onRemove: () => void;
 };
 
-/** 接続先1件（表の1行） */
-export const TargetRow: FC<Props> = ({ sortableId, index, onInsertAfter, onRemove }) => {
-  const { control, getValues, setValue } = useFormContext<PluginConfig>();
+/** 値が無いときの表示 */
+const Empty: FC = () => (
+  <Typography component='span' variant='body2' sx={{ color: 'text.secondary' }}>
+    —
+  </Typography>
+);
+
+/** 接続先1件の一覧の行（読み取り専用。編集はダイアログで行う） */
+export const TargetRow: FC<Props> = ({ sortableId, index, onEdit, onInsertAfter, onRemove }) => {
+  const { control } = useFormContext<PluginConfig>();
+  const target = useWatch({ control, name: `targets.${index}` });
+  const { errors } = useFormState({ control, name: `targets.${index}` });
+  const hasError = errors.targets?.[index] !== undefined;
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: sortableId,
   });
-  const base = `targets.${index}` as const;
-  const url = useWatch({ control, name: `${base}.url` }) ?? '';
-  const headers = useWatch({ control, name: `${base}.headers` }) ?? [];
-  const data = useWatch({ control, name: `${base}.data` }) ?? [];
-  const { errors } = useFormState({ control, name: base });
-  const targetErrors = errors.targets?.[index];
-  const headerKeys = headers.map((h) => h.key);
-  const dataKeys = data.map((d) => d.key);
-  const setOptions = { shouldDirty: true, shouldValidate: true } as const;
+  if (!target) return null;
+
+  const headerKeys = target.headers.map((h) => h.key).join(', ');
+  const dataKeys = target.data.map((d) => d.key).join(', ');
 
   return (
     <TableRow
@@ -77,15 +48,14 @@ export const TargetRow: FC<Props> = ({ sortableId, index, onInsertAfter, onRemov
         transition,
       }}
       sx={{
-        verticalAlign: 'top',
         position: 'relative',
         zIndex: isDragging ? 1 : 'auto',
         bgcolor: isDragging ? 'action.hover' : undefined,
-        '& > td': { py: 1.5 },
+        '& > td': { py: 1 },
       }}
     >
-      <TableCell sx={{ px: 0.5, whiteSpace: 'nowrap' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', height: 40, color: 'text.secondary' }}>
+      <TableCell sx={{ px: 0.5, whiteSpace: 'nowrap', color: 'text.secondary' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Tooltip title='ドラッグして並べ替え'>
             <IconButton
               {...attributes}
@@ -100,93 +70,44 @@ export const TargetRow: FC<Props> = ({ sortableId, index, onInsertAfter, onRemov
           {index + 1}
         </Box>
       </TableCell>
-      <TableCell sx={{ width: '40%', minWidth: 320 }}>
-        {/* 長い URL は欄に収まらないので、カーソルを乗せたときに全体を出す */}
-        <Tooltip title={url} placement='top-start' disableHoverListener={url.length < 40}>
-          <Box>
-            <FormTextField<PluginConfig>
-              name={`${base}.url`}
-              placeholder='https://example.com/api/'
-              size='small'
-              fullWidth
-              slotProps={{ htmlInput: { 'aria-label': `接続先 ${index + 1} の URL` } }}
-            />
-          </Box>
-        </Tooltip>
-        <KintoneUrlButton onSelect={(url) => setValue(`${base}.url`, url, setOptions)} />
-      </TableCell>
       <TableCell>
-        <FormToggleButtonGroup<PluginConfig>
-          name={`${base}.methods`}
-          label={`接続先 ${index + 1} のメソッド`}
-          options={METHOD_OPTIONS}
-        />
-      </TableCell>
-      <TableCell sx={{ minWidth: 170 }}>
-        <KeyValueField
-          title='ヘッダー'
-          editLabel={`接続先 ${index + 1} のヘッダーを編集`}
-          keys={headerKeys}
-          errors={toErrorLines(targetErrors?.headers as RowErrors, headerKeys)}
-          toJson={() => {
-            const current = getValues(`${base}.headers`);
-            return { text: headersToJson(current), warning: duplicateWarning(current) };
-          }}
-          apply={(text) => {
-            const result = jsonToHeaders(text, getValues(`${base}.headers`), nanoid);
-            if (result.ok) setValue(`${base}.headers`, result.items, setOptions);
-            return result;
-          }}
-          description={`{ "キー": "値" } の形で書きます。kintone のトークンはキー ${API_TOKEN_HEADER} に、複数ならカンマ区切りで書きます。`}
-          placeholder={`{\n  "${API_TOKEN_HEADER}": "トークン"\n}`}
-          extraAction={{
-            label: 'kintone API トークンを追加',
-            icon: <KeyIcon />,
-            run: (text) => addHeaderKey(text, API_TOKEN_HEADER),
-          }}
-        />
-      </TableCell>
-      <TableCell sx={{ minWidth: 150 }}>
-        <KeyValueField
-          title='本文の値'
-          editLabel={`接続先 ${index + 1} の本文の値を編集`}
-          keys={dataKeys}
-          errors={toErrorLines(targetErrors?.data as RowErrors, dataKeys)}
-          toJson={() => {
-            const current = getValues(`${base}.data`);
-            return { text: dataToJson(current), warning: duplicateWarning(current) };
-          }}
-          apply={(text) => {
-            const result = jsonToData(text, getValues(`${base}.data`), nanoid);
-            if (result.ok) setValue(`${base}.data`, result.items, setOptions);
-            return result;
-          }}
-          description='{ "キー": 値 } の形で書きます。値は文字・数値・true / false のどれかです。同じキーを2回書くと、後の値だけが使われます。'
-          placeholder={'{\n  "channel": "C01234",\n  "limit": 100\n}'}
-        />
-      </TableCell>
-      <TableCell sx={{ width: 140, minWidth: 120 }}>
-        <FormTextField<PluginConfig>
-          name={`${base}.memo`}
-          placeholder='メモ'
-          size='small'
-          fullWidth
-          slotProps={{ htmlInput: { 'aria-label': `接続先 ${index + 1} のメモ` } }}
-        />
-      </TableCell>
-      <TableCell sx={{ px: 0.5, whiteSpace: 'nowrap' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', height: 40 }}>
-          <Tooltip title='この下に追加'>
-            <IconButton aria-label={`接続先 ${index + 1} の下に追加`} onClick={onInsertAfter}>
-              <AddIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title='削除'>
-            <IconButton aria-label={`接続先 ${index + 1} を削除`} onClick={onRemove}>
-              <DeleteIcon />
-            </IconButton>
-          </Tooltip>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {target.memo ? target.memo : <Empty />}
+          {hasError && (
+            <Tooltip title='「編集」を開くと、誤りの理由が出ます'>
+              <Chip label='要修正' color='error' size='small' variant='outlined' />
+            </Tooltip>
+          )}
         </Box>
+      </TableCell>
+      <TableCell sx={{ wordBreak: 'break-all' }}>{target.url || <Empty />}</TableCell>
+      <TableCell sx={{ whiteSpace: 'nowrap' }}>
+        <Box sx={{ display: 'flex', gap: 0.5 }}>
+          {target.methods.length === 0 ? (
+            <Empty />
+          ) : (
+            target.methods.map((m) => <Chip key={m} label={m} size='small' />)
+          )}
+        </Box>
+      </TableCell>
+      <TableCell>{headerKeys || <Empty />}</TableCell>
+      <TableCell>{dataKeys || <Empty />}</TableCell>
+      <TableCell sx={{ px: 0.5, whiteSpace: 'nowrap' }}>
+        <Tooltip title='編集'>
+          <IconButton aria-label={`接続先 ${index + 1} を編集`} onClick={onEdit}>
+            <EditIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title='この下に追加'>
+          <IconButton aria-label={`接続先 ${index + 1} の下に追加`} onClick={onInsertAfter}>
+            <AddIcon />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title='削除'>
+          <IconButton aria-label={`接続先 ${index + 1} を削除`} onClick={onRemove}>
+            <DeleteIcon />
+          </IconButton>
+        </Tooltip>
       </TableCell>
     </TableRow>
   );

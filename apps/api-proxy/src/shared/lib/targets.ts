@@ -37,8 +37,8 @@ const isPlainNumber = (value: string): boolean => {
 
 /** 大文字小文字を区別せずにキーで探す（HTTP のヘッダー名は区別しないため） */
 const findHeader = (headers: Record<string, string>, key: string): string | undefined => {
-  const exact = headers[key];
-  if (exact !== undefined) return exact;
+  // 自分自身が持つキーだけを見る（constructor などで Object.prototype の関数を拾わないため）
+  if (Object.hasOwn(headers, key)) return headers[key];
   const lower = key.toLowerCase();
   const found = Object.keys(headers).find((k) => k.toLowerCase() === lower);
   return found === undefined ? undefined : headers[found];
@@ -96,8 +96,9 @@ export const fillTargets = (targets: Target[], read: ProxySettingsReader): Targe
         return value === undefined ? h : { ...h, value: String(value) };
       }),
       data: target.data.map((d) => {
-        const value = saved.data[d.key.trim()];
-        return value === undefined ? d : { ...d, value: String(value) };
+        const key = d.key.trim();
+        if (!Object.hasOwn(saved.data, key)) return d;
+        return { ...d, value: String(saved.data[key]) };
       }),
     };
   });
