@@ -16,6 +16,7 @@
 | `@kintone-plugin/kintone-utils`             | kintone の API・プラグイン設定の定義と保存・復元（`definePluginConfig`）・ロガー・レコード画面のイベントの型。画面を持たない                             | React の画面部品、kintone の型の網羅的な定義（下記）                  |
 | `@kintone-plugin/plugin-shell`              | 設定画面の骨組み（Provider・エラー境界・ヘッダー・保存/リセット/インポート/エクスポート）。kintone のフィールドを選ぶ部品（`FieldSelect`） | プラグイン固有の設定項目。実行画面（`desktop`・`mobile`）から使うもの |
 | `@kintone-plugin/tsconfig` | TypeScript の共通の設定。検査と整形の設定はルートの `biome.json` | — |
+| `@kintone-plugin/plugin-scripts` | 各プラグインの `init:env`・`init:key`・`upload` から呼ぶコマンド（`.env` と秘密鍵の作成、kintone へのアップロード）。実行したフォルダ（プラグインのフォルダ）を基準に動く。画面のコードからは読み込まない | 画面のコード、zip の作成（`cli-kintone plugin pack` を `package.json` に直接書く） |
 
 プラグイン固有のコードで2つ以上のプラグインに同じものが現れたら、上の表に従って共有パッケージへ移す。
 

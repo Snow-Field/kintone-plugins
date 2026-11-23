@@ -7,13 +7,13 @@
   "type": "module",
   "scripts": {
     "init": "run-s init:env init:key",
-    "init:env": "node scripts/dotenv.js",
-    "init:key": "node scripts/genkey.js",
+    "init:env": "kintone-plugin-dotenv",
+    "init:key": "kintone-plugin-genkey",
     "dev": "cross-env NODE_ENV=development run-s bundle package upload",
     "build": "cross-env NODE_ENV=production run-s bundle package",
     "bundle": "rsbuild build",
     "package": "cli-kintone plugin pack --input dist/manifest.json --private-key private.ppk --output artifacts/plugin.zip",
-    "upload": "node scripts/upload.js",
+    "upload": "kintone-plugin-upload",
     "deploy": "run-s build upload",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -34,7 +34,7 @@
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@clack/prompts": "catalog:",
+    "@kintone-plugin/plugin-scripts": "workspace:*",
     "@kintone-plugin/tsconfig": "workspace:*",
     "@kintone/cli": "catalog:",
     "@kintone/dts-gen": "catalog:",

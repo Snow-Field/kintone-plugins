@@ -55,8 +55,7 @@
 
 | # | 問題 | 場所 | 推奨の理由 |
 | --- | --- | --- | --- |
-| 1 | `genkey.js`・`upload.js`・`dotenv.js` が、template と3プラグインの4か所に同じ内容でコピーされている | 各プラグインと template の `scripts/` | 新しいプラグインで5か所目のコピーを作らないため |
-| 2 | template の `manifest.json` はプラグイン名と説明が空で、そのままでは zip を作れない。`pnpm gen` で名前を聞いて書き込むかを決める | `template/public/manifest.json`・`scripts/create-plugin.js` | フェーズ2 で `pnpm gen` を使う前に |
+| 1 | template の `manifest.json` はプラグイン名と説明が空で、そのままでは zip を作れない。`pnpm gen` で名前を聞いて書き込むかを決める | `template/public/manifest.json`・`scripts/create-plugin.js` | フェーズ2 で `pnpm gen` を使う前に |
 
 ### 各プラグインで直すもの（フェーズ3）
 
@@ -72,4 +71,4 @@
 | 問題 | 場所 |
 | --- | --- |
 | `FieldSelect` でサブテーブルの中のフィールドを選べない（`appFieldsAtom` がアプリの最上位のフィールドだけを取得する）。3プラグインの移行では必要にならなかった | `kintone-utils/src/states/kintone.ts` |
-| スクリプトはコマンドを直接起動するため、Windows では動かない（macOS で開発する前提） | 各プラグインの `scripts/` |
+| スクリプトはコマンドを直接起動するため、Windows では動かない（macOS で開発する前提） | `packages/plugin-scripts`・ルートの `scripts/` |

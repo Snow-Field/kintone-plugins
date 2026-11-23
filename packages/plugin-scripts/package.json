@@ -1,0 +1,16 @@
+{
+  "name": "@kintone-plugin/plugin-scripts",
+  "version": "1.0.0",
+  "description": "各プラグインの .env・秘密鍵の作成と kintone へのアップロード。プラグインのフォルダで実行する",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "kintone-plugin-dotenv": "bin/dotenv.js",
+    "kintone-plugin-genkey": "bin/genkey.js",
+    "kintone-plugin-upload": "bin/upload.js"
+  },
+  "dependencies": {
+    "@clack/prompts": "catalog:",
+    "@kintone/cli": "catalog:"
+  }
+}
