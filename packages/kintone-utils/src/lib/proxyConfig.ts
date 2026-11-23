@@ -9,8 +9,14 @@ export type ProxyMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
 /** プロキシ設定の組を指すキー（kintone はアプリ・プラグイン・メソッド・URL の前方一致で値を付ける） */
 export type ProxyKey = { url: string; method: ProxyMethod };
 
+/** 本文の値。オブジェクトは使えない（kintone の仕様） */
+export type ProxyDataValue = string | number | boolean;
+
 /** 保存済みのプロキシ設定。ヘッダーの値は文字列で返る */
-export type ProxySettings = { headers: Record<string, string>; data: Record<string, string> };
+export type ProxySettings = {
+  headers: Record<string, string>;
+  data: Record<string, ProxyDataValue>;
+};
 
 /** プロキシ設定に保存する1件 */
 export type ProxyEntry = ProxyKey & ProxySettings;
