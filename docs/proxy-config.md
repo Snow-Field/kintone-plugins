@@ -2,7 +2,7 @@
 
 フェーズ2 の要件。auto-numbering の API トークンを秘匿し、あわせて秘匿のためだけの汎用プラグイン `api-proxy` を作る。
 
-> **状態: 要件は確定、未実装。** 判断の理由は [decisions/proxy-config.md](./decisions/proxy-config.md)。`api-proxy` の設計は、`pnpm gen` でフォルダを作った後に `apps/api-proxy/docs/design.md` へ移す。
+> **状態: 共有部分（kintone-utils の `secrets`）と auto-numbering は実装済み、api-proxy は未着手。** 判断の理由は [decisions/proxy-config.md](./decisions/proxy-config.md)。`api-proxy` の設計は、`pnpm gen` でフォルダを作った後に `apps/api-proxy/docs/design.md` へ移す。
 
 ## 前提となる kintone の仕様
 
@@ -17,6 +17,9 @@
 | 実行の制限 | メソッドは GET・POST・PUT・DELETE だけ。応答の本文は文字列（10MB まで）で、バイナリは受け取れない。利用者のセッションと Cookie は付かない |
 | 同じドメインの kintone REST API | 公式は `kintone.api` を案内している。IP アドレス制限のある環境では kintone の IP を許可する必要があり、推奨されない |
 | API トークン | `X-Cybozu-API-Token` にカンマ区切りで9個まで指定できる。トークンでの操作は「Administrator による操作」として記録される |
+| 反映のタイミング（2026-11-23 に実機で確認） | 保存した値が `proxy` に付くのは、アプリの設定画面で「アプリを更新」を押した後。押す前は何も付かず、`401 CB_AU01` になる |
+| 同じドメインへの `proxy`（2026-11-23 に実機で確認） | 保存した API トークンで、レコードの取得（GET `records.json`）と更新（PUT `record.json`）ができる |
+| `proxy` の戻り値（2026-11-23 に実機で確認） | 4xx でも reject されず、`[本文, ステータス, ヘッダー]` で解決する。ステータスは呼び出し側で判定する |
 
 出典: cybozu developer network の [setProxyConfig](https://cybozu.dev/ja/kintone/docs/js-api/plugins/set-config-for-proxy/)・[kintone.plugin.app.proxy](https://cybozu.dev/ja/kintone/docs/js-api/plugins/kintone-plug-in-proxy/)・[getProxyConfig](https://cybozu.dev/ja/kintone/docs/js-api/plugins/get-config-for-proxy/)・[認証](https://cybozu.dev/ja/kintone/docs/rest-api/overview/authentication/)。
 
@@ -35,13 +38,13 @@
 
 | 操作 | 振る舞い |
 | --- | --- |
-| 設定画面の読み込み | 目次を読み、行ごとに `getProxyConfig` で秘密を読んで、入力欄に伏せ字で表示する（切り替えで見られる） |
-| 保存 | 1. 新しい組を `setProxyConfig` で保存する　2. 前回の目次にあって今回無い組を `{}` で上書きする　3. 目次を `setConfig` で保存する。途中で失敗したら、どこまで保存したかを表示する |
-| エクスポート | 目次だけを書き出す。秘密は含めない |
-| インポート | 目次を読み込む。秘密は空になるため入れ直す（auto-numbering のトークンは今の値のまま） |
+| 設定画面の読み込み | 目次を読み、`getProxyConfig` で秘密を読んで、入力欄に伏せ字で表示する。表示の切り替えは、api-proxy を作るときに `ui` の部品として足す（auto-numbering は伏せ字だけ） |
+| 保存 | 1. 新しい組を `setProxyConfig` で保存する　2. 前回保存した組のうち今回無いものを `{}` で上書きする　3. 秘密を除いた設定を `setConfig` で保存する。途中で失敗したら `setConfig` は保存せず、保存の失敗として表示する（保存し直せばそろう） |
+| エクスポート | 秘密を除いて書き出す |
+| インポート | 読み込んだあと、保存済みの秘密のうち URL とメソッドが合うものを埋める |
 | リセット | フォームを既定値に戻すだけ。保存したときに、消えた組を `{}` で上書きする |
 
-この保存・読み込み・無効化の処理は2つのプラグインで使うので、共有パッケージに置く。kintone の API の部分は `kintone-utils` に、フォームへの組み込みは `plugin-shell` に置く。`plugin-shell` は、秘密の項目をフォームでは扱い、`setConfig` とエクスポートには入れない形にする（API の形は実装時に決める）。
+実装は `kintone-utils` の `definePluginConfig` に渡す `secrets`（`toEntries`・`strip`・`fill`）。前回保存した組のキーは、`setConfig` の予約キー `__proxyKeys` に入れる（プロキシ設定は一覧で読めないため）。plugin-shell は、読み込み・インポート・保存・エクスポートでこれを使う。
 
 ## auto-numbering
 
@@ -49,11 +52,11 @@
 
 | 項目 | 要件 |
 | --- | --- |
-| トークンの保存 | `common.apiToken` をやめ、`X-Cybozu-API-Token` をプロキシ設定に保存する。GET と PUT を、自アプリの REST API の URL（`kintone.api.url` で作る。ゲストスペースでは `/k/guest/{スペースID}/v1/`）に対して保存する |
-| 実行 | トークンを設定していれば `kintone.plugin.app.proxy(kintone.$PLUGIN_ID, ...)` で REST API を呼ぶ。設定していなければ、今と同じくセッションで呼ぶ |
-| API の呼び出し | `proxy` は `@kintone/rest-api-client` に載らないため、取得と更新を薄いラッパーに替える（JSON の解析とステータスの判定を含む）。design.md の ADR-004 を見直す |
-| ゲストスペース | 対応する。今の `RestAPIClient` は `guestSpaceId` を渡していないため、ゲストスペースのアプリで動かないと思われる（未確認） |
-| 旧版の設定 | 版を上げて `apiToken` を消す。保存済みのトークンは移さず、入れ直す（本番環境が無いため） |
+| トークンの保存 | `X-Cybozu-API-Token` をプロキシ設定に保存する（前後の空白は除く）。保存先は採番で使う API だけ（GET `records.json`・GET `record.json`・PUT `record.json`）。`/k/v1/` 全体にすると、利用者が開発者ツールから呼ぶほかの API にもトークンが付くため。URL は `kintone.api.url` で作る（ゲストスペースでは `/k/guest/{スペースID}/v1/`）。`setConfig` にはトークンを空で入れ、`common.useApiToken` を入れる |
+| 読み込みとインポート | `useApiToken` に関係なく、保存済みのトークンで欄を埋める（トークンの無いファイルをインポートして保存しても、保存済みのトークンを消さないため） |
+| 実行 | `useApiToken` なら `kintone.plugin.app.proxy` で、そうでなければ `kintone.api`（セッション）で呼ぶ。理由は auto-numbering の design.md の ADR-005 |
+| ゲストスペース | 対応する（URL は `kintone.api.url` が作る）。実機では未確認 |
+| 旧版の設定 | 版を2に上げる。v1 の `apiToken` はフォームの欄に引き継ぎ、設定画面で保存したときにプロキシ設定へ移す。それまでは、実行画面はセッションで呼び、平文のトークンも `setConfig` に残る |
 
 ## api-proxy（汎用プラグイン）
 
