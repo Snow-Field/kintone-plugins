@@ -29,8 +29,20 @@ export const InfoTip: FC<Props> = ({ label, lines }) => (
     }
     slotProps={{ tooltip: { sx: { maxWidth: 420 } } }}
   >
-    <IconButton size='small' aria-label={label} sx={{ p: 0.25, color: 'text.secondary' }}>
+    <IconButton
+      size='small'
+      aria-label={label}
+      sx={{ p: 0.25, color: 'text.secondary', verticalAlign: 'middle' }}
+    >
       <InfoOutlinedIcon sx={{ fontSize: 18 }} />
     </IconButton>
   </Tooltip>
+);
+
+/** 見出しの文字と ⓘ を、縦の中央でそろえて並べる */
+export const TitleWithTip: FC<Props & { title: string }> = ({ title, label, lines }) => (
+  <Box component='span' sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+    {title}
+    <InfoTip label={label} lines={lines} />
+  </Box>
 );

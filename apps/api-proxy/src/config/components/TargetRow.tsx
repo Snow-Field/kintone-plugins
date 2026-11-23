@@ -1,8 +1,11 @@
 import type { FC } from 'react';
 import { type FieldError, useFormContext, useFormState, useWatch } from 'react-hook-form';
 import { nanoid } from 'nanoid';
-import { Box, IconButton, TableCell, TableRow } from '@mui/material';
+import { useSortable } from '@dnd-kit/sortable';
+import { Box, IconButton, TableCell, TableRow, Tooltip } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import KeyIcon from '@mui/icons-material/Key';
 import { FormTextField, FormToggleButtonGroup } from '@kintone-plugin/ui';
 import { type PluginConfig, PROXY_METHODS } from '@/shared/config';
@@ -41,14 +44,22 @@ const duplicateWarning = (items: { key: string }[]): string | undefined => {
 };
 
 type Props = {
+  /** 並べ替えの識別子（useFieldArray の行の key） */
+  sortableId: string;
   index: number;
+  /** この行の後ろに接続先を足す */
+  onInsertAfter: () => void;
   onRemove: () => void;
 };
 
 /** 接続先1件（表の1行） */
-export const TargetRow: FC<Props> = ({ index, onRemove }) => {
+export const TargetRow: FC<Props> = ({ sortableId, index, onInsertAfter, onRemove }) => {
   const { control, getValues, setValue } = useFormContext<PluginConfig>();
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: sortableId,
+  });
   const base = `targets.${index}` as const;
+  const url = useWatch({ control, name: `${base}.url` }) ?? '';
   const headers = useWatch({ control, name: `${base}.headers` }) ?? [];
   const data = useWatch({ control, name: `${base}.data` }) ?? [];
   const { errors } = useFormState({ control, name: base });
@@ -58,16 +69,50 @@ export const TargetRow: FC<Props> = ({ index, onRemove }) => {
   const setOptions = { shouldDirty: true, shouldValidate: true } as const;
 
   return (
-    <TableRow sx={{ verticalAlign: 'top', '& > td': { py: 1.5 } }}>
-      <TableCell sx={{ pt: '20px !important', color: 'text.secondary' }}>{index + 1}</TableCell>
-      <TableCell sx={{ minWidth: 320 }}>
-        <FormTextField<PluginConfig>
-          name={`${base}.url`}
-          placeholder='https://example.com/api/'
-          size='small'
-          fullWidth
-          slotProps={{ htmlInput: { 'aria-label': `接続先 ${index + 1} の URL` } }}
-        />
+    <TableRow
+      ref={setNodeRef}
+      // 並べ替えの動きは dnd-kit が毎フレーム計算するので、sx ではなく style で渡す
+      style={{
+        transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+        transition,
+      }}
+      sx={{
+        verticalAlign: 'top',
+        position: 'relative',
+        zIndex: isDragging ? 1 : 'auto',
+        bgcolor: isDragging ? 'action.hover' : undefined,
+        '& > td': { py: 1.5 },
+      }}
+    >
+      <TableCell sx={{ px: 0.5, whiteSpace: 'nowrap' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', height: 40, color: 'text.secondary' }}>
+          <Tooltip title='ドラッグして並べ替え'>
+            <IconButton
+              {...attributes}
+              {...listeners}
+              size='small'
+              aria-label={`接続先 ${index + 1} を並べ替え`}
+              sx={{ cursor: 'grab', color: 'text.disabled' }}
+            >
+              <DragIndicatorIcon fontSize='small' />
+            </IconButton>
+          </Tooltip>
+          {index + 1}
+        </Box>
+      </TableCell>
+      <TableCell sx={{ width: '40%', minWidth: 320 }}>
+        {/* 長い URL は欄に収まらないので、カーソルを乗せたときに全体を出す */}
+        <Tooltip title={url} placement='top-start' disableHoverListener={url.length < 40}>
+          <Box>
+            <FormTextField<PluginConfig>
+              name={`${base}.url`}
+              placeholder='https://example.com/api/'
+              size='small'
+              fullWidth
+              slotProps={{ htmlInput: { 'aria-label': `接続先 ${index + 1} の URL` } }}
+            />
+          </Box>
+        </Tooltip>
         <KintoneUrlButton onSelect={(url) => setValue(`${base}.url`, url, setOptions)} />
       </TableCell>
       <TableCell>
@@ -77,7 +122,7 @@ export const TargetRow: FC<Props> = ({ index, onRemove }) => {
           options={METHOD_OPTIONS}
         />
       </TableCell>
-      <TableCell sx={{ minWidth: 200 }}>
+      <TableCell sx={{ minWidth: 170 }}>
         <KeyValueField
           title='ヘッダー'
           editLabel={`接続先 ${index + 1} のヘッダーを編集`}
@@ -101,7 +146,7 @@ export const TargetRow: FC<Props> = ({ index, onRemove }) => {
           }}
         />
       </TableCell>
-      <TableCell sx={{ minWidth: 200 }}>
+      <TableCell sx={{ minWidth: 150 }}>
         <KeyValueField
           title='本文の値'
           editLabel={`接続先 ${index + 1} の本文の値を編集`}
@@ -120,7 +165,7 @@ export const TargetRow: FC<Props> = ({ index, onRemove }) => {
           placeholder={'{\n  "channel": "C01234",\n  "limit": 100\n}'}
         />
       </TableCell>
-      <TableCell sx={{ minWidth: 140 }}>
+      <TableCell sx={{ width: 140, minWidth: 120 }}>
         <FormTextField<PluginConfig>
           name={`${base}.memo`}
           placeholder='メモ'
@@ -129,11 +174,18 @@ export const TargetRow: FC<Props> = ({ index, onRemove }) => {
           slotProps={{ htmlInput: { 'aria-label': `接続先 ${index + 1} のメモ` } }}
         />
       </TableCell>
-      <TableCell sx={{ width: 48 }}>
-        <Box sx={{ pt: 0.25 }}>
-          <IconButton aria-label={`接続先 ${index + 1} を削除`} onClick={onRemove}>
-            <DeleteIcon />
-          </IconButton>
+      <TableCell sx={{ px: 0.5, whiteSpace: 'nowrap' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', height: 40 }}>
+          <Tooltip title='この下に追加'>
+            <IconButton aria-label={`接続先 ${index + 1} の下に追加`} onClick={onInsertAfter}>
+              <AddIcon />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title='削除'>
+            <IconButton aria-label={`接続先 ${index + 1} を削除`} onClick={onRemove}>
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>
         </Box>
       </TableCell>
     </TableRow>

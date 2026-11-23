@@ -22,6 +22,8 @@
   "dependencies": {
     "@kintone-plugin/plugin-shell": "workspace:*",
     "@kintone-plugin/ui": "workspace:*",
+    "@dnd-kit/core": "catalog:",
+    "@dnd-kit/sortable": "catalog:",
     "@emotion/react": "catalog:",
     "@emotion/styled": "catalog:",
     "@hookform/resolvers": "catalog:",

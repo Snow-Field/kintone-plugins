@@ -1,9 +1,9 @@
 import { type FC, useState } from 'react';
-import { Alert, Box, Button, Paper, Typography } from '@mui/material';
+import { Alert, AlertTitle, Box, Button, Paper, Typography } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { FormSection, Text } from '@kintone-plugin/ui';
 import { PLUGIN_ID } from '@/shared/config';
-import { InfoTip } from './InfoTip';
+import { TitleWithTip } from './InfoTip';
 
 /** コピーのボタン。コピーできたかを、ボタンの文字で知らせる */
 const CopyButton: FC<{ text: string; label: string }> = ({ text, label }) => {
@@ -31,7 +31,7 @@ const USAGE_TIPS = [
   'proxy はレコードの画面（一覧・詳細・追加・編集など）でだけ使えます',
 ];
 
-const RISK_TIPS = [
+const RISK_LINES = [
   'アプリを開ける利用者は、開発者ツールから proxy を呼べます',
   'kintone の API トークンは利用者本人の権限とは別に働くので、閲覧の権限が無いレコードも読めます',
   'トークンの権限は必要なものだけにし、アプリ管理の権限は付けないでください',
@@ -60,15 +60,17 @@ const EXAMPLE = [
 export const UsageGuide: FC = () => (
   <FormSection>
     <Text variant='sectionTitle'>
-      使い方 <InfoTip label='使い方の説明' lines={USAGE_TIPS} />
+      <TitleWithTip title='使い方' label='使い方の説明' lines={USAGE_TIPS} />
     </Text>
 
-    <Alert
-      severity='warning'
-      sx={{ mb: 3, alignItems: 'center' }}
-      action={<InfoTip label='権限についての説明' lines={RISK_TIPS} />}
-    >
-      値は隠せますが、アプリの利用者は登録した範囲でその権限を使えます
+    {/* 安全に関わるので、ⓘ に隠さず全文を出す */}
+    <Alert severity='warning' sx={{ mb: 3 }}>
+      <AlertTitle>値は隠せますが、アプリの利用者は登録した範囲でその権限を使えます</AlertTitle>
+      <Box component='ul' sx={{ m: 0, pl: 2.5, '& > li': { listStyle: 'disc' } }}>
+        {RISK_LINES.map((line) => (
+          <li key={line}>{line}</li>
+        ))}
+      </Box>
     </Alert>
 
     <Typography variant='subtitle2'>プラグイン ID</Typography>

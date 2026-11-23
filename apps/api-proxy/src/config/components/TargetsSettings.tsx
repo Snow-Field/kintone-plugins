@@ -2,6 +2,20 @@ import type { FC } from 'react';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { nanoid } from 'nanoid';
 import {
+  closestCenter,
+  DndContext,
+  type DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import {
   Alert,
   Box,
   Button,
@@ -16,7 +30,7 @@ import AddIcon from '@mui/icons-material/Add';
 import { FormSection, Text } from '@kintone-plugin/ui';
 import { type PluginConfig, PROXY_METHODS, type Target } from '@/shared/config';
 import { API_TOKEN_HEADER, MAX_API_TOKENS, overlappingTargets } from '@/shared/lib/targets';
-import { InfoTip } from './InfoTip';
+import { InfoTip, TitleWithTip } from './InfoTip';
 import { TargetRow } from './TargetRow';
 
 const createTarget = (): Target => ({
@@ -69,18 +83,30 @@ const HeadCell: FC<{ title: string; tips?: string[] }> = ({ title, tips }) => (
 /** 接続先タブ */
 export const TargetsSettings: FC = () => {
   const { control } = useFormContext<PluginConfig>();
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, insert, move, remove } = useFieldArray({
     control,
     name: 'targets',
     keyName: 'fieldKey',
   });
   const targets = useWatch({ control, name: 'targets' }) ?? [];
   const overlaps = overlappingTargets(targets);
+  // キーボードでも並べ替えられるようにする（取っ手にフォーカスして Space → 矢印キー）
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+    const from = fields.findIndex((f) => f.fieldKey === active.id);
+    const to = fields.findIndex((f) => f.fieldKey === over.id);
+    if (from !== -1 && to !== -1) move(from, to);
+  };
 
   return (
     <FormSection>
       <Text variant='sectionTitle'>
-        接続先 <InfoTip label='接続先の説明' lines={ABOUT_TIPS} />
+        <TitleWithTip title='接続先' label='接続先の説明' lines={ABOUT_TIPS} />
       </Text>
 
       {overlaps.map(([a, b]) => (
@@ -95,7 +121,7 @@ export const TargetsSettings: FC = () => {
           <Table size='small'>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ width: 32 }} />
+                <TableCell sx={{ width: 64 }} />
                 <HeadCell title='URL' tips={URL_TIPS} />
                 <HeadCell title='メソッド' tips={METHOD_TIPS} />
                 <HeadCell title='ヘッダー' tips={HEADER_TIPS} />
@@ -104,11 +130,28 @@ export const TargetsSettings: FC = () => {
                 <TableCell />
               </TableRow>
             </TableHead>
-            <TableBody>
-              {fields.map((field, i) => (
-                <TargetRow key={field.fieldKey} index={i} onRemove={() => remove(i)} />
-              ))}
-            </TableBody>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={fields.map((f) => f.fieldKey)}
+                strategy={verticalListSortingStrategy}
+              >
+                <TableBody>
+                  {fields.map((field, i) => (
+                    <TargetRow
+                      key={field.fieldKey}
+                      sortableId={field.fieldKey}
+                      index={i}
+                      onInsertAfter={() => insert(i + 1, createTarget())}
+                      onRemove={() => remove(i)}
+                    />
+                  ))}
+                </TableBody>
+              </SortableContext>
+            </DndContext>
           </Table>
         </TableContainer>
       )}
