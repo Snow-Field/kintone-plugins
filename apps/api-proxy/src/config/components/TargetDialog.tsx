@@ -36,19 +36,16 @@ const URL_TIPS = [
 
 const HEADER_TIPS = [
   'API トークンなど、リクエストのヘッダーに付ける値です。{ "キー": "値" } の形で書きます',
-  `kintone のトークンはキー ${API_TOKEN_HEADER} に書きます`,
   `複数のアプリ（ルックアップ元を含む）は、カンマ区切りで${MAX_API_TOKENS}個まで書けます`,
 ];
 
 const DATA_TIPS = [
-  '固定したい値や、毎回送る値を書きます（任意）。値は文字・数値・true / false のどれかです',
+  '固定したい値や、毎回送る値を書きます（任意）',
   'GET・DELETE：URL のクエリ文字列に足されます（呼び出し側の同じキーは消えないので、固定はできません）',
   'POST・PUT：呼び出し側の本文がオブジェクトのときに足され、同じキーは保存した値が優先されます',
   '本文を文字列（JSON.stringify など）で渡すと足されません',
   '同じキーを2回書くと、後の値だけが使われます',
 ];
-
-const METHOD_TIPS = ['選んだメソッドのリクエストにだけ値が付きます'];
 
 const SAVE_TIPS = [
   '「保存」は一覧に戻すだけです',
@@ -159,7 +156,7 @@ export const TargetDialog: FC<Props> = ({ editing, others, onApply, onClose }) =
           </Box>
 
           <Box>
-            <FieldTitle title='メソッド' tips={METHOD_TIPS} />
+            <FieldTitle title='メソッド' />
             <FormToggleButtonGroup<TargetDraft>
               name='methods'
               label='メソッド'

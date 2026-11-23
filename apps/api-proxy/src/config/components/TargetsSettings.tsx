@@ -51,12 +51,6 @@ const ABOUT_TIPS = [
 
 const URL_TIPS = ['この URL で始まるリクエストに、ヘッダーとデータが付きます'];
 
-const ENABLED_TIPS = [
-  '無効にすると、この接続先の値は付かなくなります',
-  'ただし、URL が前方一致で重なる、有効なほかの接続先の値は付きます',
-  '値は消さずに残すので、有効に戻せばそのまま使えます',
-];
-
 const HEADER_TIPS = [
   'キーだけを出しています。値は「編集」の中でだけ見えます',
   'キーは利用者からも見えます',
@@ -124,7 +118,7 @@ export const TargetsSettings: FC = () => {
             <TableHead>
               <TableRow>
                 <TableCell sx={{ width: 64 }} />
-                <HeadCell title='有効' tips={ENABLED_TIPS} />
+                <HeadCell title='有効' />
                 <HeadCell title='URL' tips={URL_TIPS} />
                 <HeadCell title='メソッド' />
                 <HeadCell title='ヘッダー' tips={HEADER_TIPS} />
