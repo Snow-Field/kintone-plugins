@@ -38,11 +38,10 @@ const CONDITIONS = [
 
 const RISKS = [
   'アプリを開ける利用者は、ブラウザの開発者ツールから kintone.plugin.app.proxy を呼べます。',
-  'kintone の API トークンは、利用者本人の権限とは関係なく働きます。閲覧の権限が無いレコードも読めてしまいます。',
 ];
 
 const MEASURES = [
-  'API トークンには必要な権限だけを付け、アプリ管理の権限は付けないでください。',
+  'API トークンの権限は、用途に必要な最低限にしてください。',
   '使う API が決まっているときは、URL をパスまで具体的にし（例：…/k/v1/records.json）、メソッドも必要なものだけにします。',
   'URL・説明・ヘッダーとデータのキー名は、利用者からも見えます（値は見えません）。秘密情報は書かないでください。',
 ];
@@ -91,7 +90,7 @@ const EXAMPLE = [
 /** 使い方タブ（設定する管理者へのヘルプ） */
 export const UsageGuide: FC = () => (
   <FormSection>
-    <Heading first>このプラグインでできること</Heading>
+    <Heading first>API プロキシ設定プラグイン</Heading>
     <Typography sx={{ lineHeight: 1.7 }}>
       {'API トークンなどの秘密情報を、アプリの利用者からは見えない場所（kintone のプロキシ設定）に保存します。' +
         'JS カスタマイズや他のプラグインから kintone.plugin.app.proxy を呼ぶと、kintone のサーバーが保存した値をリクエストに付けて送ります。'}
