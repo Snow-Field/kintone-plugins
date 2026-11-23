@@ -1,9 +1,8 @@
 import { type FC, useState } from 'react';
 import { Alert, AlertTitle, Box, Button, Paper, Typography } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import { FormSection, Text } from '@kintone-plugin/ui';
+import { FormSection } from '@kintone-plugin/ui';
 import { PLUGIN_ID } from '@/shared/config';
-import { TitleWithTip } from './InfoTip';
 
 /** コピーのボタン。コピーできたかを、ボタンの文字で知らせる */
 const CopyButton: FC<{ text: string; label: string }> = ({ text, label }) => {
@@ -25,7 +24,7 @@ const CopyButton: FC<{ text: string; label: string }> = ({ text, label }) => {
   );
 };
 
-const USAGE_TIPS = [
+const USAGE_LINES = [
   'ヘッダーとデータは、利用者には見えない場所（プロキシ設定）に保存します',
   'JS カスタマイズや他のプラグインから、このプラグインの ID を指定して kintone.plugin.app.proxy を呼ぶと、kintone のサーバーが値を付けて送ります',
   '登録した URL で始まり、メソッドが同じリクエストに、ヘッダーとデータが付きます',
@@ -38,6 +37,7 @@ const RISK_LINES = [
   'kintone の API トークンは利用者本人の権限とは別に働くので、閲覧の権限が無いレコードも読めます',
   'トークンの権限は必要なものだけにし、アプリ管理の権限は付けないでください',
   '絞りたいときは、URL をパスまで具体的にし、メソッドを減らします',
+  'URL・説明・ヘッダーとデータのキーは利用者からも見えるので、秘密情報を書かないでください',
 ];
 
 /**
@@ -61,9 +61,12 @@ const EXAMPLE = [
 /** 使い方タブ */
 export const UsageGuide: FC = () => (
   <FormSection>
-    <Text variant='sectionTitle'>
-      <TitleWithTip title='使い方' label='使い方の説明' lines={USAGE_TIPS} />
-    </Text>
+    {/* 仕組みと使い方は、ⓘ に隠さず本文として出す */}
+    <Box component='ul' sx={{ mt: 0, mb: 2, pl: 2.5, '& > li': { listStyle: 'disc', mb: 0.5 } }}>
+      {USAGE_LINES.map((line) => (
+        <li key={line}>{line}</li>
+      ))}
+    </Box>
 
     {/* 安全に関わるので、ⓘ に隠さず全文を出す */}
     <Alert severity='warning' sx={{ mb: 3 }}>

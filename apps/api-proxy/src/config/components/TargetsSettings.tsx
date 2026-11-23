@@ -26,7 +26,7 @@ import {
   TableRow,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import { FormSection, Text } from '@kintone-plugin/ui';
+import { FormSection } from '@kintone-plugin/ui';
 import { type PluginConfig, PROXY_METHODS, type Target } from '@/shared/config';
 import { overlappingTargets } from '@/shared/lib/targets';
 import { TitleWithTip } from './InfoTip';
@@ -42,8 +42,6 @@ const createTarget = (): Target => ({
   memo: '',
   enabled: true,
 });
-
-const URL_TIPS = ['この URL で始まるリクエストに、ヘッダーとデータが付きます'];
 
 const HEADER_TIPS = [
   'キーだけを出しています。値は「編集」の中でだけ見えます',
@@ -95,8 +93,6 @@ export const TargetsSettings: FC = () => {
 
   return (
     <FormSection>
-      <Text variant='sectionTitle'>接続先</Text>
-
       {overlaps.map(([a, b]) => (
         <Alert key={`${a}-${b}`} severity='info' sx={{ mb: 2 }}>
           {`接続先 ${a + 1} と ${b + 1} は URL が重なっています（長く一致した方の値が優先されます）`}
@@ -111,7 +107,7 @@ export const TargetsSettings: FC = () => {
               <TableRow>
                 <TableCell sx={{ width: 64 }} />
                 <HeadCell title='有効' />
-                <HeadCell title='URL' tips={URL_TIPS} />
+                <HeadCell title='URL' />
                 <HeadCell title='メソッド' />
                 <HeadCell title='ヘッダー' tips={HEADER_TIPS} />
                 <HeadCell title='説明' />

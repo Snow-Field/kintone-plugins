@@ -30,8 +30,6 @@ const METHOD_OPTIONS = PROXY_METHODS.map((m) => ({ value: m, label: m }));
 
 const URL_TIPS = [
   'この URL で始まるリクエストに値が付きます（例：…/k/v1/ を登録すると …/k/v1/records.json にも付く）',
-  '絞りたいときは、パスまで具体的に書きます（例：…/k/v1/records.json）',
-  'URL と説明は利用者からも見えるので、秘密を書かないでください',
 ];
 
 const HEADER_TIPS = [
