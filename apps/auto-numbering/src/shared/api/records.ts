@@ -1,17 +1,10 @@
-import { KintoneRestAPIClient } from '@kintone/rest-api-client';
+import type { KintoneRecordField } from '@kintone/rest-api-client';
 import type { UpdateRecordParams } from '@/shared/types/numbering';
 import { RESET_TIMING } from '@/shared/config/constants';
 import { quoteQueryValue } from '@/shared/lib/query';
+import { type ApiAuth, requestApi } from './request';
 
-/**
- * RestAPIClientインスタンスを作成
- */
-function createClient(apiToken?: string): KintoneRestAPIClient {
-  return new KintoneRestAPIClient({
-    baseUrl: location.origin,
-    auth: apiToken ? { apiToken } : undefined,
-  });
-}
+type KintoneRecord = Record<string, KintoneRecordField.OneOf>;
 
 type FetchRecordsQuery = {
   /** 絞り込みの条件（値は quoteQueryValue でエスケープしておく） */
@@ -30,15 +23,14 @@ export async function fetchRecords(
   appId: string | number,
   { condition, orderBy, limit }: FetchRecordsQuery,
   fields: string[],
-  apiToken?: string
-) {
-  const client = createClient(apiToken);
-
-  const { records } = await client.record.getRecords({
-    app: appId,
-    query: `${condition} order by ${orderBy} limit ${limit}`,
-    fields,
-  });
+  auth: ApiAuth
+): Promise<KintoneRecord[]> {
+  const { records } = await requestApi<{ records: KintoneRecord[] }>(
+    'records.json',
+    'GET',
+    { app: appId, query: `${condition} order by ${orderBy} limit ${limit}`, fields },
+    auth
+  );
 
   return records;
 }
@@ -49,16 +41,16 @@ export async function fetchRecords(
 export async function fetchRecord(
   appId: string | number,
   recordId: string | number,
-  apiToken?: string
-) {
-  const client = createClient(apiToken);
+  auth: ApiAuth
+): Promise<KintoneRecord> {
+  const { record } = await requestApi<{ record: KintoneRecord }>(
+    'record.json',
+    'GET',
+    { app: appId, id: recordId },
+    auth
+  );
 
-  const response = await client.record.getRecord({
-    app: appId,
-    id: recordId,
-  });
-
-  return response.record;
+  return record;
 }
 
 /**
@@ -73,12 +65,10 @@ export async function updateRecord(params: UpdateRecordParams): Promise<void> {
     serialConfig,
     currentSerial,
     revision,
-    apiToken,
+    auth,
   } = params;
 
   const { resetTiming, serialFieldCode } = serialConfig;
-
-  const client = createClient(apiToken);
 
   const record: Record<string, { value: unknown }> = {
     [resultFieldCode]: {
@@ -93,12 +83,12 @@ export async function updateRecord(params: UpdateRecordParams): Promise<void> {
     };
   }
 
-  await client.record.updateRecord({
-    app: appId,
-    id: recordId,
-    record,
-    revision,
-  });
+  // リビジョンが取れなかったときは送らない（空の値は不正なリビジョンとして拒否されうるため）
+  const body =
+    revision === undefined || revision === ''
+      ? { app: appId, id: recordId, record }
+      : { app: appId, id: recordId, record, revision };
+  await requestApi('record.json', 'PUT', body, auth);
 }
 
 /**
@@ -110,7 +100,7 @@ export async function checkDuplicate(
   fieldCode: string,
   numberingValue: string,
   existingValues: Set<string>,
-  apiToken?: string
+  auth: ApiAuth
 ): Promise<boolean> {
   if (existingValues.has(numberingValue)) return true;
 
@@ -122,7 +112,7 @@ export async function checkDuplicate(
       limit: 1,
     },
     [fieldCode],
-    apiToken
+    auth
   );
   return records.length > 0;
 }

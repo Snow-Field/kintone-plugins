@@ -1,4 +1,5 @@
 import type { NumberingSetting } from '@/shared/config';
+import type { ApiAuth } from '@/shared/api/request';
 import type { KintoneEvent } from '@/shared/types/kintone';
 import { DEFAULT_RETRY_COUNT } from '@/shared/config/constants';
 import { fetchRecord, updateRecord, checkDuplicate } from '@/shared/api/records';
@@ -12,7 +13,7 @@ import { padZero } from '@/shared/lib/string';
 export async function executeNumbering(
   event: KintoneEvent,
   numberingSetting: NumberingSetting,
-  apiToken?: string
+  auth: ApiAuth
 ): Promise<void> {
   const { appId, recordId, record } = event;
   const { resultFieldCode, formatParts, connector, serialConfig } = numberingSetting;
@@ -23,7 +24,7 @@ export async function executeNumbering(
     if (record[resultFieldCode]?.value) return;
 
     // レコード取得（リビジョン取得のため）
-    const fetchedRecord = await fetchRecord(appId, recordId, apiToken);
+    const fetchedRecord = await fetchRecord(appId, recordId, auth);
     const revisionField = Object.values(fetchedRecord).find((f) => f?.type === '__REVISION__');
     const revision = revisionField?.type === '__REVISION__' ? revisionField.value : '';
 
@@ -36,7 +37,7 @@ export async function executeNumbering(
     // 次の連番を取得（既存値のキャッシュも取得）
     const { nextSerial, existingValues } = await resolveNextSerial({
       appId,
-      apiToken,
+      auth,
       resultFieldCode,
       serialConfig,
       formatString,
@@ -60,7 +61,7 @@ export async function executeNumbering(
         resultFieldCode,
         numberingValue,
         existingValues,
-        apiToken
+        auth
       );
 
       if (isDuplicate) {
@@ -78,7 +79,7 @@ export async function executeNumbering(
         serialConfig,
         currentSerial,
         revision,
-        apiToken,
+        auth,
       });
 
       return;

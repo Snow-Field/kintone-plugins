@@ -17,9 +17,9 @@ const setting = (resultFieldCode: string, enabled = true) => ({
 });
 
 const config = (...settings: ReturnType<typeof setting>[]): PluginConfig => ({
-  version: 1,
+  version: 2,
   numberingSettings: settings,
-  common: { apiToken: 'token' },
+  common: { apiToken: '', useApiToken: true },
 });
 
 const showEvent = (type: 'app.record.create.show' | 'mobile.app.record.edit.show') => ({
@@ -63,9 +63,10 @@ describe('numberRecord', () => {
     };
     await numberRecord(event, config(setting('a'), setting('off', false), setting('b')));
 
-    expect(executeNumbering.mock.calls.map(([, s, token]) => [s.resultFieldCode, token])).toEqual([
-      ['a', 'token'],
-      ['b', 'token'],
+    // API トークンを保存してあれば、プロキシ設定のトークンで呼ぶよう伝える
+    expect(executeNumbering.mock.calls.map(([, s, auth]) => [s.resultFieldCode, auth])).toEqual([
+      ['a', { useApiToken: true }],
+      ['b', { useApiToken: true }],
     ]);
   });
 });

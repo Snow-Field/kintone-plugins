@@ -8,8 +8,11 @@ const logger = new PluginLogger('Config');
 type UseSubmitConfigProps<T> = {
   /** ローディング状態を制御する関数 */
   setLoading: (loading: boolean) => void;
-  /** kintoneへの保存処理を行う関数。完了を待つため、保存に成功したら必ず callback を呼ぶこと */
-  onSave: (data: T, callback: () => void) => void;
+  /**
+   * kintoneへの保存処理を行う関数。完了を待つため、保存に成功したら必ず callback を呼ぶこと。
+   * 非同期に失敗しうるときは Promise を返し、失敗を reject で知らせる
+   */
+  onSave: (data: T, callback: () => void) => void | Promise<void>;
   /** グローバル状態（Jotai等）と同期する関数 */
   onSync: (data: T) => void;
   /** 保存成功時の追加処理（Snackbarのアクション等） */
@@ -18,6 +21,8 @@ type UseSubmitConfigProps<T> = {
   onSuccess?: () => void;
   /** 失敗時のコールバック */
   onError?: () => void;
+  /** ログに出す前に変換する（秘密を除くなど） */
+  redact?: (data: T) => unknown;
 };
 
 /**
@@ -30,6 +35,7 @@ export const useSubmitConfig = <T>({
   successAction,
   onSuccess,
   onError,
+  redact,
 }: UseSubmitConfigProps<T>) => {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
@@ -37,7 +43,7 @@ export const useSubmitConfig = <T>({
     async (data: T) => {
       setLoading(true);
       logger.group('kintone Plugin Config Save');
-      logger.log('Saving Data:', data);
+      logger.log('Saving Data:', redact ? redact(data) : data);
 
       try {
         // kintoneへ保存し、完了を待つ（完了前に保存済みとして扱うと、失敗に気づけないため）
@@ -93,7 +99,17 @@ export const useSubmitConfig = <T>({
         setLoading(false);
       }
     },
-    [setLoading, onSave, onSync, successAction, onSuccess, onError, enqueueSnackbar, closeSnackbar]
+    [
+      setLoading,
+      onSave,
+      onSync,
+      successAction,
+      onSuccess,
+      onError,
+      redact,
+      enqueueSnackbar,
+      closeSnackbar,
+    ]
   );
 
   return { onSubmit };

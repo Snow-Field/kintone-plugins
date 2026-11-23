@@ -1,6 +1,15 @@
 import type { z } from 'zod';
 import type { FieldInfo } from '../hooks/usePluginForm';
 import { logger } from './logger';
+import {
+  type PluginSecrets,
+  PROXY_KEYS_CONFIG_KEY,
+  mergeProxyKeys,
+  parseProxyKeys,
+  readProxySettings,
+  SaveSupersededError,
+  storeProxyEntries,
+} from './proxyConfig';
 
 /**
  * 保存: 設定情報をJSON文字列に変換してkintoneに保存
@@ -48,7 +57,7 @@ type WaitForSaveOptions = {
  * 完了が遅れることがあるため、slowAfterMs で待っていることを知らせ、timeoutMs まで待つ
  */
 export const waitForSave = <T>(
-  save: (config: T, callback: () => void) => void,
+  save: (config: T, callback: () => void) => void | Promise<void>,
   config: T,
   { slowAfterMs = SAVE_SLOW_MS, onSlow, timeoutMs = SAVE_TIMEOUT_MS }: WaitForSaveOptions = {}
 ): Promise<void> =>
@@ -59,14 +68,19 @@ export const waitForSave = <T>(
       clearTimeout(slowTimer);
       clearTimeout(timeoutTimer);
     };
+    const fail = (error: unknown) => {
+      clearTimers();
+      reject(toError(error));
+    };
     try {
-      save(config, () => {
+      // 非同期の保存（プロキシ設定を含むもの）は、途中の失敗を Promise で知らせる
+      const pending = save(config, () => {
         clearTimers();
         resolve();
       });
+      pending?.catch(fail);
     } catch (error) {
-      clearTimers();
-      reject(toError(error));
+      fail(error);
     }
   });
 
@@ -99,8 +113,11 @@ export const loadPluginConfig = <T>({
     // 未保存なら既定値（失敗ではない）
     if (!Object.keys(rawConfig).length) return { config: defaultConfig, error: null };
 
+    // プロキシ設定のキー（予約キー）は設定の一部ではないので除く
     const parsed: Record<string, unknown> = Object.fromEntries(
-      Object.entries(rawConfig).map(([k, v]) => [k, JSON.parse(v)])
+      Object.entries(rawConfig)
+        .filter(([k]) => k !== PROXY_KEYS_CONFIG_KEY)
+        .map(([k, v]) => [k, JSON.parse(v)])
     );
     const migrated = migrate ? migrate(parsed) : parsed;
 
@@ -136,6 +153,8 @@ export type PluginConfigDefinition<T> = {
   migrate?: (parsed: Record<string, unknown>) => T;
   /** アプリのフィールドに依存する検証を含むスキーマを作る */
   createValidationSchema: (fields: FieldInfo[]) => z.ZodType<T, T>;
+  /** 秘密（API トークンなど）をプロキシ設定に分けて保存するときに渡す */
+  secrets?: PluginSecrets<T>;
 };
 
 /** 設定ファイルなどを検証した結果 */
@@ -144,18 +163,24 @@ export type PluginConfigParseResult<T> =
   | { success: false; error: Error };
 
 export type DefinedPluginConfig<T> = PluginConfigDefinition<T> & {
-  /** 設定画面用: 失敗したかどうかも返す */
+  /** 設定画面用: 失敗したかどうかも返す。secrets があれば、保存済みの秘密も読む */
   load: () => PluginConfigLoadResult<T>;
   /**
    * インポート用: 旧版からの移行を通してから検証する。
    * version が数値で入っていないものは拒否する（移行処理が version の無い設定を既定値に戻すため、
-   * 無関係なファイルが既定値として受け付けられてしまう）
+   * 無関係なファイルが既定値として受け付けられてしまう）。
+   * secrets があれば、保存済みの秘密のうち合うものを埋める（エクスポートには秘密が入らないため）
    */
   parse: (data: unknown) => PluginConfigParseResult<T>;
-  /** 実行画面用: 失敗したら既定値で動く（エラーはコンソールに出す） */
+  /** 実行画面用: 失敗したら既定値で動く（エラーはコンソールに出す）。秘密は読まない */
   restore: () => T;
-  /** 保存 */
-  store: (config: T, callback?: () => void) => void;
+  /**
+   * 保存。secrets があれば、先にプロキシ設定を保存し、消えた組を {} で上書きしてから setConfig に保存する。
+   * そのときは Promise を返し、途中の失敗は reject で知らせる
+   */
+  store: (config: T, callback: () => void) => void | Promise<void>;
+  /** エクスポートする形（secrets があれば秘密を除く） */
+  toExport: (config: T) => T;
 };
 
 /**
@@ -174,9 +199,43 @@ export const definePluginConfig = <T extends { version: number } & Record<string
     migrate: definition.migrate,
   });
 
+  const { secrets } = definition;
+
+  /** 保存済みの秘密を埋める。読めなければ例外を投げる */
+  const fill = (config: T): T => (secrets ? secrets.fill(config, readProxySettings) : config);
+
+  /** 最後に始めた保存の番号。時間切れのあとも古い保存は続くので、新しい保存を上書きしないよう止める */
+  let latestStore = 0;
+
+  const store = async (config: T, callback: () => void): Promise<void> => {
+    if (!secrets) return storePluginConfig(config, callback);
+    const id = ++latestStore;
+    const isCurrent = () => id === latestStore;
+    const saved: Record<string, string> = kintone.plugin.app.getConfig(pluginId);
+    // 前回の保存が途中で失敗すると、保存したプロキシ設定が予約キーに記録されない。
+    // そのため knownKeys も常に上書きの対象にする（記録漏れのトークンを設定画面から消せるように）
+    const previous = mergeProxyKeys(
+      parseProxyKeys(saved[PROXY_KEYS_CONFIG_KEY]),
+      secrets.knownKeys?.() ?? []
+    );
+    // setConfig より先に保存する（setConfig を先にすると、秘密の保存に失敗したときに、
+    // 実行画面が保存されていない秘密を使おうとするため）
+    const keys = await storeProxyEntries(secrets.toEntries(config), previous, isCurrent);
+    if (!isCurrent()) throw new SaveSupersededError();
+    storePluginConfig({ ...secrets.strip(config), [PROXY_KEYS_CONFIG_KEY]: keys }, callback);
+  };
+
   return {
     ...definition,
-    load: () => loadPluginConfig(params()),
+    load: () => {
+      const result = loadPluginConfig(params());
+      try {
+        return { ...result, config: fill(result.config) };
+      } catch (error) {
+        // 秘密だけを読めなかったときは、読めた設定は残す（既定値に戻すと、保存で全部を失うため）
+        return { config: result.config, error: result.error ?? toError(error) };
+      }
+    },
     parse: (data) => {
       try {
         if (typeof data !== 'object' || data === null || !('version' in data)) {
@@ -187,12 +246,13 @@ export const definePluginConfig = <T extends { version: number } & Record<string
         }
         const record = data as Record<string, unknown>;
         const migrated = definition.migrate ? definition.migrate(record) : record;
-        return { success: true, data: definition.schema.parse(migrated) };
+        return { success: true, data: fill(definition.schema.parse(migrated)) };
       } catch (error) {
         return { success: false, error: toError(error) };
       }
     },
     restore: () => restorePluginConfig(params()),
-    store: storePluginConfig,
+    store,
+    toExport: (config) => (secrets ? secrets.strip(config) : config),
   };
 };

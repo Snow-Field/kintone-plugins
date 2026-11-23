@@ -6,6 +6,15 @@ import { checkDuplicate, fetchRecord, updateRecord } from '@/shared/api/records'
 import { resolveNextSerial } from '@/shared/api/serial';
 import { executeNumbering } from './numbering';
 
+// API の呼び出しは読み込み時にプラグイン ID を読むので、読み込む前に用意する
+vi.hoisted(() => {
+  vi.stubGlobal('kintone', { $PLUGIN_ID: 'plugin-id' });
+  // kintone-utils は読み込み時に URL を読む
+  vi.stubGlobal('location', { pathname: '/k/1/' });
+});
+
+const auth = { useApiToken: false };
+
 // kintone REST API を呼ぶ処理だけをモックし、フォーマット処理は実物を使う
 vi.mock('@/shared/api/records', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/shared/api/records')>();
@@ -53,14 +62,14 @@ describe('executeNumbering', () => {
   });
 
   it('採番済みのレコードは何もしない', async () => {
-    await executeNumbering(createEvent('INV-0001'), setting);
+    await executeNumbering(createEvent('INV-0001'), setting, auth);
 
     expect(fetchRecord).not.toHaveBeenCalled();
     expect(updateRecord).not.toHaveBeenCalled();
   });
 
   it('連番をゼロ埋めして採番値を組み立て、リビジョン付きで更新する', async () => {
-    await executeNumbering(createEvent(), setting, 'token');
+    await executeNumbering(createEvent(), setting, { useApiToken: true });
 
     expect(updateRecord).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -70,7 +79,7 @@ describe('executeNumbering', () => {
         numberingValue: 'INV-0007',
         currentSerial: 7,
         revision: '5',
-        apiToken: 'token',
+        auth: { useApiToken: true },
       })
     );
   });
@@ -78,7 +87,7 @@ describe('executeNumbering', () => {
   it('重複していたら連番を進めて再試行する', async () => {
     vi.mocked(checkDuplicate).mockResolvedValueOnce(true).mockResolvedValueOnce(true);
 
-    await executeNumbering(createEvent(), setting);
+    await executeNumbering(createEvent(), setting, auth);
 
     expect(checkDuplicate).toHaveBeenCalledTimes(3);
     expect(updateRecord).toHaveBeenCalledTimes(1);
@@ -90,7 +99,7 @@ describe('executeNumbering', () => {
   it(`重複が ${DEFAULT_RETRY_COUNT} 回続いたらエラーにして利用者に通知する`, async () => {
     vi.mocked(checkDuplicate).mockResolvedValue(true);
 
-    await expect(executeNumbering(createEvent(), setting)).rejects.toThrow(
+    await expect(executeNumbering(createEvent(), setting, auth)).rejects.toThrow(
       `最大リトライ回数（${DEFAULT_RETRY_COUNT}）に達しました`
     );
     expect(checkDuplicate).toHaveBeenCalledTimes(DEFAULT_RETRY_COUNT);
@@ -101,7 +110,7 @@ describe('executeNumbering', () => {
   it('API の失敗は利用者に通知したうえで呼び出し元へ投げ直す', async () => {
     vi.mocked(updateRecord).mockRejectedValue(new Error('409 Conflict'));
 
-    await expect(executeNumbering(createEvent(), setting)).rejects.toThrow('409 Conflict');
+    await expect(executeNumbering(createEvent(), setting, auth)).rejects.toThrow('409 Conflict');
     expect(alert).toHaveBeenCalledWith('採番処理に失敗しました: 409 Conflict');
   });
 });

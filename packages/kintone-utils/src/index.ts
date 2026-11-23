@@ -10,6 +10,7 @@ export * from './hooks/useUnsavedChanges';
 export * from './lib/events';
 export * from './lib/kintone';
 export * from './lib/pluginConfig';
+export * from './lib/proxyConfig';
 export * from './lib/environment';
 export * from './lib/logger';
 export * from './states/kintone';

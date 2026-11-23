@@ -33,7 +33,7 @@ export const numberRecord = async <T extends KintoneEvent>(
   config: PluginConfig
 ): Promise<T> => {
   for (const setting of enabledSettings(config)) {
-    await executeNumbering(event, setting, config.common.apiToken);
+    await executeNumbering(event, setting, { useApiToken: config.common.useApiToken });
   }
   return event;
 };

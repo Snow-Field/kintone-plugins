@@ -4,8 +4,7 @@
 
 ## 次にやること
 
-1. フェーズ2: auto-numbering の API トークンをプロキシ設定に移す（要件は [proxy-config.md](./proxy-config.md)）
-2. フェーズ2: 保存の処理を共有パッケージに移し、汎用プラグイン `api-proxy` を作る
+1. フェーズ2: 汎用プラグイン `api-proxy` を作る（要件は [proxy-config.md](./proxy-config.md)。保存の処理は kintone-utils の `secrets` を使う）
 
 ## フェーズ
 
@@ -58,7 +57,6 @@
 | --- | --- |
 | auto-numbering で、書式のフィールドのパーツに選んだフィールドが空のまま保存すると、レコードは保存され、その後の採番が失敗して番号の無いレコードが残る（失敗の理由は表示する）。保存の前（submit イベント）に止めるかを決める | auto-numbering の `shared/handlers` |
 | auto-numbering で期間ごとにリセットするとき、同じ期間の採番値は新しい順に500件までしか見ない。それより多いと最大の連番を見落とし、重複の再試行（最大10回）で採番に失敗することがある | auto-numbering の `shared/api/serial.ts` |
-| auto-numbering は API トークンをプラグイン設定に平文で保存している。プラグイン設定はアプリを使う全員がブラウザから読めるため、トークンが漏れる。フェーズ2 でプロキシ設定に移して解消する（[proxy-config.md](./proxy-config.md)） | auto-numbering |
 | field-controller の条件のフィールドがアプリから消えていると、配列の値（「含む」で選んだ値）が文字の入力欄に「x,y」のように出る。フィールドを選び直すと値は空になる | field-controller の `ConditionRow.tsx` |
 
 ### 必要になったとき直すもの
