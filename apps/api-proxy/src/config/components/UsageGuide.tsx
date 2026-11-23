@@ -37,7 +37,7 @@ const CONDITIONS = [
 ];
 
 const RISKS = [
-  'アプリを開ける利用者は、ブラウザの開発者ツールから kintone.plugin.app.proxy を呼べます。',
+  'アプリを開ける利用者は、ブラウザの開発者ツールから kintone.plugin.app.proxy を実行できます。',
 ];
 
 const MEASURES = [
@@ -92,14 +92,18 @@ export const UsageGuide: FC = () => (
   <FormSection>
     <Heading first>API プロキシ設定プラグイン</Heading>
     <Typography sx={{ lineHeight: 1.7 }}>
-      {'API トークンなどの秘密情報を、アプリの利用者からは見えない場所（kintone のプロキシ設定）に保存します。' +
-        'JS カスタマイズや他のプラグインから kintone.plugin.app.proxy を呼ぶと、kintone のサーバーが保存した値をリクエストに付けて送ります。'}
+      API トークンなどの秘密情報を、アプリの利用者からは見えない場所（kintone
+      のプロキシ設定）に保存します。
+    </Typography>
+    <Typography sx={{ lineHeight: 1.7 }}>
+      JS カスタマイズや他のプラグインから kintone.plugin.app.proxy を呼ぶと、kintone
+      のサーバーが保存した値をリクエストに付けて送ります。
     </Typography>
 
     <Heading>使い方</Heading>
     <List items={STEPS} ordered />
 
-    <Heading>値が付く条件</Heading>
+    <Heading>ヘッダーとデータが送られる条件</Heading>
     <Typography sx={{ mb: 1, lineHeight: 1.7 }}>
       次のすべてに当てはまるリクエストに、登録したヘッダーとデータが付きます。
     </Typography>
@@ -109,7 +113,7 @@ export const UsageGuide: FC = () => (
     <Alert severity='warning'>
       <AlertTitle>値は見えませんが、利用者は登録した範囲でその権限を使えます</AlertTitle>
       <List items={RISKS} />
-      <Typography sx={{ fontWeight: 600, mt: 1.5, mb: 0.5, fontSize: 14 }}>対策</Typography>
+      <Typography sx={{ mt: 1.5, mb: 0.5, fontSize: 14 }}>対策</Typography>
       <List items={MEASURES} />
     </Alert>
 
