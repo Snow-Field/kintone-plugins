@@ -66,4 +66,4 @@ React 19 / TypeScript 7（Go で書き直されたネイティブ版。型チェ
 詳細と理由は [docs/decisions/git.md](./docs/decisions/git.md)。
 
 - Git Flow: 作業ブランチは `develop` から切り、PR で `develop` に戻す。新機能のブランチは `feature/`
-- commit の scope は対象プラグイン（`age` / `field` / `num`）か共有パッケージ（`ui` / `kintone-utils` / `plugin-shell`）。例: `feat(age): 〇〇`。複数にまたがる変更は scope を付けない
+- commit の scope は対象プラグイン（`age` / `field` / `num` / `proxy`）か共有パッケージ（`ui` / `kintone-utils` / `plugin-shell`）。例: `feat(age): 〇〇`。複数にまたがる変更は scope を付けない
