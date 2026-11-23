@@ -126,7 +126,7 @@ renderPluginConfig({ definition: pluginConfig, tabs });
 
 ## template
 
-`pnpm gen` の複製元であり、この構成の基準となる実装。workspace に入れて、lint・型チェック・CI の対象にする。`pnpm gen` は `node_modules` などの生成物を複製しない。
+`pnpm gen` の複製元であり、この構成の基準となる実装。workspace に入れて、lint・型チェック・CI の対象にする。`pnpm gen` は `node_modules` などの生成物を複製しない。template の `manifest.json` はプラグイン名と説明が空で、`pnpm gen` で聞いた値を、作ったプラグインの `manifest.json` に書き込む（`homepage_url` の末尾にはディレクトリ名を足す）。
 
 ## 並べ替えの部品
 
