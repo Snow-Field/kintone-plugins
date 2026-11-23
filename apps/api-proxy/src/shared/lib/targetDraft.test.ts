@@ -70,7 +70,7 @@ describe('fromDraft', () => {
     expect(result).toEqual({
       ok: false,
       errors: {
-        url: 'URL は http:// か https:// で始めてください',
+        url: 'URL は https:// で始めてください（http は値が暗号化されずに送られるため使えません）',
         methods: 'メソッドを1つ以上選んでください',
         headersText: 'Authorization: ヘッダーの値を入力してください',
       },

@@ -83,7 +83,7 @@ describe('無効な接続先', () => {
   it('本来の URL には保存せず、どこにも届かない URL に1件だけ値を残す', () => {
     expect(toProxyEntries([disabled])).toEqual([
       {
-        url: 'https://api-proxy-disabled.invalid/off',
+        url: `https://api-proxy-disabled.invalid/off/${encodeURIComponent(`${ORIGIN}/k/v1/`)}`,
         method: 'GET',
         headers: { 'X-Cybozu-API-Token': 'token' },
         data: {},
@@ -94,13 +94,13 @@ describe('無効な接続先', () => {
   it('値は、残した URL から読んで戻す', () => {
     const read = vi.fn(() => ({ headers: { 'X-Cybozu-API-Token': 'saved' }, data: {} }));
     const [filled] = fillTargets(stripTargets([disabled]), read);
-    expect(read).toHaveBeenCalledWith(disabledKey('off'));
+    expect(read).toHaveBeenCalledWith(disabledKey('off', `${ORIGIN}/k/v1/`));
     expect(filled?.headers[0]?.value).toBe('saved');
   });
 
   it('有効なのに本来の URL に値が無ければ、無効のときの保存先から戻す', () => {
     const read = vi.fn((key: { url: string }) =>
-      key.url === disabledKey('t').url
+      key.url === disabledKey('t', `${ORIGIN}/k/v1/`).url
         ? { headers: { 'X-Cybozu-API-Token': 'saved' }, data: {} }
         : null
     );
@@ -179,7 +179,7 @@ describe('validateTargets', () => {
   it('URL・メソッドを確かめる', () => {
     expect(issues([target({ url: '' })])).toEqual(['targets.0.url: URL を入力してください']);
     expect(issues([target({ url: 'ftp://example.com/' })])).toEqual([
-      'targets.0.url: URL は http:// か https:// で始めてください',
+      'targets.0.url: URL は https:// で始めてください（http は値が暗号化されずに送られるため使えません）',
     ]);
     expect(issues([target({ methods: [] })])).toEqual([
       'targets.0.methods: メソッドを1つ以上選んでください',
@@ -297,6 +297,39 @@ describe('validateTargets（ヘッダーの文字と数値の表記）', () => {
     expect(issues([target({ url: '' }), target({ url: '' })])).toEqual([
       'targets.0.url: URL を入力してください',
       'targets.1.url: URL を入力してください',
+    ]);
+  });
+});
+
+describe('validateTargets（URL の形）', () => {
+  const urlIssues = (url: string) => issues([target({ url })]);
+  const FORM =
+    'targets.0.url: URL はドメインの後ろに「/」を付けてください（例：https://example.com/）。ユーザー名やパスワードは含められません';
+
+  it.each([
+    ['https://example.com/'],
+    ['https://example.com/api/v1/'],
+    ['https://example.com:8443/x'],
+    ['https://example.com:443/api/'],
+    ['https://例え.jp/api/'],
+    ['https://Example.com/'],
+  ])('%s は受け付ける', (url) => {
+    expect(urlIssues(url)).toEqual([]);
+  });
+
+  it.each([
+    // 前方一致で https://example.com.evil.test/ などにも値が付いてしまう
+    ['https://example.com'],
+    ['https://example.com:8443'],
+    ['https://user:pass@example.com/'],
+    ['https://example.com?x=/'],
+  ])('%s は、別のサーバーに値が届きうるので拒否する', (url) => {
+    expect(urlIssues(url)).toEqual([FORM]);
+  });
+
+  it('http は拒否する（値が暗号化されずに送られるため）', () => {
+    expect(urlIssues('http://example.com/')).toEqual([
+      'targets.0.url: URL は https:// で始めてください（http は値が暗号化されずに送られるため使えません）',
     ]);
   });
 });

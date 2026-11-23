@@ -30,6 +30,7 @@ const METHOD_OPTIONS = PROXY_METHODS.map((m) => ({ value: m, label: m }));
 
 const URL_TIPS = [
   'この URL で始まるリクエストに値が付きます（例：…/k/v1/ を登録すると …/k/v1/records.json にも付く）',
+  'URL は利用者からも見えます。Slack の Incoming Webhook のように URL そのものが秘密情報のものは、このプラグインでは隠せません',
 ];
 
 const HEADER_TIPS = [
@@ -134,7 +135,7 @@ export const TargetDialog: FC<Props> = ({ editing, others, onApply, onClose }) =
             <FieldTitle title='説明' />
             <FormTextField<TargetDraft>
               name='memo'
-              placeholder='何に使う接続先か（例：Slack への通知）'
+              placeholder='何に使う接続先か（例：在庫アプリの更新）'
               size='small'
               fullWidth
               slotProps={{ htmlInput: { 'aria-label': '説明' } }}

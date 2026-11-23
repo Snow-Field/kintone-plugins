@@ -64,7 +64,7 @@ export const targetSecrets: PluginSecrets<PluginConfig> = {
   strip: (config) => ({ ...config, targets: stripTargets(config.targets) }),
   fill: (config, read) => ({ ...config, targets: fillTargets(config.targets, read) }),
   // 有効な接続先の「無効のときの保存先」は、保存のたびに消す（前回の保存が途中で失敗して残った値を消すため）
-  knownKeys: (config) => config.targets.map((t) => disabledKey(t.id)),
+  knownKeys: (config) => config.targets.map((t) => disabledKey(t.id, t.url)),
 };
 
 /**

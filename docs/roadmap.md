@@ -9,6 +9,8 @@
 
 アイコンは [Tabler Icons](https://tabler.io/icons)（MIT。表記は不要）で全プラグインを統一する。各プラグインへの設定は利用者が行う。
 
+`pnpm audit --prod` で、以前からある間接依存（`@hookform/resolvers` 経由の `fast-uri`、`@emotion/babel-plugin` 経由の `yaml`、`@kintone/cli` 経由の `qs`）に脆弱性が出ている（2026-11-23。悪用できる経路は見つかっていない）。別の作業で依存を上げる。
+
 ## フェーズ
 
 上から順に進める。

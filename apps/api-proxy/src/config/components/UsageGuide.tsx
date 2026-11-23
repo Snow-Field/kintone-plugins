@@ -113,8 +113,10 @@ export const UsageGuide: FC = () => (
     <Alert severity='warning'>
       <AlertTitle>値は見えませんが、利用者は登録した範囲でその権限を使えます</AlertTitle>
       <List items={RISKS} />
-      <Typography sx={{ mt: 1.5, mb: 0.5, fontSize: 14 }}>対策</Typography>
-      <List items={MEASURES} />
+      {/* 起こりうることと対策は、見出しを付けずに余白で分ける */}
+      <Box sx={{ mt: 1.5 }}>
+        <List items={MEASURES} />
+      </Box>
     </Alert>
 
     <Heading>プラグイン ID</Heading>

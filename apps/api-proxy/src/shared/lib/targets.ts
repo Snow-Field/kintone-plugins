@@ -67,17 +67,19 @@ export const toProxyEntries = (targets: Target[]): ProxyEntry[] =>
     const headers = Object.fromEntries(target.headers.map((h) => [h.key.trim(), h.value.trim()]));
     const data = Object.fromEntries(target.data.map((d) => [d.key.trim(), toDataValue(d)]));
     // 無効な接続先は、値を消さずに、どこにも届かない URL に1件だけ残す（有効に戻したときに入れ直さずに済むように）
-    if (!target.enabled) return [{ ...disabledKey(target.id), headers, data }];
+    if (!target.enabled) return [{ ...disabledKey(target.id, target.url), headers, data }];
     const url = target.url.trim();
     return target.methods.map((method) => ({ url, method, headers, data }));
   });
 
 /**
  * 無効な接続先の値を残すキー。.invalid はどこにも割り当てられないと決められたドメインなので、
- * 利用者がこの URL を proxy で呼んでも、値はどこにも届かない
+ * 利用者がこの URL を proxy で呼んでも、値はどこにも届かない。
+ * id と本来の URL の両方から作る（URL を書き換えた設定ファイルをインポートしても、別の URL の接続先に
+ * 秘密が移らないように）
  */
-export const disabledKey = (targetId: string): { url: string; method: 'GET' } => ({
-  url: `https://api-proxy-disabled.invalid/${encodeURIComponent(targetId)}`,
+export const disabledKey = (targetId: string, url: string): { url: string; method: 'GET' } => ({
+  url: `https://api-proxy-disabled.invalid/${encodeURIComponent(targetId)}/${encodeURIComponent(url.trim())}`,
   method: 'GET',
 });
 
@@ -99,7 +101,7 @@ export const fillTargets = (targets: Target[], read: ProxySettingsReader): Targe
     // 有効なのに本来の URL に値が無ければ、無効のときの保存先も探す（切り替えの保存が途中で失敗したときのため）
     const saved =
       (target.enabled && method ? read({ url: target.url.trim(), method }) : null) ??
-      read(disabledKey(target.id));
+      read(disabledKey(target.id, target.url));
     if (!saved) return target;
     return {
       ...target,
@@ -119,14 +121,31 @@ export const fillTargets = (targets: Target[], read: ProxySettingsReader): Targe
 /** 検証の結果。path はフォームの項目（例: ['targets', 0, 'url']） */
 export type TargetIssue = { path: (string | number)[]; message: string };
 
-const isHttpUrl = (value: string): boolean => {
+/**
+ * URL の誤り（無ければ null）
+ * kintone は URL を文字列の前方一致で比べるので、`https://example.com` のようにドメインの後ろに `/` が無いと、
+ * 別のドメイン（`https://example.com.other.test/` や `https://example.com@other.test/`）にも値が付き、
+ * 秘密が別のサーバーに届く。そのため、書いた文字のままで、ドメインの後ろに `/` があり、
+ * ユーザー名やパスワード（@）を含まない形だけを受け付ける（日本語ドメインや :443 も、書いたとおりに比べる）。
+ * http は経路上で値が読まれるので受け付けない
+ */
+const urlIssue = (value: string): string | null => {
+  let url: URL;
   try {
-    const { protocol } = new URL(value);
-    return protocol === 'http:' || protocol === 'https:';
+    url = new URL(value);
   } catch {
-    return false;
+    return 'URL は https:// で始めてください';
   }
+  if (url.protocol !== 'https:')
+    return 'URL は https:// で始めてください（http は値が暗号化されずに送られるため使えません）';
+  // https:// の後ろから最初の「/」までに、/ ? # @ を含まないこと（= ドメインの後ろが必ず「/」で、@ が無い）
+  if (!/^https:\/\/[^/?#@\s]+\//i.test(value)) {
+    return 'URL はドメインの後ろに「/」を付けてください（例：https://example.com/）。ユーザー名やパスワードは含められません';
+  }
+  return null;
 };
+
+const isValidUrl = (value: string): boolean => urlIssue(value) === null;
 
 /**
  * キーの検証（空と、1つの行の中での重複）
@@ -160,11 +179,9 @@ export const validateTargets = (targets: Target[]): TargetIssue[] => {
     const base = ['targets', t];
     const url = target.url.trim();
     if (!url) issues.push({ path: [...base, 'url'], message: 'URL を入力してください' });
-    else if (!isHttpUrl(url)) {
-      issues.push({
-        path: [...base, 'url'],
-        message: 'URL は http:// か https:// で始めてください',
-      });
+    else {
+      const message = urlIssue(url);
+      if (message) issues.push({ path: [...base, 'url'], message });
     }
 
     if (target.methods.length === 0) {
@@ -172,7 +189,7 @@ export const validateTargets = (targets: Target[]): TargetIssue[] => {
     }
     // URL が空か不正なときは、重なりを見ない（「URL を入力してください」と重なって紛らわしいため）
     // 無効な接続先は値が付かないので、重なりを見ない
-    for (const method of isHttpUrl(url) && target.enabled ? target.methods : []) {
+    for (const method of isValidUrl(url) && target.enabled ? target.methods : []) {
       const key = `${url} ${method}`;
       const first = seen.get(key);
       if (first === undefined) seen.set(key, t);
