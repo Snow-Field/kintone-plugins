@@ -83,8 +83,10 @@ const PluginContentForm = <T extends FieldValues>({
 
   const handleTabChange = useCallback((index: number) => setActiveTab(index), []);
 
+  // 保存中は入力を止める（完了時に保存した内容で画面を更新するため、その間の変更は消えてしまう）
+  const isSaving = loading || isSubmitting;
   // 読み込みに失敗したときは、変更が無くても既定値で保存し直せるようにする
-  const isSaveDisabled = loading || isSubmitting || (!isDirty && !showLoadError);
+  const isSaveDisabled = isSaving || (!isDirty && !showLoadError);
 
   return (
     <Box
@@ -106,7 +108,7 @@ const PluginContentForm = <T extends FieldValues>({
           保存済みの設定を読み込めなかったため、既定値を表示しています。保存すると、表示中の内容で上書きされます（原因はブラウザのコンソールに出力しています）。
         </Alert>
       )}
-      <Form tabs={tabs} activeTab={activeTab} />
+      <Form tabs={tabs} activeTab={activeTab} disabled={isSaving} />
     </Box>
   );
 };
