@@ -60,7 +60,8 @@ const PluginContentForm = <T extends FieldValues>({
 
   const menuActions = {
     reset: useResetConfig<T>({ defaultConfig, onSync: syncConfig }),
-    export: useExportConfig<T>({ pluginName: definition.name }),
+    // 秘密（API トークンなど）はファイルに書き出さない
+    export: useExportConfig<T>({ pluginName: definition.name, transform: definition.toExport }),
     // 旧版でエクスポートしたファイルも読めるよう、移行を通してから検証する。
     // アプリのフィールドに依存する検証（存在しないフィールドなど）は、反映した直後に流して表示する
     import: useImportConfig<T>({

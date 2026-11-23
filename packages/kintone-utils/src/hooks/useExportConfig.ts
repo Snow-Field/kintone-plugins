@@ -2,22 +2,26 @@ import { useCallback } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { useSnackbar } from 'notistack';
 
-type UseExportConfigProps = {
+type UseExportConfigProps<T> = {
   /** プラグイン名 */
   pluginName: string;
+  /** 書き出す前に変換する（秘密を除くなど） */
+  transform?: (config: T) => unknown;
   /** 完了時のメッセージ（任意） */
   message?: string;
 };
 
 export const useExportConfig = <T extends Record<string, unknown>>({
   pluginName,
+  transform,
   message = '設定情報をエクスポートしました',
-}: UseExportConfigProps) => {
+}: UseExportConfigProps<T>) => {
   const { getValues } = useFormContext<T>();
   const { enqueueSnackbar } = useSnackbar();
 
   const exportConfig = useCallback(() => {
-    const config = getValues();
+    const values = getValues();
+    const config = transform ? transform(values) : values;
     const jsonString = JSON.stringify(config, null, 2);
     const blob = new Blob([jsonString], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -31,7 +35,7 @@ export const useExportConfig = <T extends Record<string, unknown>>({
     URL.revokeObjectURL(url);
 
     enqueueSnackbar(message, { variant: 'success' });
-  }, [pluginName, message, getValues, enqueueSnackbar]);
+  }, [pluginName, transform, message, getValues, enqueueSnackbar]);
 
   return exportConfig;
 };
