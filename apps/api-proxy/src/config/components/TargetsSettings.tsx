@@ -6,6 +6,7 @@ import AddIcon from '@mui/icons-material/Add';
 import { FormSection, Text } from '@kintone-plugin/ui';
 import { type PluginConfig, PROXY_METHODS, type Target } from '@/shared/config';
 import { overlappingTargets } from '@/shared/lib/targets';
+import { InfoTip } from './InfoTip';
 import { TargetCard } from './TargetCard';
 
 const createTarget = (): Target => ({
@@ -16,6 +17,19 @@ const createTarget = (): Target => ({
   data: [],
   memo: '',
 });
+
+const ABOUT_TIPS = [
+  'ヘッダーと本文の値は、利用者には見えない場所（プロキシ設定）に保存します',
+  'JS カスタマイズなどから kintone.plugin.app.proxy を呼ぶと、kintone のサーバーが値を付けて送ります',
+  '保存したあと「アプリを更新」で反映します',
+];
+
+const RISK_TIPS = [
+  'アプリを開ける利用者は、開発者ツールから proxy を呼べます',
+  'kintone の API トークンは利用者本人の権限とは別に働くので、閲覧の権限が無いレコードも読めます',
+  'トークンの権限は必要なものだけにし、アプリ管理の権限は付けないでください',
+  '絞りたいときは、URL をパスまで具体的にし、メソッドを減らします',
+];
 
 /** 接続先タブ */
 export const TargetsSettings: FC = () => {
@@ -30,20 +44,20 @@ export const TargetsSettings: FC = () => {
 
   return (
     <FormSection>
-      <Text variant='sectionTitle'>接続先</Text>
-      <Text variant='description'>
-        登録したヘッダーと本文の値は、アプリの利用者には見えない場所（プロキシ設定）に保存し、kintone.plugin.app.proxy
-        のリクエストに kintone のサーバーが付けます。保存後は「アプリを更新」で反映します。
+      <Text variant='sectionTitle'>
+        接続先 <InfoTip label='接続先の説明' lines={ABOUT_TIPS} />
       </Text>
-      <Alert severity='warning' sx={{ my: 2 }}>
-        値は見えませんが、アプリを開ける利用者は誰でも、登録した URL
-        とメソッドの範囲で、その値の権限を使えます。kintone の API
-        トークンは利用者本人の権限とは別に働くので、閲覧の権限が無いレコードも読めます。トークンの権限は必要なものだけにし、アプリ管理の権限は付けないでください。
+      <Alert
+        severity='warning'
+        sx={{ mb: 2, alignItems: 'center' }}
+        action={<InfoTip label='権限についての説明' lines={RISK_TIPS} />}
+      >
+        値は隠せますが、アプリの利用者は登録した範囲でその権限を使えます
       </Alert>
 
       {overlaps.map(([a, b]) => (
         <Alert key={`${a}-${b}`} severity='info' sx={{ mb: 2 }}>
-          {`接続先 ${a + 1} と ${b + 1} は、URL の前方一致が重なっています。両方に当てはまるリクエストでは、長く一致した接続先の値が優先されます。`}
+          {`接続先 ${a + 1} と ${b + 1} は URL が前方一致で重なっています（長く一致した方の値が優先されます）`}
         </Alert>
       ))}
 
@@ -52,12 +66,11 @@ export const TargetsSettings: FC = () => {
           <TargetCard key={field.fieldKey} index={i} onRemove={() => remove(i)} />
         ))}
       </Box>
-      {fields.length === 0 && <Text variant='description'>接続先はまだありません。</Text>}
       <Button
         variant='outlined'
         startIcon={<AddIcon />}
         onClick={() => append(createTarget())}
-        sx={{ mt: 2, py: 1, width: '100%', borderStyle: 'dashed' }}
+        sx={{ mt: fields.length > 0 ? 2 : 0, py: 1, width: '100%', borderStyle: 'dashed' }}
       >
         接続先を足す
       </Button>

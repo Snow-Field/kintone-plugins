@@ -227,7 +227,7 @@ describe('validateTargets（ヘッダーの文字と数値の表記）', () => {
     ]);
   });
 
-  it.each([['12345678901234567890'], ['0x10'], ['1e3'], ['1.50']])(
+  it.each([['12345678901234567890'], ['0x10'], ['1e3'], ['1.50'], ['Infinity']])(
     '数値 %s は、保存すると別の値や表記になるので拒否する',
     (value) => {
       expect(issues([target({ data: [{ id: 'd', key: 'n', value, type: 'number' }] })])).toEqual([

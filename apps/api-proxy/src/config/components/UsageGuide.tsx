@@ -5,6 +5,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import { FormSection, Text } from '@kintone-plugin/ui';
 import { PLUGIN_ID, type PluginConfig } from '@/shared/config';
 import { callExample } from '@/shared/lib/targets';
+import { InfoTip } from './InfoTip';
 
 /** コピーのボタン。コピーできたかを、ボタンの文字で知らせる */
 const CopyButton: FC<{ text: string; label: string }> = ({ text, label }) => {
@@ -36,6 +37,12 @@ const Code: FC<{ children: string }> = ({ children }) => (
   </Paper>
 );
 
+const USAGE_TIPS = [
+  'JS カスタマイズや他のプラグインから、このプラグインの ID を指定して kintone.plugin.app.proxy を呼びます',
+  '登録した URL で始まり、メソッドが同じリクエストに、ヘッダーと本文の値が付きます',
+  'proxy はレコードの画面（一覧・詳細・追加・編集など）でだけ使えます。試すのもレコードの画面で行います',
+];
+
 /** 使い方タブ */
 export const UsageGuide: FC = () => {
   const { control } = useFormContext<PluginConfig>();
@@ -43,17 +50,11 @@ export const UsageGuide: FC = () => {
 
   return (
     <FormSection>
-      <Text variant='sectionTitle'>使い方</Text>
-      <Text variant='description'>
-        このアプリの JS カスタマイズや他のプラグインから、このプラグインの ID を指定して
-        kintone.plugin.app.proxy を呼びます。登録した URL
-        で始まり、メソッドが同じリクエストに、ヘッダーと本文の値が付きます。proxy
-        はレコードの画面（一覧・詳細・追加・編集など）でだけ使えるので、試すのもレコードの画面で行ってください。
+      <Text variant='sectionTitle'>
+        使い方 <InfoTip label='使い方の説明' lines={USAGE_TIPS} />
       </Text>
 
-      <Typography variant='subtitle2' sx={{ mt: 2 }}>
-        プラグイン ID
-      </Typography>
+      <Typography variant='subtitle2'>プラグイン ID</Typography>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <Typography component='code' sx={{ fontFamily: 'monospace' }}>
           {PLUGIN_ID}

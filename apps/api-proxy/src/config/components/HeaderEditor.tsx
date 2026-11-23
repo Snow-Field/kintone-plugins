@@ -1,15 +1,23 @@
 import type { FC } from 'react';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { nanoid } from 'nanoid';
-import { Box, Button, IconButton, Typography } from '@mui/material';
+import { Box, Button, IconButton } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import KeyIcon from '@mui/icons-material/Key';
 import { FormSecretField, FormTextField } from '@kintone-plugin/ui';
 import type { PluginConfig } from '@/shared/config';
 import { API_TOKEN_HEADER, isApiTokenHeader, MAX_API_TOKENS } from '@/shared/lib/targets';
+import { LabelWithTip } from './InfoTip';
 
 type Props = { targetIndex: number };
+
+const HEADER_TIPS = [
+  'API トークンなど、リクエストのヘッダーに付ける値です',
+  `kintone のトークンは、キー ${API_TOKEN_HEADER} で登録します`,
+  `複数のアプリ（ルックアップ元を含む）は、トークンをカンマ区切りで${MAX_API_TOKENS}個まで書けます`,
+  'キーは利用者からも見えます。値だけが伏せられます',
+];
 
 /** ヘッダーの入力。キーは見えたまま、値は伏せ字にする */
 export const HeaderEditor: FC<Props> = ({ targetIndex }) => {
@@ -21,9 +29,7 @@ export const HeaderEditor: FC<Props> = ({ targetIndex }) => {
 
   return (
     <Box>
-      <Typography variant='subtitle2' sx={{ mb: 1 }}>
-        ヘッダー
-      </Typography>
+      <LabelWithTip title='ヘッダー' label='ヘッダーの説明' lines={HEADER_TIPS} />
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
         {fields.map((field, i) => (
           <Box key={field.fieldKey} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
@@ -48,12 +54,7 @@ export const HeaderEditor: FC<Props> = ({ targetIndex }) => {
           </Box>
         ))}
       </Box>
-      {hasTokenHeader && (
-        <Typography variant='caption' sx={{ display: 'block', mt: 0.5, color: 'text.secondary' }}>
-          {`複数のアプリを扱うとき（ルックアップ元のアプリを含む）は、トークンをカンマ区切りで${MAX_API_TOKENS}個まで書けます。`}
-        </Typography>
-      )}
-      <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+      <Box sx={{ display: 'flex', gap: 1, mt: fields.length > 0 ? 1 : 0 }}>
         <Button
           size='small'
           startIcon={<AddIcon />}

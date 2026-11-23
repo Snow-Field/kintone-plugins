@@ -1,116 +1,132 @@
-import type { FC } from 'react';
-import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
+import { type FC, useState } from 'react';
+import { useFormContext, useFormState, useWatch } from 'react-hook-form';
 import { nanoid } from 'nanoid';
-import { Box, Button, IconButton, Typography } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { FormSecretField, FormSelect, FormTextField } from '@kintone-plugin/ui';
-import type { DataValueType, PluginConfig, ProxyMethod } from '@/shared/config';
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  TextField,
+  Typography,
+} from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import type { PluginConfig } from '@/shared/config';
+import { dataToJson, jsonToData } from '@/shared/lib/dataJson';
+import { LabelWithTip } from './InfoTip';
 
 type Props = { targetIndex: number };
 
-const TYPE_OPTIONS: { value: DataValueType; label: string }[] = [
-  { value: 'string', label: '文字' },
-  { value: 'number', label: '数値' },
-  { value: 'boolean', label: '真偽' },
+const DATA_TIPS = [
+  '固定したい値や、毎回送る値を書きます（任意）',
+  'GET・DELETE：URL のクエリ文字列に足されます。呼び出し側の同じキーは消えないので、固定はできません',
+  'POST・PUT：呼び出し側の本文がオブジェクトのときに足され、同じキーは保存した値が優先されます',
+  '本文を文字列（JSON.stringify など）で渡すと足されません',
 ];
 
-const BOOLEAN_OPTIONS = [
-  { value: 'true', label: 'true' },
-  { value: 'false', label: 'false' },
-];
-
-/** 選んだメソッドに合わせて、本文の値がどう送られるかを説明する */
-const describeDelivery = (methods: ProxyMethod[]): string[] => {
-  const lines: string[] = [];
-  if (methods.some((m) => m === 'GET' || m === 'DELETE')) {
-    lines.push(
-      'GET・DELETE: URL のクエリ文字列に足されます。呼び出し側が同じキーを付けても消えないので、値を固定することはできません。'
-    );
-  }
-  if (methods.some((m) => m === 'POST' || m === 'PUT')) {
-    lines.push(
-      'POST・PUT: 呼び出し側の本文がオブジェクトのときに足され、同じキーは保存した値が優先されます（値を固定できます）。本文を文字列（JSON.stringify など）で渡すと足されません。'
-    );
-  }
-  return lines;
-};
-
-/** 本文の値の入力。キーは見えたまま、値は伏せ字にする */
+/**
+ * 本文の値。ふだんはキーの一覧だけを出し（値は伏せる）、編集はダイアログで JSON をまとめて書く
+ * 種類（文字・数値・真偽）は JSON の値から決まる
+ */
 export const DataEditor: FC<Props> = ({ targetIndex }) => {
-  const { control, setValue } = useFormContext<PluginConfig>();
+  const { control, getValues, setValue } = useFormContext<PluginConfig>();
   const name = `targets.${targetIndex}.data` as const;
-  const { fields, append, remove } = useFieldArray({ control, name, keyName: 'fieldKey' });
   const items = useWatch({ control, name }) ?? [];
-  const methods = useWatch({ control, name: `targets.${targetIndex}.methods` }) ?? [];
+  const { errors } = useFormState({ control, name });
+  // 行ごとの入力欄が無いので、行の検証エラーを「キー: 理由」の一覧にして出す
+  const dataErrors = errors.targets?.[targetIndex]?.data;
+  const errorLines = Array.isArray(dataErrors)
+    ? dataErrors.flatMap((rowError, i) => {
+        if (!rowError) return [];
+        const message = rowError.key?.message ?? rowError.value?.message;
+        return message ? [`${items[i]?.key || `${i + 1}番目`}: ${message}`] : [];
+      })
+    : [];
+
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState('');
+  const [message, setMessage] = useState<string | null>(null);
+
+  const openDialog = () => {
+    setText(dataToJson(getValues(name)));
+    setMessage(null);
+    setOpen(true);
+  };
+
+  const apply = () => {
+    const result = jsonToData(text, getValues(name), nanoid);
+    if (!result.ok) {
+      setMessage(result.message);
+      return;
+    }
+    setValue(name, result.items, { shouldDirty: true, shouldValidate: true });
+    setOpen(false);
+  };
 
   return (
     <Box>
-      <Typography variant='subtitle2' sx={{ mb: 1 }}>
-        本文の値（任意）
-      </Typography>
-      {fields.length > 0 &&
-        describeDelivery(methods).map((line) => (
-          <Typography
-            key={line}
-            variant='caption'
-            sx={{ display: 'block', mb: 1, color: 'text.secondary' }}
-          >
-            {line}
-          </Typography>
-        ))}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-        {fields.map((field, i) => (
-          <Box key={field.fieldKey} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-            <FormTextField<PluginConfig>
-              name={`${name}.${i}.key`}
-              label='キー'
-              size='small'
-              sx={{ width: 240 }}
-            />
-            <FormSelect<PluginConfig>
-              name={`${name}.${i}.type`}
-              label='種類'
-              options={TYPE_OPTIONS}
-              size='small'
-              sx={{ width: 110 }}
-              // 種類を変えたら、前の種類の値は合わないので入れ直してもらう（真偽は true から始める）
-              onValueChange={(type) =>
-                setValue(`${name}.${i}.value`, type === 'boolean' ? 'true' : '', {
-                  shouldValidate: true,
-                })
-              }
-            />
-            {items[i]?.type === 'boolean' ? (
-              <FormSelect<PluginConfig>
-                name={`${name}.${i}.value`}
-                label='値'
-                options={BOOLEAN_OPTIONS}
-                size='small'
-                sx={{ flex: 1 }}
-              />
-            ) : (
-              <FormSecretField<PluginConfig>
-                name={`${name}.${i}.value`}
-                label='値'
-                size='small'
-                sx={{ flex: 1 }}
-              />
-            )}
-            <IconButton aria-label={`本文の値 ${i + 1} を削除`} onClick={() => remove(i)}>
-              <DeleteIcon />
-            </IconButton>
-          </Box>
-        ))}
+      <LabelWithTip title='本文の値' label='本文の値の説明' lines={DATA_TIPS} />
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Typography
+          variant='body2'
+          sx={{ flex: 1, color: items.length === 0 ? 'text.secondary' : 'text.primary' }}
+        >
+          {items.length === 0
+            ? 'なし'
+            : `${items.map((item) => item.key).join(', ')}（値は伏せています）`}
+        </Typography>
+        <Button size='small' startIcon={<EditIcon />} onClick={openDialog}>
+          編集
+        </Button>
       </Box>
-      <Button
-        size='small'
-        startIcon={<AddIcon />}
-        onClick={() => append({ id: nanoid(), key: '', value: '', type: 'string' })}
-        sx={{ mt: 1 }}
+      {errorLines.map((line) => (
+        <Typography key={line} variant='caption' sx={{ display: 'block', color: 'error.main' }}>
+          {line}
+        </Typography>
+      ))}
+
+      <Dialog
+        open={open}
+        // 外を押しただけで閉じると、書きかけの JSON が消えるため、閉じるのはボタンと Esc だけにする
+        onClose={(_, reason) => {
+          if (reason !== 'backdropClick') setOpen(false);
+        }}
+        fullWidth
+        maxWidth='sm'
       >
-        本文の値を足す
-      </Button>
+        <DialogTitle>本文の値</DialogTitle>
+        <DialogContent>
+          <Typography variant='body2' sx={{ mb: 1.5, color: 'text.secondary' }}>
+            {
+              '{ "キー": 値 } の形で書きます。値は文字・数値・true / false のどれかです。同じキーを2回書くと、後の値だけが使われます。'
+            }
+          </Typography>
+          <TextField
+            value={text}
+            onChange={(e) => {
+              setText(e.target.value);
+              setMessage(null);
+            }}
+            multiline
+            minRows={6}
+            fullWidth
+            autoFocus
+            spellCheck={false}
+            placeholder={'{\n  "channel": "C01234",\n  "limit": 100\n}'}
+            error={message !== null}
+            helperText={message ?? ' '}
+            slotProps={{ htmlInput: { 'aria-label': '本文の値（JSON）' } }}
+            sx={{ '& textarea': { fontFamily: 'monospace' } }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpen(false)}>キャンセル</Button>
+          <Button variant='contained' onClick={apply}>
+            反映する
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

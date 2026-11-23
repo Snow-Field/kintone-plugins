@@ -31,7 +31,8 @@ const HEADER_VALUE_FORBIDDEN = /[\u0000-\u0008\u000a-\u001f\u007f]/;
  */
 const isPlainNumber = (value: string): boolean => {
   const trimmed = value.trim();
-  return trimmed !== '' && String(Number(trimmed)) === trimmed;
+  // 'Infinity' も文字に戻すと同じになるので、有限かどうかも見る
+  return trimmed !== '' && Number.isFinite(Number(trimmed)) && String(Number(trimmed)) === trimmed;
 };
 
 /** 大文字小文字を区別せずにキーで探す（HTTP のヘッダー名は区別しないため） */
