@@ -4,7 +4,7 @@ import { useSnackbar } from 'notistack';
 import { logger } from '../lib/logger';
 
 type Schema<T> = {
-  safeParse: (data: unknown) => { success: true; data: T } | { success: false; error: any };
+  safeParse: (data: unknown) => { success: true; data: T } | { success: false; error: unknown };
 };
 
 type UseImportConfigProps<T> = {

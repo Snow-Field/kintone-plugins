@@ -142,7 +142,7 @@ function validateBlocks(
  * @param fields - kintoneアプリのフィールド情報（usePluginForm の FieldInfo と互換）
  * @returns 動的バリデーションが追加されたZodスキーマ
  */
-export function createConfigSchema(fields: FieldInfo[]): ZodType<PluginConfig> {
+export function createConfigSchema(fields: FieldInfo[]): ZodType<PluginConfig, PluginConfig> {
   const fieldInfoMap = new Map(fields.map((f) => [f.code, f]));
 
   return PluginConfigSchema.superRefine((config, ctx) => {

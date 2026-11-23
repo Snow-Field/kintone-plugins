@@ -16,7 +16,7 @@ type UsePluginFormProps<T extends FieldValues> = {
   /** プラグインの初期設定値 */
   defaultValues: DefaultValues<T>;
   /** フィールド情報のリストを受け取ってスキーマを生成する関数 */
-  createSchema: (fields: FieldInfo[]) => z.ZodType<T, any, any>;
+  createSchema: (fields: FieldInfo[]) => z.ZodType<T, T>;
 };
 
 /**

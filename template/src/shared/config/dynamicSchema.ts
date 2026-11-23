@@ -6,12 +6,12 @@ import { PluginConfigSchema, type PluginConfig } from '@/shared/config/staticSch
  * 動的な検証を含むスキーマを生成する
  * @param fields アプリに存在するフィールドの一覧
  */
-export const createConfigSchema = (fields: FieldInfo[]): ZodType<PluginConfig> => {
+export const createConfigSchema = (fields: FieldInfo[]): ZodType<PluginConfig, PluginConfig> => {
   const _fieldCodeSet = new Set(fields.map((f) => f.code));
-  return PluginConfigSchema.superRefine((_, ctx) => {
+  return PluginConfigSchema.superRefine((_, _ctx) => {
     // テンプレート用のサンプルバリデーション
     /*
-    ctx.addIssue({
+    _ctx.addIssue({
       code: 'custom',
       message: '指定されたフィールドがアプリ内に見つかりません',
       path: ['conditions'],

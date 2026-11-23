@@ -5,7 +5,7 @@ import { logger } from './logger';
 /**
  * 保存: 設定情報をJSON文字列に変換してkintoneに保存
  */
-export const storePluginConfig = <T extends Record<string, any>>(
+export const storePluginConfig = <T extends Record<string, unknown>>(
   config: T,
   callback?: () => void
 ): void => {
@@ -135,7 +135,7 @@ export type PluginConfigDefinition<T> = {
   /** 旧版の設定を最新版に変換する */
   migrate?: (parsed: Record<string, unknown>) => T;
   /** アプリのフィールドに依存する検証を含むスキーマを作る */
-  createValidationSchema: (fields: FieldInfo[]) => z.ZodType<T>;
+  createValidationSchema: (fields: FieldInfo[]) => z.ZodType<T, T>;
 };
 
 /** 設定ファイルなどを検証した結果 */
@@ -163,7 +163,7 @@ export type DefinedPluginConfig<T> = PluginConfigDefinition<T> & {
  * プラグインのスクリプトの読み込み時（モジュールの最上位）に呼ぶこと。
  * kintone.$PLUGIN_ID は読み込み時にしか正しい値が保証されないため、ここで読んで保持する
  */
-export const definePluginConfig = <T extends { version: number } & Record<string, any>>(
+export const definePluginConfig = <T extends { version: number } & Record<string, unknown>>(
   definition: PluginConfigDefinition<T>
 ): DefinedPluginConfig<T> => {
   const pluginId = kintone.$PLUGIN_ID;

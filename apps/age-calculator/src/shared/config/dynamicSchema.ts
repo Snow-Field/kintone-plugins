@@ -11,7 +11,7 @@ const FIELD_CODE_KEYS = ['srcFieldCode', 'destFieldCode'] as const satisfies Rea
  * アプリのフィールドに依存する検証を含むスキーマを作る
  * @param fields アプリに存在するフィールドの一覧
  */
-export const createConfigSchema = (fields: FieldInfo[]): ZodType<PluginConfig> => {
+export const createConfigSchema = (fields: FieldInfo[]): ZodType<PluginConfig, PluginConfig> => {
   const fieldCodes = new Set(fields.map((f) => f.code));
   return PluginConfigSchema.superRefine(({ conditions }, ctx) => {
     conditions.forEach((condition, index) => {
