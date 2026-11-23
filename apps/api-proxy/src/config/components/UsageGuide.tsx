@@ -24,21 +24,51 @@ const CopyButton: FC<{ text: string; label: string }> = ({ text, label }) => {
   );
 };
 
-const USAGE_LINES = [
-  'ヘッダーとデータは、利用者には見えない場所（プロキシ設定）に保存します',
-  'JS カスタマイズや他のプラグインから、このプラグインの ID を指定して kintone.plugin.app.proxy を呼ぶと、kintone のサーバーが値を付けて送ります',
-  '登録した URL で始まり、メソッドが同じリクエストに、ヘッダーとデータが付きます',
-  'proxy はレコードの画面（一覧・詳細・追加・編集など）でだけ使えます',
-  '接続先を保存したあと「アプリを更新」で反映します',
+const STEPS = [
+  '「接続先」タブで、接続先の URL・メソッド・ヘッダー（API トークンなど）を登録します。',
+  '「設定を保存」を押し、アプリの設定画面で「アプリを更新」を押します。',
+  'アプリの JS カスタマイズなどから、下のプラグイン ID を指定して kintone.plugin.app.proxy を呼びます（呼び出しの例を参考にしてください）。',
 ];
 
-const RISK_LINES = [
-  'アプリを開ける利用者は、開発者ツールから proxy を呼べます',
-  'kintone の API トークンは利用者本人の権限とは別に働くので、閲覧の権限が無いレコードも読めます',
-  'トークンの権限は必要なものだけにし、アプリ管理の権限は付けないでください',
-  '絞りたいときは、URL をパスまで具体的にし、メソッドを減らします',
-  'URL・説明・ヘッダーとデータのキーは利用者からも見えるので、秘密情報を書かないでください',
+const CONDITIONS = [
+  '呼び出した URL が、登録した URL で始まる',
+  'メソッドが、登録したメソッドのどれかと同じ',
+  'このプラグインを追加したアプリの、レコードの画面（一覧・詳細・追加・編集など）から呼んでいる',
 ];
+
+const RISKS = [
+  'アプリを開ける利用者は、ブラウザの開発者ツールから kintone.plugin.app.proxy を呼べます。',
+  'kintone の API トークンは、利用者本人の権限とは関係なく働きます。閲覧の権限が無いレコードも読めてしまいます。',
+];
+
+const MEASURES = [
+  'API トークンには必要な権限だけを付け、アプリ管理の権限は付けないでください。',
+  '使う API が決まっているときは、URL をパスまで具体的にし（例：…/k/v1/records.json）、メソッドも必要なものだけにします。',
+  'URL・説明・ヘッダーとデータのキー名は、利用者からも見えます（値は見えません）。秘密情報は書かないでください。',
+];
+
+/** 見出し */
+const Heading: FC<{ children: string; first?: boolean }> = ({ children, first }) => (
+  <Typography sx={{ fontWeight: 600, fontSize: 15, mt: first ? 0 : 3, mb: 1 }}>
+    {children}
+  </Typography>
+);
+
+/** 箇条書き（kintone の CSS で記号が消えるので、記号を指定する） */
+const List: FC<{ items: string[]; ordered?: boolean }> = ({ items, ordered }) => (
+  <Box
+    component={ordered ? 'ol' : 'ul'}
+    sx={{
+      m: 0,
+      pl: 3,
+      '& > li': { listStyle: ordered ? 'decimal' : 'disc', mb: 0.75, lineHeight: 1.7 },
+    }}
+  >
+    {items.map((item) => (
+      <li key={item}>{item}</li>
+    ))}
+  </Box>
+);
 
 /**
  * 呼び出しの例（レコード一覧の画面で、kintone の REST API からレコードを取得する）
@@ -58,27 +88,33 @@ const EXAMPLE = [
   `});`,
 ].join('\n');
 
-/** 使い方タブ */
+/** 使い方タブ（設定する管理者へのヘルプ） */
 export const UsageGuide: FC = () => (
   <FormSection>
-    {/* 仕組みと使い方は、ⓘ に隠さず本文として出す */}
-    <Box component='ul' sx={{ mt: 0, mb: 2, pl: 2.5, '& > li': { listStyle: 'disc', mb: 0.5 } }}>
-      {USAGE_LINES.map((line) => (
-        <li key={line}>{line}</li>
-      ))}
-    </Box>
+    <Heading first>このプラグインでできること</Heading>
+    <Typography sx={{ lineHeight: 1.7 }}>
+      {'API トークンなどの秘密情報を、アプリの利用者からは見えない場所（kintone のプロキシ設定）に保存します。' +
+        'JS カスタマイズや他のプラグインから kintone.plugin.app.proxy を呼ぶと、kintone のサーバーが保存した値をリクエストに付けて送ります。'}
+    </Typography>
 
-    {/* 安全に関わるので、ⓘ に隠さず全文を出す */}
-    <Alert severity='warning' sx={{ mb: 3 }}>
-      <AlertTitle>値は隠せますが、アプリの利用者は登録した範囲でその権限を使えます</AlertTitle>
-      <Box component='ul' sx={{ m: 0, pl: 2.5, '& > li': { listStyle: 'disc' } }}>
-        {RISK_LINES.map((line) => (
-          <li key={line}>{line}</li>
-        ))}
-      </Box>
+    <Heading>使い方</Heading>
+    <List items={STEPS} ordered />
+
+    <Heading>値が付く条件</Heading>
+    <Typography sx={{ mb: 1, lineHeight: 1.7 }}>
+      次のすべてに当てはまるリクエストに、登録したヘッダーとデータが付きます。
+    </Typography>
+    <List items={CONDITIONS} />
+
+    <Heading>注意</Heading>
+    <Alert severity='warning'>
+      <AlertTitle>値は見えませんが、利用者は登録した範囲でその権限を使えます</AlertTitle>
+      <List items={RISKS} />
+      <Typography sx={{ fontWeight: 600, mt: 1.5, mb: 0.5, fontSize: 14 }}>対策</Typography>
+      <List items={MEASURES} />
     </Alert>
 
-    <Typography variant='subtitle2'>プラグイン ID</Typography>
+    <Heading>プラグイン ID</Heading>
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
       <Typography component='code' sx={{ fontFamily: 'monospace' }}>
         {PLUGIN_ID}
@@ -86,9 +122,9 @@ export const UsageGuide: FC = () => (
       <CopyButton text={PLUGIN_ID} label='コピー' />
     </Box>
 
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 3, mb: 0.5 }}>
-      <Typography variant='subtitle2' sx={{ flex: 1 }}>
-        呼び出しの例（kintone のレコードを取得する）
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 3, mb: 1 }}>
+      <Typography sx={{ fontWeight: 600, fontSize: 15, flex: 1 }}>
+        呼び出しの例（レコード一覧の画面で、このアプリのレコードを取得する）
       </Typography>
       <CopyButton text={EXAMPLE} label='例をコピー' />
     </Box>
