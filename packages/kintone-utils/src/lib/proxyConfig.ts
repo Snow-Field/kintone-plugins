@@ -39,7 +39,7 @@ export type PluginSecrets<T> = {
    * 保存しうるキーが決まっていれば返す。保存のたびに、今回保存しないものを {} で上書きする
    * （前回の保存が途中で失敗し、予約キーに記録されなかった組も消せるように）
    */
-  knownKeys?: () => ProxyKey[];
+  knownKeys?: (config: T) => ProxyKey[];
 };
 
 /**

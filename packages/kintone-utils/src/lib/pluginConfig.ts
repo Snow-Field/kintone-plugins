@@ -216,7 +216,7 @@ export const definePluginConfig = <T extends { version: number } & Record<string
     // そのため knownKeys も常に上書きの対象にする（記録漏れのトークンを設定画面から消せるように）
     const previous = mergeProxyKeys(
       parseProxyKeys(saved[PROXY_KEYS_CONFIG_KEY]),
-      secrets.knownKeys?.() ?? []
+      secrets.knownKeys?.(config) ?? []
     );
     // setConfig より先に保存する（setConfig を先にすると、秘密の保存に失敗したときに、
     // 実行画面が保存されていない秘密を使おうとするため）
