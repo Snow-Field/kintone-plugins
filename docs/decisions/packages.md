@@ -6,10 +6,18 @@
 - `template/` は workspace に入れ、lint・型チェック・CI の対象にする
 - kintone の型は公式（`@kintone/dts-gen`・`@kintone/rest-api-client`）を正とし、`kintone-utils` が自前で持つのはレコード画面のイベントの外枠だけにする
 - 共有パッケージは `"sideEffects": false` を付け、入口は1つのままにする
+- 各プラグインの補助スクリプト（`.env`・秘密鍵の作成、アップロード）は `@kintone-plugin/plugin-scripts` の bin にまとめる
 
 詳細は [architecture.md](../architecture.md)。
 
 ## 判断履歴
+
+### 2026-11-23 プラグインの補助スクリプトを共有パッケージ plugin-scripts にまとめる
+
+- 背景: `.env` の作成（`dotenv.js`）・秘密鍵の作成（`genkey.js`）・アップロード（`upload.js`）が、template と3プラグインの4か所に同じ内容でコピーされていた。`pnpm gen` で新しいプラグインを作るたびにコピーが増える
+- 検討した選択肢: (A) 共有パッケージ `@kintone-plugin/plugin-scripts` を作り、bin として提供する (B) ルートの `scripts/` に置き、各プラグインから `node ../../scripts/upload.js` のように呼ぶ
+- 決定: (A)。複数のプラグインで使うものは `packages/` に置くという約束に沿い、プラグインのフォルダの深さにも依存しない。スクリプトはパスを `process.cwd()` から決める（pnpm は各プラグインのフォルダで実行するため）
+- 却下した理由: (B) はパッケージも install も要らないが、相対パスがプラグインの置き場所（`apps/<名前>`）に依存する
 
 ### 2026-11-23 共有パッケージに sideEffects: false を付け、入口は分けない
 

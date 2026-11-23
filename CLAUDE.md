@@ -24,6 +24,7 @@
 | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | `template/`                                    | `pnpm gen` の複製元（パッケージ名 `plugin-starter`）。lint・型チェック・テストの対象だが、`dev`・`build` の対象からは外している |
 | `packages/ui`・`kintone-utils`・`plugin-shell` | ビルドせず TS ソースのまま各プラグインから参照される（`main: src/index.ts`）                                                    |
+| `packages/plugin-scripts`                      | 各プラグインの `init:env`・`init:key`・`upload` が呼ぶコマンド（bin）。プラグインのフォルダで実行する前提で、そこにある `.env`・`private.ppk` を使う |
 | `apps/*/private.ppk`                           | プラグイン ID の元になる秘密鍵（git 管理外）。作り直すと別プラグイン扱いになる                                                  |
 
 - **変更してはいけないファイル**: `apps/*/dist/`・`apps/*/artifacts/`（生成物）、`apps/*/private.ppk`、`apps/*/.env`

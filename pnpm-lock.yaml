@@ -344,9 +344,9 @@ importers:
         specifier: 'catalog:'
         version: 4.6.7
     devDependencies:
-      '@clack/prompts':
-        specifier: 'catalog:'
-        version: 1.9.0
+      '@kintone-plugin/plugin-scripts':
+        specifier: workspace:*
+        version: link:../../packages/plugin-scripts
       '@kintone-plugin/tsconfig':
         specifier: workspace:*
         version: link:../../packages/tsconfig
@@ -435,9 +435,9 @@ importers:
         specifier: 'catalog:'
         version: 4.6.7
     devDependencies:
-      '@clack/prompts':
-        specifier: 'catalog:'
-        version: 1.9.0
+      '@kintone-plugin/plugin-scripts':
+        specifier: workspace:*
+        version: link:../../packages/plugin-scripts
       '@kintone-plugin/tsconfig':
         specifier: workspace:*
         version: link:../../packages/tsconfig
@@ -523,9 +523,9 @@ importers:
         specifier: 'catalog:'
         version: 4.6.7
     devDependencies:
-      '@clack/prompts':
-        specifier: 'catalog:'
-        version: 1.9.0
+      '@kintone-plugin/plugin-scripts':
+        specifier: workspace:*
+        version: link:../../packages/plugin-scripts
       '@kintone-plugin/tsconfig':
         specifier: workspace:*
         version: link:../../packages/tsconfig
@@ -620,6 +620,15 @@ importers:
       vitest:
         specifier: 'catalog:'
         version: 5.1.1(@types/node@25.0.8)(jsdom@31.0.1)(vite@8.3.8(@types/node@25.0.8)(jiti@2.6.1))
+
+  packages/plugin-scripts:
+    dependencies:
+      '@clack/prompts':
+        specifier: 'catalog:'
+        version: 1.9.0
+      '@kintone/cli':
+        specifier: 'catalog:'
+        version: 1.22.6(@types/node@25.0.8)(debug@4.4.3(supports-color@7.2.0))(supports-color@7.2.0)
 
   packages/plugin-shell:
     dependencies:
@@ -814,12 +823,12 @@ importers:
         specifier: 'catalog:'
         version: 4.6.7
     devDependencies:
-      '@clack/prompts':
-        specifier: 'catalog:'
-        version: 1.9.0
       '@kintone-plugin/kintone-utils':
         specifier: workspace:*
         version: link:../packages/kintone-utils
+      '@kintone-plugin/plugin-scripts':
+        specifier: workspace:*
+        version: link:../packages/plugin-scripts
       '@kintone-plugin/tsconfig':
         specifier: workspace:*
         version: link:../packages/tsconfig

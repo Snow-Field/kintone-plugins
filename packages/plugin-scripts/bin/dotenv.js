@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import * as prompts from '@clack/prompts';
 import fs from 'node:fs/promises';
 import path from 'node:path';

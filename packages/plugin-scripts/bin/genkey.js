@@ -1,10 +1,10 @@
+#!/usr/bin/env node
 import { spawn } from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ROOT_DIR = path.resolve(__dirname, '..');
+// プラグインのフォルダ（pnpm は各プラグインの package.json のある場所で実行する）
+const ROOT_DIR = process.cwd();
 const PRIVATE_KEY_PATH = path.join(ROOT_DIR, 'private.ppk');
 
 /**
